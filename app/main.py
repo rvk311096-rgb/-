@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse
 from dotenv import load_dotenv
 import logging
 
-from bitrix_client import BitrixClient
+from app.bitrix_client import BitrixClient
 
 load_dotenv()
 
@@ -22,13 +22,16 @@ API_KEY = os.getenv("BITRIX_API_KEY", "")
 
 client = BitrixClient(base_url=BASE_URL, api_key=API_KEY)
 
-templates = Jinja2Templates(directory="/app/templates")
-app.mount("/static", StaticFiles(directory="/app/static"), name="static")
+_BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+templates = Jinja2Templates(directory=os.path.join(_BASE, "templates"))
+_static_dir = os.path.join(_BASE, "static")
+if os.path.isdir(_static_dir):
+    app.mount("/static", StaticFiles(directory=_static_dir), name="static")
 
 
 @app.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request, "index.html")
 
 
 @app.get("/api/stats")
