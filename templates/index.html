@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ежедневный отчёт менеджеров</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: #fff;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+
+    header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: 0.5px; }
+    header .subtitle { font-size: 0.8rem; opacity: 0.7; margin-top: 2px; }
+
+    .date-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .date-controls input[type="date"] {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      cursor: pointer;
+    }
+    .date-controls input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+
+    .btn {
+      padding: 8px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: #e94560; color: #fff; }
+    .btn-primary:hover { background: #c73652; transform: translateY(-1px); }
+
+    main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 22px 24px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+      border-left: 4px solid transparent;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+    .card.calls  { border-color: #3b82f6; }
+    .card.messages { border-color: #10b981; }
+    .card.meetings { border-color: #8b5cf6; }
+    .card.overdue  { border-color: #ef4444; }
+    .card.users    { border-color: #f59e0b; }
+
+    .card-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+    .card-value { font-size: 2.2rem; font-weight: 800; line-height: 1; }
+    .card.calls    .card-value { color: #3b82f6; }
+    .card.messages .card-value { color: #10b981; }
+    .card.meetings .card-value { color: #8b5cf6; }
+    .card.overdue  .card-value { color: #ef4444; }
+    .card.users    .card-value { color: #f59e0b; }
+    .card-icon { font-size: 1.5rem; float: right; opacity: 0.25; margin-top: -4px; }
+
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .table-wrapper {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead { background: #1a1a2e; color: #fff; }
+    thead th {
+      padding: 14px 18px;
+      text-align: left;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-weight: 600;
+    }
+    thead th.num { text-align: center; }
+
+    tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #fafbff; }
+
+    tbody td { padding: 13px 18px; font-size: 0.9rem; }
+    tbody td.num { text-align: center; font-weight: 700; font-size: 1rem; }
+    tbody td.num.zero { color: #d1d5db; }
+    tbody td.overdue-val { color: #ef4444; }
+    tbody td.overdue-val.zero { color: #d1d5db; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-ok { background: #dcfce7; color: #16a34a; }
+    .badge-warn { background: #fee2e2; color: #dc2626; }
+
+    .name-cell { display: flex; align-items: center; gap: 10px; }
+    .avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.8rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    #loading {
+      text-align: center;
+      padding: 60px;
+      color: #6b7280;
+      font-size: 1.1rem;
+    }
+    .spinner {
+      display: inline-block;
+      width: 32px; height: 32px;
+      border: 3px solid #e5e7eb;
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-bottom: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #error-box {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .report-date {
+      font-size: 0.82rem;
+      color: #9ca3af;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 700px) {
+      main { padding: 16px; }
+      header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      thead th:nth-child(n+4) { display: none; }
+      tbody td:nth-child(n+4) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>📊 Ежедневный отчёт</h1>
+      <div class="subtitle">Активность менеджеров и аккаунтов</div>
+    </div>
+    <div class="date-controls">
+      <input type="date" id="date-input" />
+      <button class="btn btn-primary" onclick="loadStats()">Обновить</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="error-box"></div>
+    <div id="content" style="display:none">
+      <div class="report-date" id="report-date"></div>
+      <div class="summary-grid">
+        <div class="card calls">
+          <span class="card-icon">📞</span>
+          <div class="card-label">Звонки</div>
+          <div class="card-value" id="t-calls">–</div>
+        </div>
+        <div class="card messages">
+          <span class="card-icon">💬</span>
+          <div class="card-label">Сообщения</div>
+          <div class="card-value" id="t-messages">–</div>
+        </div>
+        <div class="card meetings">
+          <span class="card-icon">🤝</span>
+          <div class="card-label">Встречи</div>
+          <div class="card-value" id="t-meetings">–</div>
+        </div>
+        <div class="card overdue">
+          <span class="card-icon">⚠️</span>
+          <div class="card-label">Просроченных дел</div>
+          <div class="card-value" id="t-overdue">–</div>
+        </div>
+        <div class="card users">
+          <span class="card-icon">👥</span>
+          <div class="card-label">Сотрудников</div>
+          <div class="card-value" id="t-users">–</div>
+        </div>
+      </div>
+
+      <div class="section-title">🧑‍💼 По сотрудникам</div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Сотрудник</th>
+              <th class="num">Звонки</th>
+              <th class="num">Сообщения</th>
+              <th class="num">Встречи</th>
+              <th class="num">Просроченных</th>
+              <th class="num">Статус</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="loading">
+      <div><div class="spinner"></div></div>
+      Загрузка данных...
+    </div>
+  </main>
+
+  <script>
+    const dateInput = document.getElementById('date-input');
+
+    function todayStr() {
+      return new Date().toISOString().split('T')[0];
+    }
+
+    dateInput.value = todayStr();
+    dateInput.max = todayStr();
+
+    function initials(name) {
+      return name.split(' ').map(p => p[0] || '').join('').slice(0, 2).toUpperCase();
+    }
+
+    function numCell(val, extraClass = '') {
+      const cls = val === 0 ? 'zero' : '';
+      return `<td class="num ${cls} ${extraClass}">${val}</td>`;
+    }
+
+    async function loadStats() {
+      const d = dateInput.value || todayStr();
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('content').style.display = 'none';
+      document.getElementById('error-box').style.display = 'none';
+
+      try {
+        const resp = await fetch(`/api/stats?target_date=${d}`);
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({detail: resp.statusText}));
+          throw new Error(err.detail || resp.statusText);
+        }
+        const data = await resp.json();
+        renderStats(data);
+      } catch (e) {
+        const box = document.getElementById('error-box');
+        box.textContent = `Ошибка: ${e.message}`;
+        box.style.display = 'block';
+      } finally {
+        document.getElementById('loading').style.display = 'none';
+      }
+    }
+
+    function renderStats(data) {
+      // Totals
+      document.getElementById('t-calls').textContent = data.totals.calls;
+      document.getElementById('t-messages').textContent = data.totals.messages;
+      document.getElementById('t-meetings').textContent = data.totals.meetings;
+      document.getElementById('t-overdue').textContent = data.totals.overdue_tasks;
+      document.getElementById('t-users').textContent = data.totals.total_users;
+
+      const formatted = new Date(data.date + 'T12:00:00').toLocaleDateString('ru-RU', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+      document.getElementById('report-date').textContent = `Данные за: ${formatted}`;
+
+      // Table
+      const tbody = document.getElementById('table-body');
+      const sorted = [...data.users].sort((a, b) =>
+        (b.calls + b.messages + b.meetings) - (a.calls + a.messages + a.meetings)
+      );
+
+      tbody.innerHTML = sorted.map(u => {
+        const active = u.calls + u.messages + u.meetings > 0;
+        const badge = u.overdue_tasks > 0
+          ? `<span class="badge badge-warn">⚠ ${u.overdue_tasks} просроч.</span>`
+          : `<span class="badge badge-ok">✓ OK</span>`;
+        return `
+          <tr>
+            <td>
+              <div class="name-cell">
+                <div class="avatar">${initials(u.name)}</div>
+                <span>${u.name}</span>
+              </div>
+            </td>
+            ${numCell(u.calls)}
+            ${numCell(u.messages)}
+            ${numCell(u.meetings)}
+            <td class="num overdue-val ${u.overdue_tasks === 0 ? 'zero' : ''}">${u.overdue_tasks}</td>
+            <td class="num">${badge}</td>
+          </tr>`;
+      }).join('');
+
+      document.getElementById('content').style.display = 'block';
+    }
+
+    loadStats();
+  </script>
+</body>
+</html>

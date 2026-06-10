@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - BITRIX_BASE_URL=${BITRIX_BASE_URL:-https://vibecode.bitrix24.tech/v1}
+      - BITRIX_API_KEY=${BITRIX_API_KEY}
