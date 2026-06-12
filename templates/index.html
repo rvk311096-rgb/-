@@ -311,7 +311,7 @@ async function api(method, path, body=null) {
 // ── Auth & Boot ───────────────────────────────────────────────────────────
 async function boot() {
   try {
-    if (typeof BX24 !== 'undefined') {
+    if (typeof BX24 !== 'undefined' && BX24 !== null) {
       await new Promise(res => BX24.init(res));
       const auth = BX24.getAuth();
       USER = { token: auth.access_token };
