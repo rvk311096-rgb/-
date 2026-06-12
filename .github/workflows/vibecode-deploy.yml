@@ -98,9 +98,20 @@ jobs:
           if [ -n "$TOKEN" ]; then
             sleep 5
             curl -sS -m 30 -H "Authorization: Bearer $TOKEN" "$APP_URL/api/health"; echo
+            echo "=== echo headers seen by app ==="
+            curl -sS -m 30 -H "Authorization: Bearer $TOKEN" "$APP_URL/api/echo" | head -c 4000; echo
           else
             echo "no token minted"
           fi
+
+          echo "=== docs: gateway auth / forwarded identity ==="
+          set +e
+          for P in docs-content/infra.md docs-content/auth.md docs-content/access.md; do
+            curl -sSL -m 20 "$VIBE_URL/$P" -o /tmp/doc.md && \
+              grep -i -A4 -B2 -E "header|identity|x-forwarded|user|jwt|cookie" /tmp/doc.md | head -c 6000
+            echo "---- end $P ----"
+          done
+          set -e
 
           echo "=== current access rules ==="
           curl -sS -m 30 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/infra/servers/$SERVER_ID/access" | head -c 2000; echo

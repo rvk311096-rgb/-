@@ -126,3 +126,18 @@ async def delete_idea(idea_id: str, user: UserCtx = Depends(current_user)):
 @app.get("/api/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/api/echo")
+async def echo(request: Request):
+    headers = {}
+    for k, v in request.headers.items():
+        if k.lower() == "authorization":
+            v = v[:24] + "…" if len(v) > 24 else v
+        headers[k] = v
+    return {
+        "headers": headers,
+        "cookies": {k: (v[:24] + "…" if len(v) > 24 else v)
+                    for k, v in request.cookies.items()},
+        "client": str(request.client),
+    }
