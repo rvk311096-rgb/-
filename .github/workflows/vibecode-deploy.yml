@@ -56,8 +56,8 @@ jobs:
           jq -n --arg b64 "$B64" --arg key "$VIBE_KEY" '{
             source: { content: $b64 },
             extractTo: "/opt/app",
-            install: "cd /opt/app && python3 -m pip install --break-system-packages -r requirements.txt",
-            start: "cd /opt/app && python3 -m uvicorn app.main:app --host 0.0.0.0 --port 3000",
+            install: "(apt-get update -qq && apt-get install -y -qq python3-pip python3-venv) || sudo bash -c \"apt-get update -qq && apt-get install -y -qq python3-pip python3-venv\"; cd /opt/app && python3 -m venv .venv && .venv/bin/pip install -q -r requirements.txt",
+            start: "cd /opt/app && .venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 3000",
             port: 3000,
             env: {
               BITRIX_BASE_URL: "https://vibecode.bitrix24.tech/v1",
@@ -75,6 +75,7 @@ jobs:
             --data @/tmp/deploy.json)
           echo "deploy HTTP=$HTTP"
           cat /tmp/deploy_resp.json | head -c 6000; echo
+          jq -e '.success == true' /tmp/deploy_resp.json > /dev/null || { echo "DEPLOY FAILED"; exit 1; }
 
           echo "=== health check via access token ==="
           TOKEN=$(curl -sS -m 30 -X POST "$VIBE_URL/v1/infra/servers/$SERVER_ID/access-tokens" \
