@@ -1,12 +1,9 @@
 name: VibeCode Deploy
 
 on:
-  workflow_dispatch:
-    inputs:
-      mode:
-        description: "probe | deploy"
-        required: true
-        default: "probe"
+  push:
+    branches: ["claude/awesome-pasteur-5jyxuc"]
+    paths: [".github/workflows/vibecode-deploy.yml", "MODE"]
 
 jobs:
   vibecode:
@@ -19,8 +16,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Read mode
+        id: mode
+        run: echo "mode=$(cat MODE 2>/dev/null || echo probe)" >> "$GITHUB_OUTPUT"
+
       - name: Probe API
-        if: ${{ inputs.mode == 'probe' }}
+        if: ${{ steps.mode.outputs.mode == 'probe' }}
         run: |
           set +e
           echo "=== /v1/me ==="
@@ -42,6 +43,6 @@ jobs:
           true
 
       - name: Deploy
-        if: ${{ inputs.mode == 'deploy' }}
+        if: ${{ steps.mode.outputs.mode == 'deploy' }}
         run: |
           echo "Deploy step placeholder — will be filled after probe reveals the API shape"
