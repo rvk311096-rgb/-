@@ -311,11 +311,13 @@ async function api(method, path, body=null) {
 // ── Auth & Boot ───────────────────────────────────────────────────────────
 async function boot() {
   try {
-    if (typeof BX24 !== 'undefined' && BX24 !== null) {
-      await new Promise(res => BX24.init(res));
-      const auth = BX24.getAuth();
-      USER = { token: auth.access_token };
-    }
+    try {
+      if (typeof BX24 !== 'undefined' && BX24 !== null && typeof BX24.init === 'function') {
+        await new Promise(res => BX24.init(res));
+        const auth = BX24.getAuth();
+        if (auth && auth.access_token) USER = { token: auth.access_token };
+      }
+    } catch (e) { /* gateway headers will authenticate instead */ }
 
     const me = await api('GET', '/api/me');
     USER = { ...USER, ...me };

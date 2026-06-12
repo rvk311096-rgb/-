@@ -39,6 +39,17 @@ class BitrixClient:
             result = r.json()
         return result.get("result", result)
 
+    async def vibe_me(self, vibe_auth: str) -> dict:
+        """Resolve user identity via VibeCode /v1/me using the gateway-injected
+        X-Vibe-Authorization value."""
+        if not vibe_auth.lower().startswith("bearer "):
+            vibe_auth = f"Bearer {vibe_auth}"
+        async with httpx.AsyncClient(timeout=15.0) as c:
+            r = await c.get(f"{self.base_url}/me",
+                            headers={"Authorization": vibe_auth})
+            r.raise_for_status()
+            return r.json()
+
     # ── Entity storage bootstrap ─────────────────────────────────────────────
 
     async def _ensure_entity(self) -> None:
