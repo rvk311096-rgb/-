@@ -24,22 +24,19 @@ jobs:
         if: ${{ steps.mode.outputs.mode == 'probe' }}
         run: |
           set +e
-          echo "=== /v1/me ==="
-          curl -sS -m 20 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/me" | head -c 3000; echo
-          echo "=== /v1/infra ==="
-          curl -sS -m 20 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/infra" | head -c 3000; echo
-          echo "=== /v1/infra/servers ==="
-          curl -sS -m 20 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/infra/servers" | head -c 3000; echo
-          echo "=== /v1/infra/server/$SERVER_ID ==="
-          curl -sS -m 20 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/infra/server/$SERVER_ID" | head -c 3000; echo
-          echo "=== /v1/infra/servers/$SERVER_ID ==="
-          curl -sS -m 20 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/infra/servers/$SERVER_ID" | head -c 3000; echo
-          echo "=== /docs/infra (text) ==="
-          curl -sSL -m 20 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/docs/infra" | head -c 8000; echo
-          echo "=== /v1/openapi.json ==="
-          curl -sS -m 20 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/openapi.json" | head -c 6000; echo
-          echo "=== app health ==="
-          curl -sS -m 20 "$APP_URL/api/health" | head -c 1000; echo
+          echo "=== infra docs markdown ==="
+          curl -sSL -m 20 "$VIBE_URL/docs-content/infra.md" -o /tmp/infra.md
+          wc -c /tmp/infra.md; head -c 12000 /tmp/infra.md; echo
+          echo "=== openapi infra paths ==="
+          curl -sS -m 30 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/openapi.json" -o /tmp/oa.json
+          jq -r '.paths | to_entries[] | select(.key | test("infra")) | .key as $p | .value | to_entries[] | "\(.value.operationId // "?") \(.key | ascii_upcase) \($p): \(.value.summary // "")"' /tmp/oa.json
+          echo "=== deploy endpoint schema ==="
+          jq '.paths | to_entries[] | select(.key | test("deploy")) | .value' /tmp/oa.json | head -c 9000; echo
+          echo "=== access-tokens / accessPolicy schema ==="
+          jq '.paths | to_entries[] | select(.key | test("access")) | {path: .key, ops: (.value | keys)}' /tmp/oa.json
+          jq '.paths | to_entries[] | select(.key | test("access-tokens")) | .value.post.requestBody' /tmp/oa.json | head -c 3000; echo
+          echo "=== server PATCH schema (accessPolicy) ==="
+          jq '.paths."/v1/infra/servers/{id}".patch.requestBody' /tmp/oa.json | head -c 4000; echo
           true
 
       - name: Deploy
