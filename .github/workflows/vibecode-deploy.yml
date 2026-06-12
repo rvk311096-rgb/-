@@ -39,6 +39,20 @@ jobs:
           jq '.paths."/v1/infra/servers/{id}".patch.requestBody' /tmp/oa.json | head -c 4000; echo
           true
 
+      - name: Access policy
+        if: ${{ steps.mode.outputs.mode == 'access' }}
+        run: |
+          set +e
+          for VAL in '"PORTAL"' '"PORTAL_USERS"' '{"mode":"PORTAL"}' '{"mode":"portal"}' '"portal"'; do
+            echo "=== PATCH accessPolicy=$VAL ==="
+            curl -sS -m 30 -X PATCH "$VIBE_URL/v1/infra/servers/$SERVER_ID/access-policy" \
+              -H "Authorization: Bearer $VIBE_KEY" -H "Content-Type: application/json" \
+              -d "{\"accessPolicy\": $VAL}" | head -c 800; echo
+          done
+          echo "=== server state ==="
+          curl -sS -m 30 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/infra/servers/$SERVER_ID" | head -c 1500; echo
+          true
+
       - name: Deploy
         if: ${{ steps.mode.outputs.mode == 'deploy' }}
         run: |
