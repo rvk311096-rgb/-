@@ -1,360 +1,603 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ежедневный отчёт менеджеров</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Банк идей</title>
+<script src="https://api.bitrix24.com/api/v1/"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',-apple-system,sans-serif;background:#07091a;color:#dce4f5;min-height:100vh;overflow:hidden}
+.bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 90% 70% at 10% 5%,rgba(79,91,230,.32) 0%,transparent 55%),radial-gradient(ellipse 70% 55% at 90% 85%,rgba(56,72,200,.26) 0%,transparent 55%),radial-gradient(ellipse 50% 45% at 55% 45%,rgba(100,120,255,.09) 0%,transparent 60%),linear-gradient(160deg,#07091a 0%,#0c1228 55%,#080d1e 100%)}
+.orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(90px);opacity:.55}
+.orb1{width:560px;height:560px;top:-140px;left:-100px;background:radial-gradient(circle,rgba(79,91,230,.4),transparent 68%)}
+.orb2{width:420px;height:420px;bottom:-110px;right:-70px;background:radial-gradient(circle,rgba(56,72,200,.35),transparent 68%)}
+.orb3{width:260px;height:260px;top:38%;left:42%;background:radial-gradient(circle,rgba(180,200,255,.1),transparent 70%)}
+.glass{background:rgba(200,215,255,.055);backdrop-filter:blur(40px) saturate(1.6) brightness(1.05);-webkit-backdrop-filter:blur(40px) saturate(1.6);border:1px solid rgba(200,215,255,.13);box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 4px 24px rgba(0,0,0,.18);position:relative}
+.glass::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 50%)}
+.glass-card{background:rgba(200,215,255,.07);backdrop-filter:blur(36px) saturate(1.5);-webkit-backdrop-filter:blur(36px) saturate(1.5);border:1px solid rgba(200,215,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 2px 16px rgba(0,0,0,.14);position:relative}
+.glass-card::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,.05) 0%,transparent 50%)}
 
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #f0f2f5;
-      color: #1a1a2e;
-      min-height: 100vh;
-    }
+/* LAYOUT */
+.app{position:relative;z-index:1;display:flex;height:100vh}
+.sidebar{width:62px;display:flex;flex-direction:column;align-items:center;padding:18px 0;gap:4px;flex-shrink:0;background:rgba(200,215,255,.025);border-right:1px solid rgba(200,215,255,.07)}
+.logo{width:36px;height:36px;border-radius:11px;margin-bottom:14px;background:linear-gradient(140deg,#5566f0,#3346cc);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 4px 18px rgba(79,91,230,.45),inset 0 1px 0 rgba(255,255,255,.2)}
+.nav-item{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;transition:all .2s;color:rgba(200,215,255,.28);position:relative}
+.nav-item:hover{background:rgba(200,215,255,.07);color:rgba(200,215,255,.65)}
+.nav-item.active{background:rgba(85,102,240,.22);color:#a8b6ff;border:1px solid rgba(85,102,240,.35);box-shadow:0 0 14px rgba(85,102,240,.2)}
+.nav-bottom{margin-top:auto}
+.ava-sm{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#3346cc,#5566f0);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#c0ccff;cursor:pointer;border:1.5px solid rgba(85,102,240,.45);box-shadow:0 2px 10px rgba(85,102,240,.3)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{padding:13px 26px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:rgba(200,215,255,.025);border-bottom:1px solid rgba(200,215,255,.06);backdrop-filter:blur(20px)}
+.page-title{font-size:15.5px;font-weight:500;color:#cdd8f0;letter-spacing:-.2px}
+.page-sub{font-size:11px;color:rgba(200,215,255,.3);margin-top:2px}
+.topbar-r{display:flex;gap:8px;align-items:center}
 
-    header {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      color: #fff;
-      padding: 20px 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-    }
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:9px;border:none;font-size:12.5px;font-weight:500;cursor:pointer;transition:all .18s;font-family:inherit;letter-spacing:-.1px}
+.btn-primary{background:linear-gradient(140deg,#5566f0,#3346cc);color:#e0e8ff;box-shadow:0 2px 14px rgba(79,91,230,.38),inset 0 1px 0 rgba(255,255,255,.15)}
+.btn-primary:hover{box-shadow:0 4px 22px rgba(79,91,230,.58);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn-ghost{background:rgba(200,215,255,.07);color:rgba(200,215,255,.5);border:1px solid rgba(200,215,255,.1);backdrop-filter:blur(12px)}
+.btn-ghost:hover{background:rgba(200,215,255,.12);color:rgba(200,215,255,.8)}
+.btn-sm{padding:6px 13px;font-size:11.5px}
 
-    header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: 0.5px; }
-    header .subtitle { font-size: 0.8rem; opacity: 0.7; margin-top: 2px; }
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:22px 26px}
+.content::-webkit-scrollbar{width:4px}
+.content::-webkit-scrollbar-thumb{background:rgba(200,215,255,.1);border-radius:2px}
 
-    .date-controls {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+/* SCREENS */
+.screen{display:none}
+.screen.active{display:block}
 
-    .date-controls input[type="date"] {
-      padding: 8px 12px;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      background: rgba(255,255,255,0.15);
-      color: #fff;
-      cursor: pointer;
-    }
-    .date-controls input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat{border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:13px}
+.stat-ico{width:38px;height:38px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px}
+.stat-val{font-size:22px;font-weight:600;color:#cdd8f0;line-height:1}
+.stat-lbl{font-size:10.5px;color:rgba(200,215,255,.32);margin-top:3px}
 
-    .btn {
-      padding: 8px 20px;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-    .btn-primary { background: #e94560; color: #fff; }
-    .btn-primary:hover { background: #c73652; transform: translateY(-1px); }
+/* FORM */
+.form-card{border-radius:16px;padding:20px 22px;margin-bottom:20px}
+.form-ttl{font-size:10px;font-weight:500;color:rgba(200,215,255,.35);text-transform:uppercase;letter-spacing:.8px;margin-bottom:16px}
+.frow{display:flex;gap:10px;margin-bottom:10px}
+.fg{flex:1;display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:10.5px;color:rgba(200,215,255,.35);letter-spacing:.1px}
+.fi{background:rgba(200,215,255,.06);border:1px solid rgba(200,215,255,.1);border-radius:9px;padding:9px 12px;font-size:12.5px;color:#cdd8f0;outline:none;transition:all .18s;font-family:inherit;backdrop-filter:blur(10px)}
+.fi::placeholder{color:rgba(200,215,255,.22)}
+.fi:focus{background:rgba(200,215,255,.09);border-color:rgba(85,102,240,.5);box-shadow:0 0 0 3px rgba(85,102,240,.1)}
+select.fi option{background:#0c1228;color:#cdd8f0}
+textarea.fi{resize:none;min-height:74px;line-height:1.55}
+.form-ft{display:flex;justify-content:flex-end;gap:8px;padding-top:6px}
 
-    main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+/* IDEAS */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.sec-ttl{font-size:10px;font-weight:500;color:rgba(200,215,255,.32);text-transform:uppercase;letter-spacing:.8px}
+.ideas{display:flex;flex-direction:column;gap:9px}
+.idea{border-radius:13px;padding:14px 16px;display:flex;align-items:flex-start;gap:13px;transition:all .22s;cursor:default}
+.idea:hover{background:rgba(200,215,255,.1)!important;border-color:rgba(200,215,255,.18)!important;transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,0,0,.2)!important}
+.idea-num{width:26px;height:26px;border-radius:7px;flex-shrink:0;margin-top:1px;background:rgba(85,102,240,.16);color:rgba(160,180,255,.7);font-size:9.5px;font-weight:600;display:flex;align-items:center;justify-content:center;border:1px solid rgba(85,102,240,.22)}
+.idea-body{flex:1;min-width:0}
+.idea-title{font-size:13px;font-weight:500;color:#cdd8f0;margin-bottom:4px}
+.idea-desc{font-size:11.5px;color:rgba(200,215,255,.35);line-height:1.55;margin-bottom:10px}
+.idea-ft{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:500;letter-spacing:.1px;backdrop-filter:blur(8px)}
+.b-new{background:rgba(85,102,240,.16);color:#9aaeff;border:1px solid rgba(85,102,240,.28)}
+.b-review{background:rgba(220,170,50,.12);color:#c9a840;border:1px solid rgba(220,170,50,.22)}
+.b-ok{background:rgba(60,180,120,.1);color:#68b890;border:1px solid rgba(60,180,120,.2)}
+.b-no{background:rgba(220,80,80,.1);color:#cc8080;border:1px solid rgba(220,80,80,.2)}
+.b-cat{background:rgba(200,215,255,.07);color:rgba(200,215,255,.45);border:1px solid rgba(200,215,255,.1)}
+.idea-date{font-size:10px;color:rgba(200,215,255,.22);margin-left:auto}
 
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 28px;
-    }
+/* ADMIN TABLE */
+.fbar{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.fpill{padding:5px 13px;border-radius:20px;font-size:11px;cursor:pointer;background:rgba(200,215,255,.05);color:rgba(200,215,255,.38);border:1px solid rgba(200,215,255,.08);transition:all .15s;backdrop-filter:blur(10px)}
+.fpill.on{background:rgba(85,102,240,.2);color:#b4c2ff;border-color:rgba(85,102,240,.38)}
+.fpill:hover:not(.on){background:rgba(200,215,255,.09);color:rgba(200,215,255,.65)}
+.srch{margin-left:auto;position:relative}
+.srch-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:rgba(200,215,255,.28);font-size:12px;pointer-events:none}
+.srch-in{background:rgba(200,215,255,.06);border:1px solid rgba(200,215,255,.09);border-radius:9px;padding:6px 12px 6px 30px;font-size:12px;color:#cdd8f0;outline:none;font-family:inherit;width:190px;backdrop-filter:blur(12px);transition:all .18s}
+.srch-in::placeholder{color:rgba(200,215,255,.24)}
+.srch-in:focus{border-color:rgba(85,102,240,.4);background:rgba(200,215,255,.09)}
+.tw{border-radius:16px;overflow:hidden;border:1px solid rgba(200,215,255,.09);background:rgba(200,215,255,.03);backdrop-filter:blur(30px)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{padding:10px 15px;text-align:left;font-size:9.5px;font-weight:500;color:rgba(200,215,255,.28);text-transform:uppercase;letter-spacing:.6px;background:rgba(200,215,255,.03);border-bottom:1px solid rgba(200,215,255,.07)}
+.tbl td{padding:12px 15px;border-bottom:1px solid rgba(200,215,255,.05);color:#b8c6e0;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(200,215,255,.04)}
+.auth-cell{display:flex;align-items:center;gap:8px}
+.ava{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:rgba(255,255,255,.8)}
+.act{padding:4px 10px;border-radius:6px;border:1px solid rgba(200,215,255,.1);background:rgba(200,215,255,.05);color:rgba(200,215,255,.42);cursor:pointer;font-size:10.5px;font-family:inherit;transition:all .15s;backdrop-filter:blur(8px)}
+.act:hover{background:rgba(85,102,240,.2);color:#b4c2ff;border-color:rgba(85,102,240,.38)}
+.tbl-ft{padding:10px 15px;display:flex;align-items:center;justify-content:space-between;background:rgba(200,215,255,.02);border-top:1px solid rgba(200,215,255,.06);font-size:10.5px;color:rgba(200,215,255,.25)}
 
-    .card {
-      background: #fff;
-      border-radius: 14px;
-      padding: 22px 24px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-      border-left: 4px solid transparent;
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-    .card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
-    .card.calls  { border-color: #3b82f6; }
-    .card.messages { border-color: #10b981; }
-    .card.meetings { border-color: #8b5cf6; }
-    .card.overdue  { border-color: #ef4444; }
-    .card.users    { border-color: #f59e0b; }
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(4,6,18,.72);backdrop-filter:blur(10px);align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{width:450px;max-width:90vw;border-radius:20px;background:rgba(14,20,46,.92);border:1px solid rgba(200,215,255,.12);box-shadow:0 30px 80px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.07);backdrop-filter:blur(40px)}
+.m-hdr{padding:18px 22px;border-bottom:1px solid rgba(200,215,255,.07);display:flex;align-items:center;justify-content:space-between}
+.m-ttl{font-size:14px;font-weight:500;color:#cdd8f0}
+.x-btn{width:26px;height:26px;border-radius:6px;border:none;background:rgba(200,215,255,.07);color:rgba(200,215,255,.45);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.x-btn:hover{background:rgba(200,215,255,.13);color:rgba(200,215,255,.85)}
+.m-body{padding:18px 22px}
+.m-text{background:rgba(200,215,255,.04);border:1px solid rgba(200,215,255,.08);border-radius:10px;padding:13px;font-size:12px;color:rgba(200,215,255,.55);line-height:1.6;margin-bottom:15px}
+.m-ft{padding:13px 22px;border-top:1px solid rgba(200,215,255,.07);display:flex;gap:8px;justify-content:flex-end}
+.lbl{font-size:10.5px;color:rgba(200,215,255,.32);margin-bottom:5px;display:block;letter-spacing:.1px}
 
-    .card-label {
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: #6b7280;
-      margin-bottom: 8px;
-    }
-    .card-value { font-size: 2.2rem; font-weight: 800; line-height: 1; }
-    .card.calls    .card-value { color: #3b82f6; }
-    .card.messages .card-value { color: #10b981; }
-    .card.meetings .card-value { color: #8b5cf6; }
-    .card.overdue  .card-value { color: #ef4444; }
-    .card.users    .card-value { color: #f59e0b; }
-    .card-icon { font-size: 1.5rem; float: right; opacity: 0.25; margin-top: -4px; }
+/* EMPTY / LOADING */
+.empty{text-align:center;padding:48px 20px;color:rgba(200,215,255,.3)}
+.empty-ico{font-size:40px;margin-bottom:12px;opacity:.5}
+.empty-txt{font-size:13px}
+.spin{display:inline-block;width:24px;height:24px;border:2px solid rgba(200,215,255,.1);border-top-color:rgba(85,102,240,.7);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-    .section-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #374151;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .table-wrapper {
-      background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-      overflow: hidden;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    thead { background: #1a1a2e; color: #fff; }
-    thead th {
-      padding: 14px 18px;
-      text-align: left;
-      font-size: 0.82rem;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      font-weight: 600;
-    }
-    thead th.num { text-align: center; }
-
-    tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.1s; }
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: #fafbff; }
-
-    tbody td { padding: 13px 18px; font-size: 0.9rem; }
-    tbody td.num { text-align: center; font-weight: 700; font-size: 1rem; }
-    tbody td.num.zero { color: #d1d5db; }
-    tbody td.overdue-val { color: #ef4444; }
-    tbody td.overdue-val.zero { color: #d1d5db; }
-
-    .badge {
-      display: inline-block;
-      padding: 2px 10px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-    .badge-ok { background: #dcfce7; color: #16a34a; }
-    .badge-warn { background: #fee2e2; color: #dc2626; }
-
-    .name-cell { display: flex; align-items: center; gap: 10px; }
-    .avatar {
-      width: 34px; height: 34px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: #fff;
-      font-weight: 700;
-      font-size: 0.8rem;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-
-    #loading {
-      text-align: center;
-      padding: 60px;
-      color: #6b7280;
-      font-size: 1.1rem;
-    }
-    .spinner {
-      display: inline-block;
-      width: 32px; height: 32px;
-      border: 3px solid #e5e7eb;
-      border-top-color: #3b82f6;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      margin-bottom: 12px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    #error-box {
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      color: #b91c1c;
-      border-radius: 10px;
-      padding: 16px 20px;
-      margin-bottom: 20px;
-      display: none;
-    }
-
-    .report-date {
-      font-size: 0.82rem;
-      color: #9ca3af;
-      margin-bottom: 20px;
-    }
-
-    @media (max-width: 700px) {
-      main { padding: 16px; }
-      header { flex-direction: column; align-items: flex-start; gap: 12px; }
-      thead th:nth-child(n+4) { display: none; }
-      tbody td:nth-child(n+4) { display: none; }
-    }
-  </style>
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;z-index:400;padding:11px 18px;border-radius:11px;font-size:12.5px;font-weight:500;backdrop-filter:blur(20px);border:1px solid rgba(200,215,255,.12);box-shadow:0 8px 32px rgba(0,0,0,.3);opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.ok{background:rgba(60,180,120,.2);color:#7dd4aa;border-color:rgba(60,180,120,.25)}
+.toast.err{background:rgba(220,80,80,.18);color:#e09090;border-color:rgba(220,80,80,.25)}
+</style>
 </head>
 <body>
-  <header>
-    <div>
-      <h1>📊 Ежедневный отчёт</h1>
-      <div class="subtitle">Активность менеджеров и аккаунтов</div>
-    </div>
-    <div class="date-controls">
-      <input type="date" id="date-input" />
-      <button class="btn btn-primary" onclick="loadStats()">Обновить</button>
-    </div>
-  </header>
+<div class="bg"><div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div></div>
 
-  <main>
-    <div id="error-box"></div>
-    <div id="content" style="display:none">
-      <div class="report-date" id="report-date"></div>
-      <div class="summary-grid">
-        <div class="card calls">
-          <span class="card-icon">📞</span>
-          <div class="card-label">Звонки</div>
-          <div class="card-value" id="t-calls">–</div>
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo">💡</div>
+    <div class="nav-item"><span>🏠</span></div>
+    <div class="nav-item"><span>💬</span></div>
+    <div class="nav-item"><span>✅</span></div>
+    <div class="nav-item"><span>📊</span></div>
+    <div class="nav-item active"><span>💡</span></div>
+    <div class="nav-item nav-bottom"><div class="ava-sm" id="sidebar-ava">?</div></div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="page-title">Банк идей</div>
+        <div class="page-sub" id="page-sub">Загрузка...</div>
+      </div>
+      <div class="topbar-r" id="topbar-actions"></div>
+    </div>
+
+    <div class="content">
+      <!-- Employee screen -->
+      <div id="screen-emp" class="screen">
+        <div class="stats" id="emp-stats"></div>
+        <div id="idea-form-wrap"></div>
+        <div class="sec-hdr">
+          <div class="sec-ttl">Мои идеи</div>
+          <select class="fi btn-sm" id="emp-filter" onchange="filterEmp()" style="width:auto;padding:5px 10px">
+            <option value="">Все статусы</option>
+            <option value="new">Новые</option>
+            <option value="review">На рассмотрении</option>
+            <option value="approved">Принятые</option>
+            <option value="rejected">Отклонённые</option>
+          </select>
         </div>
-        <div class="card messages">
-          <span class="card-icon">💬</span>
-          <div class="card-label">Сообщения</div>
-          <div class="card-value" id="t-messages">–</div>
+        <div class="ideas" id="emp-ideas"></div>
+      </div>
+
+      <!-- Admin screen -->
+      <div id="screen-adm" class="screen">
+        <div class="stats" id="adm-stats"></div>
+        <div class="fbar">
+          <div class="fpill on" onclick="filterAdm('',this)">Все</div>
+          <div class="fpill" onclick="filterAdm('new',this)">Новые</div>
+          <div class="fpill" onclick="filterAdm('review',this)">На рассмотрении</div>
+          <div class="fpill" onclick="filterAdm('approved',this)">Принятые</div>
+          <div class="fpill" onclick="filterAdm('rejected',this)">Отклонённые</div>
+          <div class="srch">
+            <span class="srch-ico">🔍</span>
+            <input class="srch-in" id="adm-search" placeholder="Поиск…" oninput="renderAdmTable()">
+          </div>
         </div>
-        <div class="card meetings">
-          <span class="card-icon">🤝</span>
-          <div class="card-label">Встречи</div>
-          <div class="card-value" id="t-meetings">–</div>
-        </div>
-        <div class="card overdue">
-          <span class="card-icon">⚠️</span>
-          <div class="card-label">Просроченных дел</div>
-          <div class="card-value" id="t-overdue">–</div>
-        </div>
-        <div class="card users">
-          <span class="card-icon">👥</span>
-          <div class="card-label">Сотрудников</div>
-          <div class="card-value" id="t-users">–</div>
+        <div class="tw">
+          <table class="tbl">
+            <thead><tr>
+              <th>#</th><th>Идея</th><th>Автор</th><th>Категория</th><th>Дата</th><th>Статус</th><th></th>
+            </tr></thead>
+            <tbody id="adm-tbody"></tbody>
+          </table>
+          <div class="tbl-ft" id="adm-footer"></div>
         </div>
       </div>
 
-      <div class="section-title">🧑‍💼 По сотрудникам</div>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Сотрудник</th>
-              <th class="num">Звонки</th>
-              <th class="num">Сообщения</th>
-              <th class="num">Встречи</th>
-              <th class="num">Просроченных</th>
-              <th class="num">Статус</th>
-            </tr>
-          </thead>
-          <tbody id="table-body"></tbody>
-        </table>
+      <!-- Loading -->
+      <div id="screen-load" class="screen active" style="text-align:center;padding:80px 20px">
+        <div class="spin"></div>
+        <div style="margin-top:16px;color:rgba(200,215,255,.4);font-size:13px">Подключение к Bitrix24…</div>
+      </div>
+
+      <!-- Auth error -->
+      <div id="screen-err" class="screen" style="text-align:center;padding:80px 20px">
+        <div style="font-size:36px;margin-bottom:16px;opacity:.5">🔒</div>
+        <div style="color:rgba(200,215,255,.5);font-size:13px" id="err-msg">Ошибка авторизации</div>
       </div>
     </div>
+  </div>
+</div>
 
-    <div id="loading">
-      <div><div class="spinner"></div></div>
-      Загрузка данных...
+<!-- MODAL -->
+<div class="overlay" id="modal">
+  <div class="modal">
+    <div class="m-hdr">
+      <div class="m-ttl" id="m-title">Идея</div>
+      <button class="x-btn" onclick="closeModal()">×</button>
     </div>
-  </main>
+    <div class="m-body">
+      <div style="display:flex;gap:7px;margin-bottom:13px;flex-wrap:wrap" id="m-badges"></div>
+      <div class="m-text" id="m-desc"></div>
+      <div class="fg" style="margin-bottom:10px">
+        <label class="lbl">Статус</label>
+        <select class="fi" id="m-status">
+          <option value="new">🆕 Новая</option>
+          <option value="review">⏳ На рассмотрении</option>
+          <option value="approved">✅ Принята</option>
+          <option value="rejected">❌ Отклонена</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="lbl">Комментарий для автора</label>
+        <textarea class="fi" id="m-comment" placeholder="Обратная связь…" style="min-height:68px"></textarea>
+      </div>
+    </div>
+    <div class="m-ft">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Отмена</button>
+      <button class="btn btn-primary btn-sm" id="m-save-btn" onclick="saveModal()">Сохранить</button>
+    </div>
+  </div>
+</div>
 
-  <script>
-    const dateInput = document.getElementById('date-input');
+<div class="toast" id="toast"></div>
 
-    function todayStr() {
-      return new Date().toISOString().split('T')[0];
+<script>
+// ── State ─────────────────────────────────────────────────────────────────
+let USER = null;
+let ALL_IDEAS = [];
+let MODAL_ID  = null;
+let ADM_FILTER = '';
+
+const STATUS_LABEL = {
+  new:      ['🆕 Новая',            'b-new'],
+  review:   ['⏳ На рассмотрении',  'b-review'],
+  approved: ['✅ Принята',           'b-ok'],
+  rejected: ['❌ Отклонена',         'b-no'],
+};
+
+const CAT_COLORS = ['#3346cc','#5c3faa','#1a5e42','#6b4218','#7a1e1e','#1e4d6b','#4a2060'];
+function avaColor(name) {
+  let h = 0; for (const c of name) h = (h * 31 + c.charCodeAt(0)) & 0xffff;
+  return CAT_COLORS[h % CAT_COLORS.length];
+}
+function initials(name) {
+  return name.split(' ').map(p=>p[0]||'').join('').slice(0,2).toUpperCase();
+}
+function fmtDate(s) {
+  if (!s) return '';
+  const d = new Date(s);
+  return isNaN(d) ? s : d.toLocaleDateString('ru-RU',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────
+function toast(msg, type='ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ── API ───────────────────────────────────────────────────────────────────
+async function api(method, path, body=null) {
+  const headers = {'Content-Type':'application/json'};
+  if (USER?.token) headers['x-bx-token'] = USER.token;
+  else if (USER) {
+    headers['x-user-id']   = USER.user_id;
+    headers['x-user-name'] = USER.user_name;
+  }
+  const opts = { method, headers };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(path, opts);
+  if (r.status === 204) return null;
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.detail || r.statusText);
+  return data;
+}
+
+// ── Auth & Boot ───────────────────────────────────────────────────────────
+async function boot() {
+  try {
+    if (typeof BX24 !== 'undefined') {
+      await new Promise(res => BX24.init(res));
+      const auth = BX24.getAuth();
+      USER = { token: auth.access_token };
     }
 
-    dateInput.value = todayStr();
-    dateInput.max = todayStr();
+    const me = await api('GET', '/api/me');
+    USER = { ...USER, ...me };
 
-    function initials(name) {
-      return name.split(' ').map(p => p[0] || '').join('').slice(0, 2).toUpperCase();
+    document.getElementById('sidebar-ava').textContent = initials(USER.user_name);
+    document.getElementById('page-sub').textContent =
+      USER.user_name + (USER.is_admin ? ' · Администратор' : '');
+
+    if (USER.is_admin) {
+      document.getElementById('topbar-actions').innerHTML =
+        `<button class="btn btn-ghost btn-sm" onclick="loadIdeas()">↻ Обновить</button>`;
+      document.getElementById('page-title').textContent = 'Банк идей — управление';
+    } else {
+      document.getElementById('topbar-actions').innerHTML =
+        `<button class="btn btn-primary btn-sm" onclick="toggleForm()">+ Новая идея</button>`;
     }
 
-    function numCell(val, extraClass = '') {
-      const cls = val === 0 ? 'zero' : '';
-      return `<td class="num ${cls} ${extraClass}">${val}</td>`;
-    }
+    await loadIdeas();
+  } catch (e) {
+    showError(e.message);
+  }
+}
 
-    async function loadStats() {
-      const d = dateInput.value || todayStr();
-      document.getElementById('loading').style.display = 'block';
-      document.getElementById('content').style.display = 'none';
-      document.getElementById('error-box').style.display = 'none';
+function showError(msg) {
+  document.getElementById('err-msg').textContent = msg;
+  showScreen('err');
+}
 
-      try {
-        const resp = await fetch(`/api/stats?target_date=${d}`);
-        if (!resp.ok) {
-          const err = await resp.json().catch(() => ({detail: resp.statusText}));
-          throw new Error(err.detail || resp.statusText);
-        }
-        const data = await resp.json();
-        renderStats(data);
-      } catch (e) {
-        const box = document.getElementById('error-box');
-        box.textContent = `Ошибка: ${e.message}`;
-        box.style.display = 'block';
-      } finally {
-        document.getElementById('loading').style.display = 'none';
-      }
-    }
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
 
-    function renderStats(data) {
-      // Totals
-      document.getElementById('t-calls').textContent = data.totals.calls;
-      document.getElementById('t-messages').textContent = data.totals.messages;
-      document.getElementById('t-meetings').textContent = data.totals.meetings;
-      document.getElementById('t-overdue').textContent = data.totals.overdue_tasks;
-      document.getElementById('t-users').textContent = data.totals.total_users;
+// ── Load Ideas ────────────────────────────────────────────────────────────
+async function loadIdeas() {
+  try {
+    ALL_IDEAS = await api('GET', '/api/ideas');
+    if (USER.is_admin) renderAdmin();
+    else renderEmployee();
+  } catch (e) {
+    toast('Ошибка загрузки: ' + e.message, 'err');
+  }
+}
 
-      const formatted = new Date(data.date + 'T12:00:00').toLocaleDateString('ru-RU', {
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-      });
-      document.getElementById('report-date').textContent = `Данные за: ${formatted}`;
+// ── Employee View ─────────────────────────────────────────────────────────
+function renderEmployee() {
+  const total    = ALL_IDEAS.length;
+  const review   = ALL_IDEAS.filter(i=>i.status==='review').length;
+  const approved = ALL_IDEAS.filter(i=>i.status==='approved').length;
+  const inwork   = ALL_IDEAS.filter(i=>i.status==='approved'||i.status==='review').length;
 
-      // Table
-      const tbody = document.getElementById('table-body');
-      const sorted = [...data.users].sort((a, b) =>
-        (b.calls + b.messages + b.meetings) - (a.calls + a.messages + a.meetings)
-      );
+  document.getElementById('emp-stats').innerHTML = `
+    <div class="stat glass" style="border-radius:14px">
+      <div class="stat-ico" style="background:rgba(85,102,240,.15)">💡</div>
+      <div><div class="stat-val">${total}</div><div class="stat-lbl">Всего идей</div></div>
+    </div>
+    <div class="stat glass">
+      <div class="stat-ico" style="background:rgba(220,170,50,.1)">⏳</div>
+      <div><div class="stat-val">${review}</div><div class="stat-lbl">На рассмотрении</div></div>
+    </div>
+    <div class="stat glass">
+      <div class="stat-ico" style="background:rgba(60,180,120,.1)">✓</div>
+      <div><div class="stat-val">${approved}</div><div class="stat-lbl">Принято</div></div>
+    </div>
+    <div class="stat glass">
+      <div class="stat-ico" style="background:rgba(160,180,255,.1)">🚀</div>
+      <div><div class="stat-val">${inwork}</div><div class="stat-lbl">В работе</div></div>
+    </div>`;
 
-      tbody.innerHTML = sorted.map(u => {
-        const active = u.calls + u.messages + u.meetings > 0;
-        const badge = u.overdue_tasks > 0
-          ? `<span class="badge badge-warn">⚠ ${u.overdue_tasks} просроч.</span>`
-          : `<span class="badge badge-ok">✓ OK</span>`;
-        return `
-          <tr>
-            <td>
-              <div class="name-cell">
-                <div class="avatar">${initials(u.name)}</div>
-                <span>${u.name}</span>
-              </div>
-            </td>
-            ${numCell(u.calls)}
-            ${numCell(u.messages)}
-            ${numCell(u.meetings)}
-            <td class="num overdue-val ${u.overdue_tasks === 0 ? 'zero' : ''}">${u.overdue_tasks}</td>
-            <td class="num">${badge}</td>
-          </tr>`;
-      }).join('');
+  filterEmp();
+  showScreen('emp');
+}
 
-      document.getElementById('content').style.display = 'block';
-    }
+function filterEmp() {
+  const f = document.getElementById('emp-filter').value;
+  const ideas = f ? ALL_IDEAS.filter(i=>i.status===f) : ALL_IDEAS;
+  renderIdeaCards(ideas, 'emp-ideas', false);
+}
 
-    loadStats();
-  </script>
+function renderIdeaCards(ideas, containerId, showAuthor) {
+  const el = document.getElementById(containerId);
+  if (!ideas.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-ico">💡</div><div class="empty-txt">Идей пока нет</div></div>`;
+    return;
+  }
+  el.innerHTML = ideas.map(idea => {
+    const [slbl, scls] = STATUS_LABEL[idea.status] || ['Неизвестно','b-cat'];
+    const comment = idea.admin_comment
+      ? `<div style="margin-top:6px;font-size:11px;color:rgba(200,215,255,.35);border-left:2px solid rgba(85,102,240,.3);padding-left:8px">${idea.admin_comment}</div>` : '';
+    return `
+    <div class="idea glass-card">
+      <div class="idea-num">#${idea.id}</div>
+      <div class="idea-body">
+        <div class="idea-title">${esc(idea.title)}</div>
+        ${idea.description ? `<div class="idea-desc">${esc(idea.description)}</div>` : ''}
+        ${comment}
+        <div class="idea-ft" style="margin-top:${idea.description||idea.admin_comment?'10px':'6px'}">
+          <span class="badge ${scls}">${slbl}</span>
+          <span class="badge b-cat">${esc(idea.category)}</span>
+          ${showAuthor ? `<span style="font-size:10.5px;color:rgba(200,215,255,.35)">${esc(idea.user_name)}</span>` : ''}
+          <span class="idea-date">${fmtDate(idea.date_create)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Form ──────────────────────────────────────────────────────────────────
+let formVisible = false;
+function toggleForm() {
+  formVisible = !formVisible;
+  document.getElementById('idea-form-wrap').innerHTML = formVisible ? `
+    <div class="form-card glass" id="idea-form">
+      <div class="form-ttl">Новая идея</div>
+      <div class="frow">
+        <div class="fg" style="flex:2">
+          <label>Заголовок *</label>
+          <input class="fi" id="f-title" type="text" placeholder="Коротко и ёмко…">
+        </div>
+        <div class="fg">
+          <label>Категория</label>
+          <select class="fi" id="f-cat">
+            <option>⚙️ Внутренние процессы</option>
+            <option>🤝 Клиентский опыт</option>
+            <option>🚀 Продукт</option>
+            <option>🌱 Команда и активности</option>
+            <option>✦ Прочее</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg" style="margin-bottom:13px">
+        <label>Описание</label>
+        <textarea class="fi" id="f-desc" placeholder="Что предлагаете? Какую проблему решает?"></textarea>
+      </div>
+      <div class="form-ft">
+        <button class="btn btn-ghost btn-sm" onclick="toggleForm()">Отмена</button>
+        <button class="btn btn-primary btn-sm" id="f-submit" onclick="submitIdea()">Отправить →</button>
+      </div>
+    </div>` : '';
+}
+
+async function submitIdea() {
+  const title = document.getElementById('f-title').value.trim();
+  if (!title) { toast('Укажите заголовок идеи', 'err'); return; }
+  const btn = document.getElementById('f-submit');
+  btn.disabled = true; btn.textContent = 'Отправка…';
+  try {
+    await api('POST', '/api/ideas', {
+      title,
+      category: document.getElementById('f-cat').value,
+      description: document.getElementById('f-desc').value.trim(),
+    });
+    toast('Идея отправлена ✓');
+    formVisible = false;
+    document.getElementById('idea-form-wrap').innerHTML = '';
+    await loadIdeas();
+  } catch (e) {
+    toast('Ошибка: ' + e.message, 'err');
+    btn.disabled = false; btn.textContent = 'Отправить →';
+  }
+}
+
+// ── Admin View ────────────────────────────────────────────────────────────
+function renderAdmin() {
+  const total    = ALL_IDEAS.length;
+  const review   = ALL_IDEAS.filter(i=>i.status==='review').length;
+  const approved = ALL_IDEAS.filter(i=>i.status==='approved').length;
+  const authors  = new Set(ALL_IDEAS.map(i=>i.user_id)).size;
+
+  document.getElementById('adm-stats').innerHTML = `
+    <div class="stat glass">
+      <div class="stat-ico" style="background:rgba(85,102,240,.14)">📥</div>
+      <div><div class="stat-val">${total}</div><div class="stat-lbl">Всего</div></div>
+    </div>
+    <div class="stat glass">
+      <div class="stat-ico" style="background:rgba(220,170,50,.1)">⏳</div>
+      <div><div class="stat-val">${review}</div><div class="stat-lbl">На рассмотрении</div></div>
+    </div>
+    <div class="stat glass">
+      <div class="stat-ico" style="background:rgba(60,180,120,.1)">✓</div>
+      <div><div class="stat-val">${approved}</div><div class="stat-lbl">Принято</div></div>
+    </div>
+    <div class="stat glass">
+      <div class="stat-ico" style="background:rgba(160,180,255,.1)">👥</div>
+      <div><div class="stat-val">${authors}</div><div class="stat-lbl">Авторов</div></div>
+    </div>`;
+
+  renderAdmTable();
+  showScreen('adm');
+}
+
+function filterAdm(status, el) {
+  ADM_FILTER = status;
+  document.querySelectorAll('.fpill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  renderAdmTable();
+}
+
+function renderAdmTable() {
+  const q = (document.getElementById('adm-search')?.value||'').toLowerCase();
+  let ideas = ADM_FILTER ? ALL_IDEAS.filter(i=>i.status===ADM_FILTER) : [...ALL_IDEAS];
+  if (q) ideas = ideas.filter(i=>
+    i.title.toLowerCase().includes(q) || i.user_name.toLowerCase().includes(q));
+
+  const tbody = document.getElementById('adm-tbody');
+  if (!ideas.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:rgba(200,215,255,.25)">Нет идей</td></tr>`;
+  } else {
+    tbody.innerHTML = ideas.map(idea => {
+      const [slbl,scls] = STATUS_LABEL[idea.status]||['?','b-cat'];
+      const color = avaColor(idea.user_name);
+      return `<tr>
+        <td style="color:rgba(200,215,255,.22);font-size:10.5px">${idea.id}</td>
+        <td>
+          <div style="font-weight:500;color:#cdd8f0;margin-bottom:1px">${esc(idea.title)}</div>
+          ${idea.description?`<div style="font-size:10.5px;color:rgba(200,215,255,.28)">${esc(idea.description.slice(0,60))}${idea.description.length>60?'…':''}</div>`:''}
+        </td>
+        <td><div class="auth-cell"><div class="ava" style="background:${color}">${initials(idea.user_name)}</div>${esc(idea.user_name)}</div></td>
+        <td><span class="badge b-cat">${esc(idea.category)}</span></td>
+        <td style="color:rgba(200,215,255,.28);font-size:10.5px">${fmtDate(idea.date_create)}</td>
+        <td><span class="badge ${scls}">${slbl}</span></td>
+        <td><button class="act" onclick="openModal('${idea.id}')">Открыть</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('adm-footer').innerHTML =
+    `<span>Показано ${ideas.length} из ${ALL_IDEAS.length}</span>`;
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────
+function openModal(ideaId) {
+  MODAL_ID = ideaId;
+  const idea = ALL_IDEAS.find(i=>i.id===ideaId);
+  if (!idea) return;
+  const [,scls] = STATUS_LABEL[idea.status]||['?','b-cat'];
+  document.getElementById('m-title').textContent = `Идея #${idea.id} · ${idea.title}`;
+  document.getElementById('m-badges').innerHTML =
+    `<span class="badge b-cat">${esc(idea.category)}</span>
+     <span class="badge ${scls}">${STATUS_LABEL[idea.status]?.[0]||''}</span>
+     <span style="font-size:10.5px;color:rgba(200,215,255,.28);margin-left:2px">${esc(idea.user_name)} · ${fmtDate(idea.date_create)}</span>`;
+  document.getElementById('m-desc').textContent = idea.description || '(описание не указано)';
+  document.getElementById('m-status').value  = idea.status;
+  document.getElementById('m-comment').value = idea.admin_comment || '';
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  MODAL_ID = null;
+}
+
+async function saveModal() {
+  if (!MODAL_ID) return;
+  const btn = document.getElementById('m-save-btn');
+  btn.disabled = true; btn.textContent = 'Сохранение…';
+  try {
+    await api('PATCH', `/api/ideas/${MODAL_ID}`, {
+      status:        document.getElementById('m-status').value,
+      admin_comment: document.getElementById('m-comment').value.trim(),
+    });
+    toast('Статус обновлён ✓');
+    closeModal();
+    await loadIdeas();
+  } catch (e) {
+    toast('Ошибка: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Сохранить';
+  }
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal')) closeModal();
+});
+
+// ── Start ─────────────────────────────────────────────────────────────────
+boot();
+</script>
 </body>
 </html>

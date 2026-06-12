@@ -1,172 +1,147 @@
 import httpx
-import asyncio
-from datetime import datetime, date, timedelta
-from typing import Optional
 import logging
+from typing import Optional
 
 logger = logging.getLogger(__name__)
+
+ENTITY_CODE = "idea_bank_v1"
+
+STATUSES = {"new", "review", "approved", "rejected"}
 
 
 class BitrixClient:
     def __init__(self, base_url: str, api_key: str):
         self.base_url = base_url.rstrip("/")
-        self.api_key = api_key
-        self.headers = {
+        self.api_key  = api_key
+        self.headers  = {
             "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
+            "Content-Type":  "application/json",
         }
 
-    async def _get(self, endpoint: str, params: dict = None) -> dict:
-        url = f"{self.base_url}/{endpoint}"
-        if params is None:
-            params = {}
-        params["api_key"] = self.api_key
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.get(url, params=params, headers=self.headers)
-            resp.raise_for_status()
-            return resp.json()
+    async def _call(self, method: str, params: dict = None) -> dict:
+        url  = f"{self.base_url}/{method}"
+        data = params or {}
+        async with httpx.AsyncClient(timeout=30.0) as c:
+            r = await c.post(url, json=data, headers=self.headers)
+            r.raise_for_status()
+            return r.json()
 
-    async def _post(self, endpoint: str, data: dict = None) -> dict:
-        url = f"{self.base_url}/{endpoint}"
-        if data is None:
-            data = {}
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.post(url, json=data, headers=self.headers)
-            resp.raise_for_status()
-            return resp.json()
+    # ── Bitrix24 user.current via user auth token ────────────────────────────
 
-    async def get_users(self) -> list[dict]:
-        """Get all active users (managers/accounts)."""
-        try:
-            result = await self._get("user.get", {"ACTIVE": True, "limit": 500})
-            return result.get("result", [])
-        except Exception as e:
-            logger.error(f"Error fetching users: {e}")
-            return []
-
-    async def get_activities(
-        self,
-        date_from: date,
-        date_to: date,
-        responsible_id: Optional[int] = None,
-        type_ids: Optional[list[int]] = None,
-    ) -> list[dict]:
-        """Fetch CRM activities for a date range."""
-        filter_params = {
-            ">=DEADLINE": date_from.strftime("%Y-%m-%dT00:00:00"),
-            "<=DEADLINE": date_to.strftime("%Y-%m-%dT23:59:59"),
-        }
-        if responsible_id:
-            filter_params["RESPONSIBLE_ID"] = responsible_id
-        if type_ids:
-            filter_params["TYPE_ID"] = type_ids
-
-        try:
-            result = await self._post(
-                "crm.activity.list",
-                {
-                    "filter": filter_params,
-                    "select": ["ID", "TYPE_ID", "RESPONSIBLE_ID", "DEADLINE", "COMPLETED", "SUBJECT"],
-                    "order": {"DEADLINE": "ASC"},
-                    "start": 0,
-                },
+    async def user_current(self, auth_token: str) -> dict:
+        """Validate user auth token and return user data."""
+        async with httpx.AsyncClient(timeout=15.0) as c:
+            r = await c.get(
+                f"{self.base_url}/user.current",
+                headers={"Authorization": f"Bearer {auth_token}"},
             )
-            return result.get("result", [])
-        except Exception as e:
-            logger.error(f"Error fetching activities: {e}")
-            return []
+            r.raise_for_status()
+            result = r.json()
+        return result.get("result", result)
 
-    async def get_tasks(
-        self,
-        date_from: date,
-        date_to: date,
-        responsible_id: Optional[int] = None,
-        overdue_only: bool = False,
-    ) -> list[dict]:
-        """Fetch tasks."""
-        filter_params: dict = {}
-        if responsible_id:
-            filter_params["RESPONSIBLE_ID"] = responsible_id
+    # ── Entity storage bootstrap ─────────────────────────────────────────────
 
-        if overdue_only:
-            filter_params["<=DEADLINE"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-            filter_params["STATUS"] = [2, 3]  # in progress / waiting
-        else:
-            filter_params[">=DEADLINE"] = date_from.strftime("%Y-%m-%dT00:00:00")
-            filter_params["<=DEADLINE"] = date_to.strftime("%Y-%m-%dT23:59:59")
+    async def _ensure_entity(self) -> None:
+        """Create the entity storage if it doesn't exist yet."""
+        try:
+            await self._call("entity.add", {
+                "ENTITY": ENTITY_CODE,
+                "NAME":   "Банк идей",
+                "ACCESS": {"AU": "W"},   # authenticated users can write
+            })
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 400:
+                pass  # already exists
+            else:
+                raise
+
+    # ── Ideas CRUD ────────────────────────────────────────────────────────────
+
+    async def get_ideas(self, user_id: Optional[str] = None) -> list[dict]:
+        filter_p: dict = {}
+        if user_id:
+            filter_p["PROPERTY_USER_ID"] = user_id
 
         try:
-            result = await self._post(
-                "tasks.task.list",
-                {
-                    "filter": filter_params,
-                    "select": ["ID", "TITLE", "RESPONSIBLE_ID", "DEADLINE", "STATUS", "CLOSED_DATE"],
-                    "order": {"DEADLINE": "ASC"},
-                    "start": 0,
-                },
-            )
-            tasks = result.get("result", {})
-            if isinstance(tasks, dict):
-                return tasks.get("tasks", [])
-            return tasks
+            result = await self._call("entity.item.get", {
+                "ENTITY": ENTITY_CODE,
+                "SORT":   {"DATE_CREATE": "DESC"},
+                "FILTER": filter_p,
+            })
+            items = result.get("result", {})
+            if isinstance(items, dict):
+                items = items.get("items", [])
+            return [self._format(i) for i in (items or [])]
         except Exception as e:
-            logger.error(f"Error fetching tasks: {e}")
+            logger.error(f"get_ideas error: {e}")
             return []
 
-    async def get_daily_stats(self, target_date: date) -> dict:
-        """Aggregate daily stats for all users."""
-        users = await self.get_users()
-
-        # Bitrix24 activity type IDs
-        CALL_TYPE = [2]        # CALL
-        MESSAGE_TYPE = [4, 5]  # EMAIL / MESSAGE
-        MEETING_TYPE = [1]     # MEETING
-
-        # Fetch all activities and tasks concurrently
-        calls_task = self.get_activities(target_date, target_date, type_ids=CALL_TYPE)
-        messages_task = self.get_activities(target_date, target_date, type_ids=MESSAGE_TYPE)
-        meetings_task = self.get_activities(target_date, target_date, type_ids=MEETING_TYPE)
-        overdue_task = self.get_tasks(target_date, target_date, overdue_only=True)
-
-        calls, messages, meetings, overdue = await asyncio.gather(
-            calls_task, messages_task, meetings_task, overdue_task
-        )
-
-        # Build per-user stats
-        user_map = {u["ID"]: u for u in users}
-        stats: dict[str, dict] = {}
-
-        for uid, user in user_map.items():
-            name = f"{user.get('LAST_NAME', '')} {user.get('NAME', '')}".strip() or f"User {uid}"
-            stats[uid] = {
-                "id": uid,
-                "name": name,
-                "department": user.get("UF_DEPARTMENT", []),
-                "calls": 0,
-                "messages": 0,
-                "meetings": 0,
-                "overdue_tasks": 0,
-            }
-
-        def count_by_user(items: list[dict], field: str, uid_field: str = "RESPONSIBLE_ID") -> None:
-            for item in items:
-                uid = str(item.get(uid_field, ""))
-                if uid in stats:
-                    stats[uid][field] += 1
-
-        count_by_user(calls, "calls")
-        count_by_user(messages, "messages")
-        count_by_user(meetings, "meetings")
-        count_by_user(overdue, "overdue_tasks")
-
-        return {
-            "date": target_date.isoformat(),
-            "users": list(stats.values()),
-            "totals": {
-                "calls": sum(v["calls"] for v in stats.values()),
-                "messages": sum(v["messages"] for v in stats.values()),
-                "meetings": sum(v["meetings"] for v in stats.values()),
-                "overdue_tasks": sum(v["overdue_tasks"] for v in stats.values()),
-                "total_users": len(users),
+    async def create_idea(
+        self,
+        user_id: str,
+        user_name: str,
+        title: str,
+        category: str,
+        description: str = "",
+    ) -> dict:
+        await self._ensure_entity()
+        result = await self._call("entity.item.add", {
+            "ENTITY": ENTITY_CODE,
+            "NAME":   title,
+            "DETAIL_TEXT": description,
+            "PROPERTY_VALUES": {
+                "USER_ID":       user_id,
+                "USER_NAME":     user_name,
+                "CATEGORY":      category,
+                "STATUS":        "new",
+                "ADMIN_COMMENT": "",
             },
+        })
+        item_id = result.get("result")
+        return {
+            "id":            str(item_id),
+            "title":         title,
+            "description":   description,
+            "category":      category,
+            "status":        "new",
+            "admin_comment": "",
+            "user_id":       user_id,
+            "user_name":     user_name,
+        }
+
+    async def update_idea(self, idea_id: str, status: str,
+                          admin_comment: str = "") -> dict:
+        if status not in STATUSES:
+            raise ValueError(f"Unknown status: {status}")
+        await self._call("entity.item.update", {
+            "ENTITY": ENTITY_CODE,
+            "ID":     int(idea_id),
+            "PROPERTY_VALUES": {
+                "STATUS":        status,
+                "ADMIN_COMMENT": admin_comment,
+            },
+        })
+        return {"id": idea_id, "status": status, "admin_comment": admin_comment}
+
+    async def delete_idea(self, idea_id: str) -> None:
+        await self._call("entity.item.delete", {
+            "ENTITY": ENTITY_CODE,
+            "ID":     int(idea_id),
+        })
+
+    # ── Format helper ─────────────────────────────────────────────────────────
+
+    @staticmethod
+    def _format(item: dict) -> dict:
+        props = item.get("PROPERTY_VALUES", {})
+        return {
+            "id":            str(item.get("ID", "")),
+            "title":         item.get("NAME", ""),
+            "description":   item.get("DETAIL_TEXT", ""),
+            "category":      props.get("CATEGORY", ""),
+            "status":        props.get("STATUS", "new"),
+            "admin_comment": props.get("ADMIN_COMMENT", ""),
+            "user_id":       str(props.get("USER_ID", "")),
+            "user_name":     props.get("USER_NAME", ""),
+            "date_create":   item.get("DATE_CREATE", ""),
         }
