@@ -42,4 +42,51 @@ jobs:
       - name: Deploy
         if: ${{ steps.mode.outputs.mode == 'deploy' }}
         run: |
-          echo "Deploy step placeholder — will be filled after probe reveals the API shape"
+          set -e
+          echo "=== access-policy PATCH schema ==="
+          curl -sS -m 30 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/openapi.json" -o /tmp/oa.json
+          jq '.paths."/v1/infra/servers/{id}/access-policy".patch.requestBody' /tmp/oa.json
+
+          echo "=== packing sources ==="
+          tar czf /tmp/src.tar.gz app templates requirements.txt
+          ls -la /tmp/src.tar.gz
+          B64=$(base64 -w0 /tmp/src.tar.gz)
+
+          echo "=== deploying ==="
+          jq -n --arg b64 "$B64" --arg key "$VIBE_KEY" '{
+            source: { content: $b64 },
+            extractTo: "/opt/app",
+            install: "cd /opt/app && python3 -m pip install --break-system-packages -r requirements.txt",
+            start: "cd /opt/app && python3 -m uvicorn app.main:app --host 0.0.0.0 --port 3000",
+            port: 3000,
+            env: {
+              BITRIX_BASE_URL: "https://vibecode.bitrix24.tech/v1",
+              BITRIX_API_KEY: $key
+            },
+            systemd: true,
+            cleanDeploy: true,
+            serviceName: "idea-bank"
+          }' > /tmp/deploy.json
+
+          HTTP=$(curl -sS -m 600 -o /tmp/deploy_resp.json -w "%{http_code}" \
+            -X POST "$VIBE_URL/v1/infra/servers/$SERVER_ID/deploy?stream=false" \
+            -H "Authorization: Bearer $VIBE_KEY" \
+            -H "Content-Type: application/json" \
+            --data @/tmp/deploy.json)
+          echo "deploy HTTP=$HTTP"
+          cat /tmp/deploy_resp.json | head -c 6000; echo
+
+          echo "=== health check via access token ==="
+          TOKEN=$(curl -sS -m 30 -X POST "$VIBE_URL/v1/infra/servers/$SERVER_ID/access-tokens" \
+            -H "Authorization: Bearer $VIBE_KEY" -H "Content-Type: application/json" \
+            -d '{"mode":"api-bearer","ttlSeconds":3600,"name":"ci-health"}' | jq -r '.data.token // .data.jwt // empty')
+          if [ -n "$TOKEN" ]; then
+            sleep 5
+            curl -sS -m 30 -H "Authorization: Bearer $TOKEN" "$APP_URL/api/health"; echo
+          else
+            echo "no token minted"
+          fi
+
+          echo "=== current access rules ==="
+          curl -sS -m 30 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/infra/servers/$SERVER_ID/access" | head -c 2000; echo
+          [ "$HTTP" = "200" ]
