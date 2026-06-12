@@ -20,8 +20,8 @@ GREEN = RGBColor(0x9D, 0xCF, 0x00)     # фирменный зелёный ак�
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 ORANGE = RGBColor(0xF9, 0xA9, 0x1D)
 
-FONT = "Segoe UI"
-FONT_B = "Segoe UI Semibold"
+FONT = "Arial"
+FONT_B = "Arial"
 
 SW, SH = Inches(13.333), Inches(7.5)
 
