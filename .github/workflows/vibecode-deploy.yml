@@ -53,6 +53,31 @@ jobs:
           curl -sS -m 30 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/infra/servers/$SERVER_ID" | head -c 1500; echo
           true
 
+      - name: Teardown
+        if: ${{ steps.mode.outputs.mode == 'teardown' }}
+        run: |
+          set +e
+          echo "=== find exec endpoint ==="
+          curl -sS -m 30 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/openapi.json" -o /tmp/oa.json
+          jq -r '.paths | keys[] | select(test("exec|command"))' /tmp/oa.json
+
+          CMD='systemctl stop idea-bank; systemctl disable idea-bank; rm -f /etc/systemd/system/idea-bank.service; systemctl daemon-reload; rm -rf /opt/app; echo TEARDOWN_DONE; systemctl status idea-bank --no-pager | head -3; ls /opt 2>/dev/null'
+          for EP in "exec" "execute" "commands" "command"; do
+            echo "=== POST $EP ==="
+            curl -sS -m 120 -X POST "$VIBE_URL/v1/infra/servers/$SERVER_ID/$EP" \
+              -H "Authorization: Bearer $VIBE_KEY" -H "Content-Type: application/json" \
+              -d "$(jq -n --arg c "$CMD" '{command: $c, timeout: 60}')" | head -c 3000; echo
+          done
+
+          echo "=== lock access to owner only ==="
+          curl -sS -m 30 -X PATCH "$VIBE_URL/v1/infra/servers/$SERVER_ID/access-policy" \
+            -H "Authorization: Bearer $VIBE_KEY" -H "Content-Type: application/json" \
+            -d '{"accessPolicy": "OWNER_ONLY"}' | head -c 500; echo
+
+          echo "=== app url after teardown ==="
+          curl -sS -m 20 -o /dev/null -w "%{http_code}\n" "$APP_URL/api/health"
+          true
+
       - name: Deploy
         if: ${{ steps.mode.outputs.mode == 'deploy' }}
         run: |
