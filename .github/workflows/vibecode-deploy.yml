@@ -1,0 +1,47 @@
+name: VibeCode Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "probe | deploy"
+        required: true
+        default: "probe"
+
+jobs:
+  vibecode:
+    runs-on: ubuntu-latest
+    env:
+      VIBE_KEY: vibe_api_lLXGQ0RzCvaKneMGQKhWd55yaUvavh7t_ade720
+      VIBE_URL: https://vibecode.bitrix24.tech
+      SERVER_ID: 70ed234d-6089-4675-bfbd-6ac46e147fa9
+      APP_URL: https://app-32d5d6bc447f.vibecode.bitrix24.tech
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Probe API
+        if: ${{ inputs.mode == 'probe' }}
+        run: |
+          set +e
+          echo "=== /v1/me ==="
+          curl -sS -m 20 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/me" | head -c 3000; echo
+          echo "=== /v1/infra ==="
+          curl -sS -m 20 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/infra" | head -c 3000; echo
+          echo "=== /v1/infra/servers ==="
+          curl -sS -m 20 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/infra/servers" | head -c 3000; echo
+          echo "=== /v1/infra/server/$SERVER_ID ==="
+          curl -sS -m 20 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/infra/server/$SERVER_ID" | head -c 3000; echo
+          echo "=== /v1/infra/servers/$SERVER_ID ==="
+          curl -sS -m 20 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/infra/servers/$SERVER_ID" | head -c 3000; echo
+          echo "=== /docs/infra (text) ==="
+          curl -sSL -m 20 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/docs/infra" | head -c 8000; echo
+          echo "=== /v1/openapi.json ==="
+          curl -sS -m 20 -H "Authorization: Bearer $VIBE_KEY" "$VIBE_URL/v1/openapi.json" | head -c 6000; echo
+          echo "=== app health ==="
+          curl -sS -m 20 "$APP_URL/api/health" | head -c 1000; echo
+          true
+
+      - name: Deploy
+        if: ${{ inputs.mode == 'deploy' }}
+        run: |
+          echo "Deploy step placeholder — will be filled after probe reveals the API shape"
