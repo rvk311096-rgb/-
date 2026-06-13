@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Битрикс24 — Карточка сделки</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; background: #f0f2f5; color: #333; font-size: 13px; }
+
+  /* ─── TOP BAR ─── */
+  .topbar {
+    height: 48px; background: #2c4a7c; display: flex; align-items: center;
+    padding: 0 16px; gap: 12px; position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .topbar-logo { color: #fff; font-size: 18px; font-weight: 700; letter-spacing: -0.5px; margin-right: 8px; }
+  .topbar-logo span { color: #ff8800; }
+  .topbar-search {
+    flex: 1; max-width: 380px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px; height: 32px; padding: 0 12px; color: #fff; font-size: 13px; outline: none;
+  }
+  .topbar-search::placeholder { color: rgba(255,255,255,0.5); }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+  .topbar-icon { color: rgba(255,255,255,0.7); cursor: pointer; font-size: 16px; position: relative; }
+  .topbar-icon:hover { color: #fff; }
+  .badge { position: absolute; top: -4px; right: -6px; background: #f44; color: #fff; border-radius: 8px; font-size: 9px; padding: 1px 4px; }
+  .topbar-avatar { width: 30px; height: 30px; border-radius: 50%; background: #ff8800; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700; cursor: pointer; }
+
+  /* ─── LEFT SIDEBAR ─── */
+  .layout { display: flex; padding-top: 48px; min-height: 100vh; }
+  .sidebar {
+    width: 56px; background: #1e3a5f; position: fixed; top: 48px; left: 0; bottom: 0;
+    display: flex; flex-direction: column; align-items: center; padding: 8px 0; gap: 2px; z-index: 900;
+  }
+  .sidebar-item {
+    width: 44px; height: 44px; border-radius: 10px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; cursor: pointer; color: rgba(255,255,255,0.55);
+    transition: all 0.15s; font-size: 18px; gap: 2px;
+  }
+  .sidebar-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .sidebar-item.active { background: rgba(255,255,255,0.15); color: #fff; }
+  .sidebar-item span { font-size: 8px; font-weight: 500; letter-spacing: 0.2px; }
+
+  /* ─── MAIN CONTENT ─── */
+  .main { margin-left: 56px; flex: 1; display: flex; flex-direction: column; }
+
+  /* ─── BREADCRUMB ─── */
+  .breadcrumb {
+    background: #fff; border-bottom: 1px solid #e0e4ea; padding: 0 20px;
+    height: 40px; display: flex; align-items: center; gap: 6px; font-size: 12px;
+  }
+  .breadcrumb a { color: #3d8ef0; text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb-sep { color: #aaa; }
+  .breadcrumb-current { color: #555; font-weight: 500; }
+
+  /* ─── PAGE LAYOUT ─── */
+  .page { display: flex; gap: 0; flex: 1; }
+  .content-col { flex: 1; padding: 20px 16px 20px 20px; min-width: 0; }
+  .right-col { width: 320px; padding: 20px 20px 20px 0; flex-shrink: 0; }
+
+  /* ─── DEAL HEADER ─── */
+  .deal-header {
+    background: #fff; border-radius: 8px; border: 1px solid #e0e4ea;
+    padding: 16px 20px; margin-bottom: 12px;
+  }
+  .deal-header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+  .deal-title-block { display: flex; align-items: center; gap: 10px; }
+  .deal-icon { width: 36px; height: 36px; background: #e8f0fe; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .deal-title { font-size: 17px; font-weight: 600; color: #1a1a2e; }
+  .deal-id { font-size: 11px; color: #888; margin-top: 2px; }
+  .deal-actions { display: flex; gap: 8px; }
+  .btn { padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: #3d8ef0; color: #fff; }
+  .btn-primary:hover { background: #2d7de0; }
+  .btn-secondary { background: #f0f4fa; color: #3d8ef0; border: 1px solid #c8d8f5; }
+  .btn-secondary:hover { background: #e0e8f8; }
+  .btn-danger { background: #fff0f0; color: #e53935; border: 1px solid #fccec e; }
+  .btn-success { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+  .btn-sm { padding: 5px 10px; font-size: 11px; }
+  .btn-ghost { background: transparent; color: #666; border: 1px solid #ddd; }
+  .btn-ghost:hover { background: #f5f5f5; }
+  .btn-orange { background: #ff8800; color: #fff; }
+  .btn-orange:hover { background: #e07700; }
+
+  /* ─── PIPELINE STAGES ─── */
+  .pipeline { display: flex; gap: 0; margin-bottom: 0; overflow-x: auto; }
+  .stage-item {
+    flex: 1; min-width: 80px; height: 32px; display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 500; cursor: pointer; position: relative; white-space: nowrap;
+    padding: 0 8px 0 16px; clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%, 10px 50%);
+    transition: all 0.15s; color: #666; background: #f0f2f5; border-right: 0;
+  }
+  .stage-item:first-child { clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%); padding-left: 12px; }
+  .stage-item:last-child { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 10px 50%); }
+  .stage-item.done { background: #c8e6c9; color: #2e7d32; }
+  .stage-item.active { background: #3d8ef0; color: #fff; }
+  .stage-item.fail { background: #ffcdd2; color: #c62828; }
+  .stage-item:hover:not(.active) { background: #dde4f0; }
+
+  /* ─── DEAL META ROW ─── */
+  .deal-meta { display: flex; gap: 24px; padding-top: 12px; border-top: 1px solid #f0f2f5; }
+  .meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .meta-label { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.4px; }
+  .meta-value { font-size: 13px; font-weight: 600; color: #1a1a2e; }
+  .meta-value.amount { color: #2e7d32; font-size: 15px; }
+  .meta-avatar-row { display: flex; gap: 4px; }
+  .mini-avatar { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; color: #fff; }
+
+  /* ─── TABS ─── */
+  .tabs-wrap { background: #fff; border-radius: 8px 8px 0 0; border: 1px solid #e0e4ea; border-bottom: none; }
+  .tabs { display: flex; padding: 0 4px; gap: 0; overflow-x: auto; }
+  .tab {
+    padding: 10px 16px; font-size: 12px; font-weight: 500; cursor: pointer; color: #666;
+    border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.15s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .tab:hover { color: #3d8ef0; }
+  .tab.active { color: #3d8ef0; border-bottom-color: #3d8ef0; font-weight: 600; }
+  .tab-badge { background: #ff8800; color: #fff; border-radius: 10px; font-size: 9px; padding: 1px 5px; font-weight: 700; }
+  .tab-badge.blue { background: #3d8ef0; }
+  .tab-badge.green { background: #43a047; }
+  .tab-badge.sensei { background: linear-gradient(135deg, #667eea, #764ba2); }
+
+  /* ─── TAB CONTENT ─── */
+  .tab-content {
+    background: #fff; border: 1px solid #e0e4ea; border-radius: 0 0 8px 8px;
+    min-height: 420px;
+  }
+
+  /* ─── SENSEI TAB ─── */
+  .sensei-panel { padding: 0; }
+  .sensei-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 14px 20px; border-radius: 0; display: flex; align-items: center; gap: 12px;
+  }
+  .sensei-logo { font-size: 20px; }
+  .sensei-title { color: #fff; font-size: 14px; font-weight: 600; }
+  .sensei-subtitle { color: rgba(255,255,255,0.75); font-size: 11px; margin-top: 1px; }
+  .sensei-body { padding: 16px 20px; }
+
+  /* ─── PROCESS STATUS ─── */
+  .process-status {
+    background: linear-gradient(135deg, #f0f7ff, #e8f4fd); border: 1px solid #c5dff8;
+    border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .process-icon { font-size: 22px; }
+  .process-info { flex: 1; }
+  .process-name { font-size: 13px; font-weight: 600; color: #1a3a6c; }
+  .process-step { font-size: 11px; color: #5a7fa8; margin-top: 2px; }
+  .process-progress { margin-top: 8px; }
+  .progress-bar { height: 5px; background: #d0e4f7; border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #3d8ef0, #667eea); border-radius: 3px; transition: width 0.3s; }
+  .progress-label { font-size: 10px; color: #888; margin-top: 3px; text-align: right; }
+
+  /* ─── ADVISER BLOCK ─── */
+  .adviser-block { margin-bottom: 16px; }
+  .adviser-title {
+    font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+  }
+  .adviser-title::before { content: '🧠'; font-size: 13px; }
+  .adviser-card {
+    background: #fffbf0; border: 1px solid #ffe0a0; border-radius: 8px;
+    padding: 14px 16px; position: relative;
+  }
+  .adviser-tag {
+    position: absolute; top: -1px; right: 12px; background: #ff8800; color: #fff;
+    font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 0 0 6px 6px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .adviser-script-label { font-size: 10px; color: #b06000; font-weight: 600; margin-bottom: 6px; text-transform: uppercase; }
+  .adviser-script { font-size: 12px; color: #3a2800; line-height: 1.6; }
+  .adviser-script strong { color: #1a1a00; }
+  .adviser-links { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .adviser-link {
+    background: #fff; border: 1px solid #e0c060; border-radius: 4px;
+    padding: 4px 10px; font-size: 10px; color: #8a6000; cursor: pointer; text-decoration: none;
+    transition: all 0.15s;
+  }
+  .adviser-link:hover { background: #fff8e0; color: #5a3000; }
+
+  /* ─── TASK BLOCK ─── */
+  .task-block { margin-bottom: 16px; }
+  .task-card {
+    border: 2px solid #3d8ef0; border-radius: 8px; padding: 14px 16px;
+    background: #f7fbff; position: relative;
+  }
+  .task-urgent { position: absolute; top: -1px; left: 12px; background: #e53935; color: #fff; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 0 0 6px 6px; text-transform: uppercase; }
+  .task-title { font-size: 13px; font-weight: 600; color: #1a3a6c; margin-bottom: 4px; }
+  .task-desc { font-size: 11px; color: #666; margin-bottom: 12px; line-height: 1.5; }
+  .task-deadline { font-size: 10px; color: #e53935; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 4px; }
+  .outcomes-label { font-size: 10px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .outcomes { display: flex; flex-direction: column; gap: 6px; }
+  .outcome-btn {
+    padding: 9px 14px; border-radius: 6px; font-size: 12px; font-weight: 500;
+    cursor: pointer; border: 1.5px solid; text-align: left; transition: all 0.15s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .outcome-btn.green { border-color: #43a047; color: #2e7d32; background: #f1f8f1; }
+  .outcome-btn.green:hover { background: #c8e6c9; }
+  .outcome-btn.yellow { border-color: #f9a825; color: #e65100; background: #fffde7; }
+  .outcome-btn.yellow:hover { background: #fff9c4; }
+  .outcome-btn.red { border-color: #e53935; color: #b71c1c; background: #fff5f5; }
+  .outcome-btn.red:hover { background: #ffcdd2; }
+  .outcome-btn .outcome-icon { font-size: 14px; }
+  .outcome-btn .outcome-arrow { margin-left: auto; color: #aaa; font-size: 12px; }
+
+  /* ─── CHECKLIST ─── */
+  .checklist-block { margin-bottom: 16px; }
+  .checklist-title {
+    font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+  }
+  .checklist-title::before { content: '✅'; font-size: 12px; }
+  .checklist-item {
+    display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 5px;
+    margin-bottom: 3px; cursor: pointer; transition: background 0.1s;
+  }
+  .checklist-item:hover { background: #f5f8ff; }
+  .checklist-cb { width: 15px; height: 15px; border: 1.5px solid #bbb; border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .checklist-cb.checked { background: #43a047; border-color: #43a047; color: #fff; font-size: 9px; }
+  .checklist-text { font-size: 12px; color: #444; }
+  .checklist-text.done { text-decoration: line-through; color: #aaa; }
+
+  /* ─── RIGHT COLUMN ─── */
+  .card {
+    background: #fff; border: 1px solid #e0e4ea; border-radius: 8px;
+    margin-bottom: 12px; overflow: hidden;
+  }
+  .card-head {
+    padding: 10px 16px; border-bottom: 1px solid #f0f2f5;
+    display: flex; align-items: center; justify-content: space-between;
+    background: #fafbfc;
+  }
+  .card-head-title { font-size: 12px; font-weight: 600; color: #444; display: flex; align-items: center; gap: 6px; }
+  .card-body { padding: 14px 16px; }
+
+  /* ─── CRM FIELDS ─── */
+  .field-row { margin-bottom: 12px; }
+  .field-label { font-size: 10px; color: #888; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .field-value { font-size: 12px; color: #222; font-weight: 500; }
+  .field-edit { font-size: 11px; color: #3d8ef0; cursor: pointer; }
+  .field-row-inline { display: flex; justify-content: space-between; align-items: center; }
+  .field-tag { background: #e8f0fe; color: #3d50c3; border-radius: 4px; padding: 2px 8px; font-size: 10px; font-weight: 500; }
+  .field-tag.warm { background: #fff3e0; color: #e65100; }
+  .field-tag.hot { background: #fce4ec; color: #ad1457; }
+
+  /* ─── CONTACT CARD ─── */
+  .contact-mini { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+  .contact-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .contact-name { font-size: 13px; font-weight: 600; color: #1a1a2e; }
+  .contact-pos { font-size: 10px; color: #888; margin-top: 1px; }
+  .contact-actions { margin-left: auto; display: flex; gap: 6px; }
+  .icon-btn { width: 28px; height: 28px; border-radius: 6px; background: #f0f4fa; border: 1px solid #e0e4ea; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; }
+  .icon-btn:hover { background: #e0e8f8; }
+
+  /* ─── ACTIVITY TIMELINE ─── */
+  .timeline { padding: 4px 0; }
+  .tl-item { display: flex; gap: 10px; padding: 8px 0; border-left: 2px solid #e0e4ea; margin-left: 8px; padding-left: 14px; position: relative; }
+  .tl-item::before { content: ''; position: absolute; left: -5px; top: 12px; width: 8px; height: 8px; border-radius: 50%; background: #e0e4ea; }
+  .tl-item.done::before { background: #43a047; }
+  .tl-item.pending::before { background: #3d8ef0; border: 2px solid #fff; box-shadow: 0 0 0 2px #3d8ef0; }
+  .tl-item.overdue::before { background: #e53935; }
+  .tl-content { flex: 1; }
+  .tl-title { font-size: 12px; font-weight: 500; color: #333; }
+  .tl-meta { font-size: 10px; color: #888; margin-top: 2px; }
+  .tl-meta.overdue { color: #e53935; }
+
+  /* ─── ANALYTICS MINI ─── */
+  .analytics-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .analytics-item { flex: 1; background: #f7f9fc; border-radius: 6px; padding: 10px 12px; border: 1px solid #e8edf5; }
+  .analytics-num { font-size: 18px; font-weight: 700; color: #1a3a6c; }
+  .analytics-label { font-size: 10px; color: #888; margin-top: 2px; }
+  .analytics-change { font-size: 10px; color: #43a047; font-weight: 600; }
+  .analytics-change.down { color: #e53935; }
+
+  /* ─── SENSEI MINI INDICATOR ─── */
+  .sensei-indicator {
+    background: linear-gradient(135deg, #f3f0ff, #ede8ff);
+    border: 1px solid #c5b8f5; border-radius: 6px; padding: 10px 12px;
+    display: flex; align-items: center; gap: 8px; margin-top: 8px;
+  }
+  .sensei-dot { width: 8px; height: 8px; border-radius: 50%; background: #667eea; animation: pulse 2s infinite; flex-shrink: 0; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.2)} }
+  .sensei-ind-text { font-size: 11px; color: #4a3a8a; }
+  .sensei-ind-text strong { color: #3a2a7a; }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 2000;
+    display: none; align-items: center; justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: #fff; border-radius: 12px; width: 480px; max-width: 95vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; animation: modalIn 0.2s ease;
+  }
+  @keyframes modalIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+  .modal-header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    padding: 16px 20px; display: flex; align-items: center; gap: 10px;
+  }
+  .modal-header-icon { font-size: 22px; }
+  .modal-header-title { color: #fff; font-size: 15px; font-weight: 600; }
+  .modal-header-sub { color: rgba(255,255,255,0.75); font-size: 11px; margin-top: 2px; }
+  .modal-close { margin-left: auto; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 18px; }
+  .modal-close:hover { color: #fff; }
+  .modal-body { padding: 20px; }
+  .modal-field { margin-bottom: 16px; }
+  .modal-field label { display: block; font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
+  .modal-field label.required::after { content: ' *'; color: #e53935; }
+  .modal-input {
+    width: 100%; padding: 9px 12px; border: 1.5px solid #dde3f0; border-radius: 6px;
+    font-size: 12px; color: #333; outline: none; transition: border-color 0.15s; font-family: inherit;
+  }
+  .modal-input:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.15); }
+  .modal-select { appearance: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") no-repeat right 10px center; }
+  .modal-hint { font-size: 10px; color: #888; margin-top: 4px; }
+  .modal-footer { padding: 14px 20px; background: #fafbfc; border-top: 1px solid #e8edf5; display: flex; gap: 8px; justify-content: flex-end; }
+  .modal-alert { background: #fffde7; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; font-size: 11px; color: #5d4000; margin-bottom: 16px; display: flex; gap: 8px; align-items: flex-start; }
+  .modal-alert-icon { font-size: 14px; flex-shrink: 0; }
+
+  /* ─── NOTIFICATION TOAST ─── */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; background: #1a1a2e; color: #fff;
+    padding: 12px 18px; border-radius: 8px; font-size: 12px; z-index: 9999;
+    display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    animation: toastIn 0.3s ease; max-width: 320px;
+  }
+  .toast.hide { animation: toastOut 0.3s ease forwards; }
+  @keyframes toastIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes toastOut { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(20px)} }
+  .toast-icon { font-size: 16px; }
+
+  /* ─── DASHBOARD VIEW ─── */
+  .dashboard-panel { padding: 16px 20px; }
+  .dash-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .kpi-card { background: #f7f9fc; border-radius: 8px; padding: 14px 16px; border: 1px solid #e8edf5; }
+  .kpi-num { font-size: 22px; font-weight: 700; color: #1a3a6c; }
+  .kpi-label { font-size: 10px; color: #888; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .kpi-change { font-size: 11px; margin-top: 6px; font-weight: 600; color: #43a047; }
+  .kpi-change.down { color: #e53935; }
+  .funnel-block { background: #f7f9fc; border-radius: 8px; padding: 16px; border: 1px solid #e8edf5; margin-bottom: 16px; }
+  .funnel-title { font-size: 12px; font-weight: 600; color: #444; margin-bottom: 12px; }
+  .funnel-stage { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .funnel-name { font-size: 11px; color: #555; width: 140px; flex-shrink: 0; }
+  .funnel-bar-wrap { flex: 1; height: 18px; background: #e8edf5; border-radius: 4px; overflow: hidden; }
+  .funnel-bar { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 10px; color: #fff; font-weight: 600; transition: width 0.5s; }
+  .funnel-count { font-size: 11px; color: #666; width: 50px; text-align: right; }
+  .funnel-pct { font-size: 10px; color: #888; width: 35px; text-align: right; }
+
+  /* ─── PROCESS CONSTRUCTOR ─── */
+  .constructor-panel { padding: 16px 20px; }
+  .constructor-canvas {
+    background: #f7f9fc; border: 2px dashed #c8d8f5; border-radius: 8px;
+    min-height: 300px; position: relative; display: flex; align-items: flex-start;
+    padding: 20px; overflow: hidden;
+  }
+  .bpm-node {
+    border-radius: 8px; padding: 10px 14px; font-size: 11px; font-weight: 600;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    cursor: grab; min-width: 100px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: relative;
+  }
+  .bpm-node.start { background: #43a047; color: #fff; border-radius: 50px; padding: 8px 20px; }
+  .bpm-node.task { background: #3d8ef0; color: #fff; }
+  .bpm-node.condition { background: #ff8800; color: #fff; transform: rotate(45deg); width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; padding: 0; font-size: 10px; }
+  .bpm-node.condition span { transform: rotate(-45deg); display: block; text-align: center; line-height: 1.2; }
+  .bpm-node.action { background: #9c27b0; color: #fff; }
+  .bpm-node.end { background: #e53935; color: #fff; border-radius: 50px; padding: 8px 20px; }
+  .bpm-node-sub { font-size: 9px; opacity: 0.85; font-weight: 400; }
+  .bpm-arrow { color: #3d8ef0; font-size: 16px; display: flex; align-items: center; padding: 0 4px; }
+  .bpm-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .bpm-branch { display: flex; flex-direction: column; gap: 8px; }
+  .branch-label { font-size: 9px; color: #888; text-align: center; }
+  .bpm-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+
+  /* ─── HIDDEN PANELS ─── */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ─── MISC ─── */
+  .divider { height: 1px; background: #f0f2f5; margin: 12px 0; }
+  .text-muted { color: #888; font-size: 11px; }
+  .flex-between { display: flex; align-items: center; justify-content: space-between; }
+  .tag { display: inline-flex; align-items: center; background: #f0f4fa; color: #555; border-radius: 4px; padding: 2px 8px; font-size: 10px; margin: 2px; }
+  .tag.purple { background: #f3f0ff; color: #6741d9; }
+  .tag.teal { background: #e0f7fa; color: #00838f; }
+  .pill-green { background: #e8f5e9; color: #2e7d32; border-radius: 12px; padding: 3px 10px; font-size: 10px; font-weight: 600; }
+  .pill-orange { background: #fff3e0; color: #e65100; border-radius: 12px; padding: 3px 10px; font-size: 10px; font-weight: 600; }
+  .pill-red { background: #fce4ec; color: #ad1457; border-radius: 12px; padding: 3px 10px; font-size: 10px; font-weight: 600; }
+  .pill-blue { background: #e3f2fd; color: #1565c0; border-radius: 12px; padding: 3px 10px; font-size: 10px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- ─── TOP BAR ─── -->
+<div class="topbar">
+  <div class="topbar-logo">Битрикс<span>24</span></div>
+  <input class="topbar-search" placeholder="🔍 Поиск по Битрикс24..." />
+  <div class="topbar-right">
+    <div class="topbar-icon" title="Чат">💬<span class="badge">3</span></div>
+    <div class="topbar-icon" title="Уведомления">🔔<span class="badge">7</span></div>
+    <div class="topbar-icon" title="Задачи">✅</div>
+    <div class="topbar-icon" title="Календарь">📅</div>
+    <div class="topbar-avatar" title="Иван Петров">ИП</div>
+  </div>
+</div>
+
+<!-- ─── LAYOUT ─── -->
+<div class="layout">
+
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-item" title="Лента">🏠<span>Лента</span></div>
+    <div class="sidebar-item active" title="CRM">📊<span>CRM</span></div>
+    <div class="sidebar-item" title="Задачи">✅<span>Задачи</span></div>
+    <div class="sidebar-item" title="Чат">💬<span>Чат</span></div>
+    <div class="sidebar-item" title="Диск">📁<span>Диск</span></div>
+    <div class="sidebar-item" title="Почта">📧<span>Почта</span></div>
+    <div class="sidebar-item" title="Телефония">📞<span>Звонки</span></div>
+    <div class="sidebar-item" title="Маркет">🛒<span>Маркет</span></div>
+    <div class="sidebar-item" style="margin-top:auto" title="Настройки">⚙️<span>Настр.</span></div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb">
+      <a href="#">CRM</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="#">Сделки</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="#">Воронка продаж</a>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-current">Сделка #2847 — ООО «Технологии Будущего»</span>
+    </div>
+
+    <!-- PAGE -->
+    <div class="page">
+
+      <!-- LEFT CONTENT -->
+      <div class="content-col">
+
+        <!-- DEAL HEADER -->
+        <div class="deal-header">
+          <div class="deal-header-top">
+            <div class="deal-title-block">
+              <div class="deal-icon">🤝</div>
+              <div>
+                <div class="deal-title">ООО «Технологии Будущего» — Внедрение CRM</div>
+                <div class="deal-id">Сделка #2847 · Создана 02.06.2026 · Воронка: B2B Enterprise</div>
+              </div>
+            </div>
+            <div class="deal-actions">
+              <button class="btn btn-ghost btn-sm">⋯ Ещё</button>
+              <button class="btn btn-secondary btn-sm">✏️ Редактировать</button>
+              <button class="btn btn-primary btn-sm" onclick="showModal('winModal')">🏆 Победа!</button>
+            </div>
+          </div>
+
+          <!-- PIPELINE -->
+          <div class="pipeline" style="margin-bottom:12px">
+            <div class="stage-item done">Новая заявка</div>
+            <div class="stage-item done">Квалификация</div>
+            <div class="stage-item done">Встреча</div>
+            <div class="stage-item active">КП отправлено</div>
+            <div class="stage-item">Согласование</div>
+            <div class="stage-item">Договор</div>
+            <div class="stage-item">Оплата</div>
+            <div class="stage-item fail" style="flex:0.6;min-width:60px">Отказ</div>
+          </div>
+
+          <div class="deal-meta">
+            <div class="meta-item">
+              <div class="meta-label">Бюджет сделки</div>
+              <div class="meta-value amount">₽ 485 000</div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Вероятность</div>
+              <div class="meta-value"><span class="pill-orange">65%</span></div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Дата закрытия</div>
+              <div class="meta-value">30 июня 2026</div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Ответственный</div>
+              <div class="meta-avatar-row">
+                <div class="mini-avatar" style="background:#3d8ef0">ИП</div>
+                <div class="meta-value" style="margin-left:4px">И. Петров</div>
+              </div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Источник</div>
+              <div class="meta-value"><span class="tag teal">Входящий звонок</span></div>
+            </div>
+            <div class="meta-item" style="margin-left:auto">
+              <div class="sensei-indicator">
+                <div class="sensei-dot"></div>
+                <div class="sensei-ind-text"><strong>Sensei активен</strong> · Этап 4/7</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="tabs-wrap">
+          <div class="tabs">
+            <div class="tab" onclick="switchTab('timeline',this)">🕐 Таймлайн <span class="tab-badge blue">4</span></div>
+            <div class="tab active" onclick="switchTab('sensei',this)">🧠 Sensei BPM <span class="tab-badge sensei">!</span></div>
+            <div class="tab" onclick="switchTab('dashboard',this)">📈 Аналитика процесса</div>
+            <div class="tab" onclick="switchTab('constructor',this)">⚙️ Конструктор</div>
+            <div class="tab" onclick="switchTab('files',this)">📎 Файлы <span class="tab-badge">2</span></div>
+            <div class="tab" onclick="switchTab('history',this)">📋 История изменений</div>
+          </div>
+        </div>
+
+        <!-- TAB CONTENT -->
+        <div class="tab-content">
+
+          <!-- SENSEI TAB -->
+          <div class="tab-panel active" id="panel-sensei">
+            <div class="sensei-panel">
+              <div class="sensei-header">
+                <div class="sensei-logo">🧠</div>
+                <div>
+                  <div class="sensei-title">Sensei BPM — Менеджер процессов продаж</div>
+                  <div class="sensei-subtitle">Процесс: «B2B Enterprise Sale» · Этап 4 из 7: КП отправлено</div>
+                </div>
+                <div style="margin-left:auto;display:flex;gap:8px">
+                  <button class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.3)">История процесса</button>
+                  <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3)">⚙️</button>
+                </div>
+              </div>
+              <div class="sensei-body">
+
+                <!-- PROCESS STATUS -->
+                <div class="process-status">
+                  <div class="process-icon">🗺️</div>
+                  <div class="process-info">
+                    <div class="process-name">Процесс: B2B Enterprise Sale</div>
+                    <div class="process-step">Текущий шаг: Контроль отправки КП → ожидание обратной связи</div>
+                    <div class="process-progress">
+                      <div class="progress-bar"><div class="progress-fill" style="width:57%"></div></div>
+                      <div class="progress-label">4 из 7 этапов выполнено · 57%</div>
+                    </div>
+                  </div>
+                  <div style="text-align:right">
+                    <div style="font-size:10px;color:#888;margin-bottom:4px">Дней в работе</div>
+                    <div style="font-size:22px;font-weight:700;color:#1a3a6c">12</div>
+                    <div style="font-size:10px;color:#43a047">▲ в норме</div>
+                  </div>
+                </div>
+
+                <!-- ADVISER -->
+                <div class="adviser-block">
+                  <div class="adviser-title">Советник — скрипт для текущего этапа</div>
+                  <div class="adviser-card">
+                    <div class="adviser-tag">СКРИПТ · КП ОТПРАВЛЕНО</div>
+                    <div class="adviser-script-label">Цель звонка: получить обратную связь по КП</div>
+                    <div class="adviser-script">
+                      <strong>«Добрый день, [Имя]!</strong> Это [Ваше имя] из [Компания]. Мы отправили вам коммерческое предложение 3 дня назад — хотел уточнить, успели ли вы его посмотреть?»
+                      <br><br>
+                      <strong>Если КП видели:</strong> «Какие вопросы или уточнения у вас возникли? Готов разобрать любой момент подробнее.»
+                      <br><br>
+                      <strong>Если КП не смотрели:</strong> «Когда вам будет удобно уделить 10 минут? Могу провести короткую презентацию прямо по КП — вы сразу зададите вопросы.»
+                      <br><br>
+                      <strong>Возражение "дорого":</strong> «Понимаю. Давайте я покажу расчёт ROI — обычно наши клиенты окупают решение за 4–6 месяцев.»
+                    </div>
+                    <div class="adviser-links">
+                      <a class="adviser-link">📄 КП (PDF, 2.4 МБ)</a>
+                      <a class="adviser-link">🎥 Презентация</a>
+                      <a class="adviser-link">📊 Расчёт ROI</a>
+                      <a class="adviser-link">📚 База возражений</a>
+                      <a class="adviser-link">🏆 Кейсы клиентов</a>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ACTIVE TASK -->
+                <div class="task-block">
+                  <div class="adviser-title" style="--before-content:'📋'">
+                    <span style="font-size:13px">📋</span> Текущая задача
+                  </div>
+                  <div class="task-card">
+                    <div class="task-urgent">СРОЧНО</div>
+                    <div class="task-title">Звонок по КП — ООО «Технологии Будущего»</div>
+                    <div class="task-desc">Связаться с Алексеем Смирновым (ЛПР), уточнить статус рассмотрения КП на 485 000 ₽. Получить конкретный следующий шаг или договориться о встрече для защиты предложения.</div>
+                    <div class="task-deadline">⏰ Дедлайн: сегодня до 17:00 (осталось 2ч 15мин)</div>
+                    <div class="outcomes-label">Выберите результат звонка:</div>
+                    <div class="outcomes">
+                      <button class="outcome-btn green" onclick="handleOutcome('interested')">
+                        <span class="outcome-icon">✅</span>
+                        <div>
+                          <div style="font-weight:600">КП понравилось — назначена встреча</div>
+                          <div style="font-size:10px;opacity:0.7;margin-top:2px">→ Перевод на «Согласование», задача: подготовить договор</div>
+                        </div>
+                        <span class="outcome-arrow">›</span>
+                      </button>
+                      <button class="outcome-btn yellow" onclick="handleOutcome('think')">
+                        <span class="outcome-icon">🤔</span>
+                        <div>
+                          <div style="font-weight:600">Думают, нужна доработка КП</div>
+                          <div style="font-size:10px;opacity:0.7;margin-top:2px">→ Задача: доработать КП, перезвонить через 2 дня</div>
+                        </div>
+                        <span class="outcome-arrow">›</span>
+                      </button>
+                      <button class="outcome-btn yellow" onclick="handleOutcome('no_answer')">
+                        <span class="outcome-icon">📵</span>
+                        <div>
+                          <div style="font-weight:600">Не ответили / недоступен</div>
+                          <div style="font-size:10px;opacity:0.7;margin-top:2px">→ Задача: повторный звонок через 3 часа</div>
+                        </div>
+                        <span class="outcome-arrow">›</span>
+                      </button>
+                      <button class="outcome-btn red" onclick="handleOutcome('reject')">
+                        <span class="outcome-icon">❌</span>
+                        <div>
+                          <div style="font-weight:600">Отказ — неинтересно</div>
+                          <div style="font-size:10px;opacity:0.7;margin-top:2px">→ Перевод в «Отказ», задача: занести причину отказа</div>
+                        </div>
+                        <span class="outcome-arrow">›</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- CHECKLIST -->
+                <div class="checklist-block">
+                  <div class="checklist-title">Чек-лист этапа «КП отправлено»</div>
+                  <div class="checklist-item" onclick="toggleCheck(this)">
+                    <div class="checklist-cb checked">✓</div>
+                    <div class="checklist-text done">КП подготовлено и согласовано с РОП</div>
+                  </div>
+                  <div class="checklist-item" onclick="toggleCheck(this)">
+                    <div class="checklist-cb checked">✓</div>
+                    <div class="checklist-text done">КП отправлено на email клиента + WhatsApp</div>
+                  </div>
+                  <div class="checklist-item" onclick="toggleCheck(this)">
+                    <div class="checklist-cb checked">✓</div>
+                    <div class="checklist-text done">Подтверждение получения от клиента</div>
+                  </div>
+                  <div class="checklist-item" onclick="toggleCheck(this)">
+                    <div class="checklist-cb"></div>
+                    <div class="checklist-text">Звонок для обсуждения КП проведён</div>
+                  </div>
+                  <div class="checklist-item" onclick="toggleCheck(this)">
+                    <div class="checklist-cb"></div>
+                    <div class="checklist-text">Дата следующего контакта зафиксирована в CRM</div>
+                  </div>
+                  <div class="checklist-item" onclick="toggleCheck(this)">
+                    <div class="checklist-cb"></div>
+                    <div class="checklist-text">Определён ЛПР и его позиция по предложению</div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- TIMELINE TAB -->
+          <div class="tab-panel" id="panel-timeline">
+            <div style="padding:16px 20px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:14px;align-items:center">
+                <div style="font-size:13px;font-weight:600;color:#333">История активностей</div>
+                <button class="btn btn-primary btn-sm">+ Добавить</button>
+              </div>
+              <div class="timeline">
+                <div class="tl-item pending">
+                  <div class="tl-content">
+                    <div class="tl-title">📞 Звонок по КП — ожидает выполнения</div>
+                    <div class="tl-meta" style="color:#3d8ef0">Сегодня до 17:00 · Иван Петров</div>
+                  </div>
+                </div>
+                <div class="tl-item done">
+                  <div class="tl-content">
+                    <div class="tl-title">📧 КП отправлено на email + WhatsApp</div>
+                    <div class="tl-meta">10 июня 2026, 14:23 · Иван Петров · Автоматически через Sensei</div>
+                  </div>
+                </div>
+                <div class="tl-item done">
+                  <div class="tl-content">
+                    <div class="tl-title">🤝 Онлайн-встреча — демонстрация продукта</div>
+                    <div class="tl-meta">08 июня 2026, 11:00 · 52 мин · Иван Петров, Смирнов А.В.</div>
+                  </div>
+                </div>
+                <div class="tl-item done">
+                  <div class="tl-content">
+                    <div class="tl-title">📝 Заполнена форма квалификации (Sensei)</div>
+                    <div class="tl-meta">05 июня 2026, 16:40 · Иван Петров</div>
+                  </div>
+                </div>
+                <div class="tl-item done">
+                  <div class="tl-content">
+                    <div class="tl-title">📞 Входящий звонок — первичный контакт</div>
+                    <div class="tl-meta">02 июня 2026, 10:15 · 8 мин 34 сек · запись ▶</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DASHBOARD TAB -->
+          <div class="tab-panel" id="panel-dashboard">
+            <div class="dashboard-panel">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+                <div style="font-size:13px;font-weight:600;color:#333">Аналитика процесса «B2B Enterprise Sale»</div>
+                <div style="display:flex;gap:8px">
+                  <button class="btn btn-ghost btn-sm" style="font-size:10px">За 30 дней</button>
+                  <button class="btn btn-secondary btn-sm" style="font-size:10px">За 90 дней</button>
+                </div>
+              </div>
+              <div class="dash-row">
+                <div class="kpi-card">
+                  <div class="kpi-num">67%</div>
+                  <div class="kpi-label">Общая конверсия</div>
+                  <div class="kpi-change">▲ +8% vs прошлый мес.</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-num">18 дн</div>
+                  <div class="kpi-label">Ср. цикл сделки</div>
+                  <div class="kpi-change down">▼ –3 дня (улучшение)</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-num">₽2.1М</div>
+                  <div class="kpi-label">Выручка (90 дн)</div>
+                  <div class="kpi-change">▲ +23%</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-num">4.2</div>
+                  <div class="kpi-label">Ср. касаний до закрытия</div>
+                  <div class="kpi-change down">▼ –0.8 (норма: 5)</div>
+                </div>
+              </div>
+              <div class="funnel-block">
+                <div class="funnel-title">🔽 Конверсия по этапам воронки (90 дн, всего 47 сделок)</div>
+                <div class="funnel-stage">
+                  <div class="funnel-name">Новая заявка</div>
+                  <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:100%;background:#3d8ef0">47 сделок</div></div>
+                  <div class="funnel-count">47</div>
+                  <div class="funnel-pct">100%</div>
+                </div>
+                <div class="funnel-stage">
+                  <div class="funnel-name">Квалификация</div>
+                  <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:85%;background:#5b9ef5">40 сделок</div></div>
+                  <div class="funnel-count">40</div>
+                  <div class="funnel-pct">85%</div>
+                </div>
+                <div class="funnel-stage">
+                  <div class="funnel-name">Встреча проведена</div>
+                  <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:62%;background:#ff8800">29 сделок</div></div>
+                  <div class="funnel-count">29</div>
+                  <div class="funnel-pct">62%</div>
+                </div>
+                <div class="funnel-stage">
+                  <div class="funnel-name">КП отправлено ←</div>
+                  <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:53%;background:#ff8800">25 сделок</div></div>
+                  <div class="funnel-count">25</div>
+                  <div class="funnel-pct">53%</div>
+                </div>
+                <div class="funnel-stage">
+                  <div class="funnel-name">Согласование</div>
+                  <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:38%;background:#e65c00">18 сделок</div></div>
+                  <div class="funnel-count">18</div>
+                  <div class="funnel-pct">38%</div>
+                </div>
+                <div class="funnel-stage">
+                  <div class="funnel-name">Договор подписан</div>
+                  <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:26%;background:#43a047">12 сделок</div></div>
+                  <div class="funnel-count">12</div>
+                  <div class="funnel-pct">26%</div>
+                </div>
+                <div class="funnel-stage">
+                  <div class="funnel-name">Оплата получена</div>
+                  <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:19%;background:#2e7d32">9 сделок</div></div>
+                  <div class="funnel-count">9</div>
+                  <div class="funnel-pct">19%</div>
+                </div>
+              </div>
+              <div style="background:#fff3e0;border:1px solid #ffe0b2;border-radius:8px;padding:12px 16px;font-size:12px;color:#bf360c">
+                ⚠️ <strong>Узкое место:</strong> Конверсия «Встреча → КП» составляет 86%, но «КП → Согласование» падает до 72%. Рекомендация Sensei: добавить напоминание РОП о проверке КП через 24 часа после отправки.
+              </div>
+            </div>
+          </div>
+
+          <!-- CONSTRUCTOR TAB -->
+          <div class="tab-panel" id="panel-constructor">
+            <div class="constructor-panel">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+                <div style="font-size:13px;font-weight:600;color:#333">Конструктор бизнес-процессов</div>
+                <div style="display:flex;gap:8px">
+                  <button class="btn btn-ghost btn-sm">📋 Шаблоны (100+)</button>
+                  <button class="btn btn-secondary btn-sm">💾 Сохранить</button>
+                  <button class="btn btn-primary btn-sm">▶ Запустить</button>
+                </div>
+              </div>
+              <div class="constructor-canvas">
+                <div class="bpm-row" style="align-items:flex-start;gap:6px">
+                  <div class="bpm-col">
+                    <div class="bpm-node start">▶ Старт<div class="bpm-node-sub">Новая сделка</div></div>
+                    <div class="bpm-arrow">↓</div>
+                    <div class="bpm-node task" style="background:#5b6abf">📋 Задача<div class="bpm-node-sub">Квалификация</div></div>
+                    <div class="bpm-arrow">↓</div>
+                    <div style="position:relative">
+                      <div class="bpm-node condition"><span>Прошёл<br>квали-<br>фикацию?</span></div>
+                    </div>
+                  </div>
+                  <div class="bpm-col" style="margin-top:180px;margin-left:20px">
+                    <div class="bpm-branch">
+                      <div class="branch-label" style="color:#43a047">✅ ДА</div>
+                      <div class="bpm-arrow" style="transform:rotate(-90deg)">→</div>
+                      <div class="bpm-node task">📅 Задача<div class="bpm-node-sub">Назначить встречу</div></div>
+                      <div class="bpm-arrow">↓</div>
+                      <div class="bpm-node action" style="background:#7b1fa2">✉️ Авто-письмо<div class="bpm-node-sub">Подтверждение</div></div>
+                      <div class="bpm-arrow">↓</div>
+                      <div class="bpm-node task">📊 Задача<div class="bpm-node-sub">Отправить КП</div></div>
+                      <div class="bpm-arrow">↓</div>
+                      <div class="bpm-node task" style="background:#e65100">📞 Задача<div class="bpm-node-sub">Звонок по КП</div><div class="bpm-node-sub" style="background:rgba(255,255,255,0.3);border-radius:3px;padding:1px 4px;margin-top:3px">← СЕЙЧАС</div></div>
+                      <div class="bpm-arrow">↓</div>
+                      <div class="bpm-node end">🏆 Победа</div>
+                    </div>
+                  </div>
+                  <div class="bpm-col" style="margin-top:180px;margin-left:16px">
+                    <div class="branch-label" style="color:#e53935">❌ НЕТ</div>
+                    <div class="bpm-arrow" style="transform:rotate(90deg)">→</div>
+                    <div class="bpm-node action" style="background:#e53935;width:90px">📵 Нет в целевой<div class="bpm-node-sub">Nurturing</div></div>
+                  </div>
+                </div>
+                <div style="position:absolute;bottom:12px;right:16px;display:flex;gap:6px">
+                  <div style="background:#fff;border:1px solid #e0e4ea;border-radius:6px;padding:6px 10px;font-size:10px;color:#666">📦 Перетащите блок на схему</div>
+                  <div class="bpm-node task btn-sm" style="width:auto;min-width:auto;box-shadow:none;cursor:grab;font-size:10px;padding:6px 10px;border-radius:6px">📋 Задача</div>
+                  <div class="bpm-node action btn-sm" style="background:#9c27b0;width:auto;min-width:auto;box-shadow:none;cursor:grab;font-size:10px;padding:6px 10px;border-radius:6px">⚡ Действие</div>
+                  <div class="bpm-node" style="background:#ff8800;color:#fff;width:auto;min-width:auto;box-shadow:none;cursor:grab;font-size:10px;padding:6px 10px;border-radius:6px">❓ Условие</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FILES TAB -->
+          <div class="tab-panel" id="panel-files">
+            <div style="padding:16px 20px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+                <div style="font-size:13px;font-weight:600;color:#333">Файлы сделки</div>
+                <button class="btn btn-primary btn-sm">+ Загрузить</button>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid #e0e4ea;border-radius:8px;cursor:pointer" onmouseover="this.style.background='#f7f9fc'" onmouseout="this.style.background=''">
+                  <span style="font-size:22px">📄</span>
+                  <div style="flex:1"><div style="font-size:12px;font-weight:500">КП_ООО_Технологии_Будущего_v2.pdf</div><div style="font-size:10px;color:#888;margin-top:2px">2.4 МБ · 10.06.2026 · Иван Петров</div></div>
+                  <button class="btn btn-ghost btn-sm">⬇ Скачать</button>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid #e0e4ea;border-radius:8px;cursor:pointer" onmouseover="this.style.background='#f7f9fc'" onmouseout="this.style.background=''">
+                  <span style="font-size:22px">📊</span>
+                  <div style="flex:1"><div style="font-size:12px;font-weight:500">Презентация_CRM_Enterprise.pptx</div><div style="font-size:10px;color:#888;margin-top:2px">5.1 МБ · 08.06.2026 · Иван Петров</div></div>
+                  <button class="btn btn-ghost btn-sm">⬇ Скачать</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- HISTORY TAB -->
+          <div class="tab-panel" id="panel-history">
+            <div style="padding:16px 20px;font-size:12px;color:#555">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px solid #f0f2f5">
+                  <div class="mini-avatar" style="background:#667eea;width:28px;height:28px;font-size:10px">S</div>
+                  <div><div style="font-weight:500">Sensei BPM <span style="color:#888;font-weight:400">автоматически создал задачу «Звонок по КП»</span></div><div style="font-size:10px;color:#888;margin-top:2px">13.06.2026, 09:00</div></div>
+                </div>
+                <div style="display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px solid #f0f2f5">
+                  <div class="mini-avatar" style="background:#3d8ef0;width:28px;height:28px;font-size:10px">ИП</div>
+                  <div><div style="font-weight:500">Иван Петров <span style="color:#888;font-weight:400">изменил этап: Встреча → КП отправлено</span></div><div style="font-size:10px;color:#888;margin-top:2px">10.06.2026, 14:23</div></div>
+                </div>
+                <div style="display:flex;gap:10px;align-items:flex-start">
+                  <div class="mini-avatar" style="background:#3d8ef0;width:28px;height:28px;font-size:10px">ИП</div>
+                  <div><div style="font-weight:500">Иван Петров <span style="color:#888;font-weight:400">заполнил форму этапа «Квалификация»</span></div><div style="font-size:10px;color:#888;margin-top:2px">05.06.2026, 16:40</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /tab-content -->
+      </div><!-- /content-col -->
+
+      <!-- RIGHT COLUMN -->
+      <div class="right-col">
+
+        <!-- CONTACT -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-head-title">👤 Контакт</div>
+            <button class="btn btn-ghost btn-sm">+ Добавить</button>
+          </div>
+          <div class="card-body">
+            <div class="contact-mini">
+              <div class="contact-avatar" style="background:#e91e63">АС</div>
+              <div>
+                <div class="contact-name">Смирнов Алексей Владимирович</div>
+                <div class="contact-pos">Генеральный директор · ЛПР</div>
+              </div>
+              <div class="contact-actions">
+                <div class="icon-btn" title="Позвонить">📞</div>
+                <div class="icon-btn" title="WhatsApp">💬</div>
+                <div class="icon-btn" title="Email">📧</div>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="field-row">
+              <div class="field-label">Телефон</div>
+              <div class="field-value">+7 (916) 234-56-78</div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Email</div>
+              <div class="field-value" style="color:#3d8ef0">a.smirnov@techfuture.ru</div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Компания</div>
+              <div class="field-value">ООО «Технологии Будущего»</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CRM FIELDS -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-head-title">📋 Поля сделки</div>
+            <span class="field-edit">✏️ Изменить</span>
+          </div>
+          <div class="card-body">
+            <div class="field-row">
+              <div class="field-label">Тип услуги</div>
+              <div class="field-value"><span class="tag purple">CRM Enterprise</span></div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Количество пользователей</div>
+              <div class="field-value">85 чел.</div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Тип внедрения</div>
+              <div class="field-value"><span class="tag">Под ключ</span></div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Тёплость лида</div>
+              <div class="field-value"><span class="field-tag hot">🔥 Горячий</span></div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Конкуренты в сделке</div>
+              <div class="field-value">AmoCRM, 1С:CRM</div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Причина выбора нас</div>
+              <div class="field-value">Интеграция с 1С, поддержка</div>
+            </div>
+            <div class="divider"></div>
+            <!-- SENSEI FIELDS -->
+            <div style="background:#f3f0ff;border-radius:6px;padding:10px 12px;border:1px solid #d0c5f8">
+              <div style="font-size:10px;font-weight:600;color:#6741d9;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px">🧠 Поля Sensei (заполнены автоматически)</div>
+              <div class="field-row" style="margin-bottom:8px">
+                <div class="field-label" style="color:#8a7abf">Квалификация пройдена</div>
+                <div class="field-value"><span class="pill-green">✅ Да</span></div>
+              </div>
+              <div class="field-row" style="margin-bottom:8px">
+                <div class="field-label" style="color:#8a7abf">Потребность выявлена</div>
+                <div class="field-value"><span class="pill-green">✅ Да</span></div>
+              </div>
+              <div class="field-row" style="margin-bottom:0">
+                <div class="field-label" style="color:#8a7abf">Ветка процесса</div>
+                <div class="field-value"><span class="pill-blue">Enterprise → B2B</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ANALYTICS MINI -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-head-title">📊 Статистика менеджера</div>
+          </div>
+          <div class="card-body">
+            <div class="analytics-row">
+              <div class="analytics-item">
+                <div class="analytics-num">14</div>
+                <div class="analytics-label">Сделок в работе</div>
+                <div class="analytics-change">▲ норма</div>
+              </div>
+              <div class="analytics-item">
+                <div class="analytics-num">72%</div>
+                <div class="analytics-label">Конверсия</div>
+                <div class="analytics-change">▲ +5%</div>
+              </div>
+            </div>
+            <div class="analytics-row">
+              <div class="analytics-item">
+                <div class="analytics-num">3</div>
+                <div class="analytics-label">Просроченных задач</div>
+                <div class="analytics-change down">⚠️ внимание</div>
+              </div>
+              <div class="analytics-item">
+                <div class="analytics-num">₽1.9М</div>
+                <div class="analytics-label">Прогноз / мес</div>
+                <div class="analytics-change">▲ план</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /right-col -->
+    </div><!-- /page -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- ─── MODAL: OUTCOME "interested" ─── -->
+<div class="modal-overlay" id="modal-interested">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-header-icon">✅</div>
+      <div>
+        <div class="modal-header-title">Клиент готов к следующему шагу</div>
+        <div class="modal-header-sub">Sensei автоматически переведёт сделку на этап «Согласование»</div>
+      </div>
+      <div class="modal-close" onclick="closeModal('modal-interested')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-alert">
+        <div class="modal-alert-icon">🤖</div>
+        <div>После сохранения Sensei <strong>автоматически</strong>: сменит этап → создаст задачу «Подготовить договор» → отправит письмо клиенту с подтверждением встречи.</div>
+      </div>
+      <div class="modal-field">
+        <label class="required">Дата и время встречи (согласование)</label>
+        <input class="modal-input" type="datetime-local" value="2026-06-17T14:00">
+      </div>
+      <div class="modal-field">
+        <label class="required">Формат встречи</label>
+        <select class="modal-input modal-select">
+          <option>Онлайн (Zoom / Google Meet)</option>
+          <option>Офлайн — в офисе клиента</option>
+          <option>Офлайн — в нашем офисе</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>Дополнительные участники</label>
+        <input class="modal-input" placeholder="Введите имена через запятую...">
+        <div class="modal-hint">Будут автоматически приглашены в календарь</div>
+      </div>
+      <div class="modal-field">
+        <label>Комментарий к встрече</label>
+        <textarea class="modal-input" rows="2" placeholder="Что обсудить, особые пожелания клиента..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-interested')">Отмена</button>
+      <button class="btn btn-primary" onclick="completeOutcome('interested')">✅ Сохранить и перейти к «Согласование»</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL: OUTCOME "think" ─── -->
+<div class="modal-overlay" id="modal-think">
+  <div class="modal">
+    <div class="modal-header" style="background:linear-gradient(135deg,#f57c00,#e65100)">
+      <div class="modal-header-icon">🤔</div>
+      <div>
+        <div class="modal-header-title">Клиент думает — нужна доработка КП</div>
+        <div class="modal-header-sub">Задача: доработать КП и перезвонить</div>
+      </div>
+      <div class="modal-close" onclick="closeModal('modal-think')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-field">
+        <label class="required">Что нужно доработать в КП?</label>
+        <select class="modal-input modal-select">
+          <option>Пересмотреть стоимость / скидка</option>
+          <option>Добавить описание интеграций</option>
+          <option>Включить ROI-расчёт</option>
+          <option>Изменить состав работ</option>
+          <option>Другое</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>Подробности от клиента</label>
+        <textarea class="modal-input" rows="3" placeholder="Что именно сказал клиент..."></textarea>
+      </div>
+      <div class="modal-field">
+        <label class="required">Дата повторного звонка</label>
+        <input class="modal-input" type="datetime-local" value="2026-06-15T11:00">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-think')">Отмена</button>
+      <button class="btn btn-orange" onclick="completeOutcome('think')">💾 Сохранить и создать задачу</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL: OUTCOME "reject" ─── -->
+<div class="modal-overlay" id="modal-reject">
+  <div class="modal">
+    <div class="modal-header" style="background:linear-gradient(135deg,#e53935,#b71c1c)">
+      <div class="modal-header-icon">❌</div>
+      <div>
+        <div class="modal-header-title">Фиксация отказа</div>
+        <div class="modal-header-sub">Sensei перенесёт сделку в «Отказ» и сохранит аналитику</div>
+      </div>
+      <div class="modal-close" onclick="closeModal('modal-reject')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-field">
+        <label class="required">Причина отказа</label>
+        <select class="modal-input modal-select">
+          <option>Нет бюджета / отложили</option>
+          <option>Выбрали конкурента</option>
+          <option>Нет потребности</option>
+          <option>Не устроили условия</option>
+          <option>Недозвон — клиент пропал</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>Конкурент (если выбрали другого)</label>
+        <input class="modal-input" placeholder="AmoCRM, 1С:CRM, другое...">
+      </div>
+      <div class="modal-field">
+        <label>Комментарий</label>
+        <textarea class="modal-input" rows="2" placeholder="Подробности..."></textarea>
+      </div>
+      <div class="modal-field">
+        <label>Отложить контакт до (nurturing)</label>
+        <input class="modal-input" type="date" value="2026-09-01">
+        <div class="modal-hint">Sensei автоматически создаст задачу на реактивацию</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-reject')">Отмена</button>
+      <button class="btn" style="background:#e53935;color:#fff" onclick="completeOutcome('reject')">Зафиксировать отказ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL: WIN ─── -->
+<div class="modal-overlay" id="winModal">
+  <div class="modal">
+    <div class="modal-header" style="background:linear-gradient(135deg,#43a047,#1b5e20)">
+      <div class="modal-header-icon">🏆</div>
+      <div>
+        <div class="modal-header-title">Победа в сделке!</div>
+        <div class="modal-header-sub">Заполните данные для закрытия и передачи в работу</div>
+      </div>
+      <div class="modal-close" onclick="closeModal('winModal')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-field">
+        <label class="required">Итоговая сумма договора</label>
+        <input class="modal-input" value="485 000 ₽">
+      </div>
+      <div class="modal-field">
+        <label class="required">Дата подписания договора</label>
+        <input class="modal-input" type="date" value="2026-06-20">
+      </div>
+      <div class="modal-field">
+        <label>Передать в проект</label>
+        <select class="modal-input modal-select">
+          <option>Создать новый проект автоматически</option>
+          <option>Выбрать существующий проект</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('winModal')">Отмена</button>
+      <button class="btn" style="background:#43a047;color:#fff" onclick="showToast('🏆 Сделка закрыта! Проект создан автоматически.','#43a047');closeModal('winModal')">🏆 Закрыть как победу!</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ─── TAB SWITCHING ───
+  function switchTab(name, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    const panel = document.getElementById('panel-' + name);
+    if (panel) panel.classList.add('active');
+  }
+
+  // ─── MODALS ───
+  function showModal(id) {
+    document.getElementById(id).classList.add('show');
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('show');
+  }
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('show');
+    });
+  });
+
+  // ─── OUTCOME HANDLER ───
+  function handleOutcome(type) {
+    if (type === 'interested') showModal('modal-interested');
+    else if (type === 'think') showModal('modal-think');
+    else if (type === 'no_answer') {
+      showToast('📵 Задача обновлена: повторный звонок через 3 часа', '#ff8800');
+    }
+    else if (type === 'reject') showModal('modal-reject');
+  }
+
+  function completeOutcome(type) {
+    const messages = {
+      interested: '✅ Сделка переведена на «Согласование»! Задача и письмо созданы автоматически.',
+      think: '🔄 Задача на доработку КП создана. Напоминание запланировано.',
+      reject: '❌ Отказ зафиксирован. Nurturing-задача создана на сентябрь.'
+    };
+    const colors = { interested: '#43a047', think: '#ff8800', reject: '#e53935' };
+    closeModal('modal-' + type);
+    showToast(messages[type], colors[type]);
+
+    if (type === 'interested') {
+      // Update pipeline visually
+      setTimeout(() => {
+        const stages = document.querySelectorAll('.stage-item');
+        stages[3].classList.remove('active');
+        stages[3].classList.add('done');
+        stages[4].classList.add('active');
+      }, 400);
+    }
+  }
+
+  // ─── CHECKLIST ───
+  function toggleCheck(item) {
+    const cb = item.querySelector('.checklist-cb');
+    const text = item.querySelector('.checklist-text');
+    if (cb.classList.contains('checked')) {
+      cb.classList.remove('checked');
+      cb.textContent = '';
+      text.classList.remove('done');
+    } else {
+      cb.classList.add('checked');
+      cb.textContent = '✓';
+      text.classList.add('done');
+      showToast('✅ Пункт отмечен', '#43a047', 1500);
+    }
+  }
+
+  // ─── TOAST ───
+  function showToast(msg, color, duration) {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.style.borderLeft = '4px solid ' + (color || '#3d8ef0');
+    toast.innerHTML = `<span class="toast-icon">${msg.slice(0,2)}</span><span>${msg.slice(2)}</span>`;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.classList.add('hide');
+      setTimeout(() => toast.remove(), 300);
+    }, duration || 3500);
+  }
+
+  // ─── FUNNEL ANIMATION ───
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.querySelectorAll('.funnel-bar').forEach(bar => {
+        const w = bar.style.width;
+        bar.style.width = '0';
+        setTimeout(() => { bar.style.width = w; }, 100);
+      });
+    }, 300);
+  });
+</script>
+</body>
+</html>
