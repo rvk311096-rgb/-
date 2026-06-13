@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Bookmarks — Preview</title>
+  <style>
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0f1117;
+  --bg2: #161b27;
+  --bg3: #1e2536;
+  --border: rgba(255,255,255,0.07);
+  --text: #e8eaf0;
+  --text-muted: #7b8299;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --transition: 0.18s ease;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.app {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 28px 60px;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.header-title { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+.header-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; display: block; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+
+.search-wrap { position: relative; }
+.search-icon {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  width: 16px; height: 16px; color: var(--text-muted); pointer-events: none;
+}
+.search-input {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text); font-size: 14px; padding: 9px 14px 9px 36px; width: 240px;
+  outline: none; transition: border-color var(--transition);
+}
+.search-input:focus { border-color: rgba(255,255,255,0.2); }
+.search-input::placeholder { color: var(--text-muted); }
+
+.btn-primary {
+  background: #6C63FF; color: #fff; border: none; border-radius: var(--radius-sm);
+  padding: 9px 18px; font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: opacity var(--transition), transform var(--transition); white-space: nowrap;
+}
+.btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+.btn-ghost {
+  background: transparent; color: var(--text-muted); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 9px 18px; font-size: 14px; cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.btn-ghost:hover { background: var(--bg3); color: var(--text); }
+
+/* ── Stats ── */
+.stats-row { display: flex; gap: 14px; margin-bottom: 28px; flex-wrap: wrap; }
+.stat-card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px 24px; display: flex; align-items: center; gap: 14px;
+  flex: 1; min-width: 160px; transition: transform var(--transition);
+}
+.stat-card:hover { transform: translateY(-2px); }
+.stat-icon {
+  width: 42px; height: 42px; border-radius: 12px; display: flex;
+  align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+}
+.stat-value { font-size: 24px; font-weight: 700; line-height: 1; }
+.stat-label { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+
+/* ── Grid ── */
+.panels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; align-items: start; }
+
+/* ── Panel card ── */
+.panel-card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; transition: transform var(--transition), box-shadow var(--transition);
+}
+.panel-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 20px 14px; border-bottom: 1px solid var(--border);
+}
+.panel-header-left { display: flex; align-items: center; gap: 10px; }
+.panel-accent { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.panel-title { font-size: 15px; font-weight: 600; }
+.panel-count {
+  font-size: 11px; color: var(--text-muted); background: var(--bg3);
+  border-radius: 20px; padding: 2px 8px; margin-left: 6px;
+}
+.panel-actions { display: flex; gap: 4px; opacity: 0; transition: opacity var(--transition); }
+.panel-card:hover .panel-actions { opacity: 1; }
+.icon-btn {
+  background: transparent; border: none; color: var(--text-muted); cursor: pointer;
+  border-radius: 6px; width: 28px; height: 28px; display: flex; align-items: center;
+  justify-content: center; font-size: 14px; transition: background var(--transition), color var(--transition);
+}
+.icon-btn:hover { background: var(--bg3); color: var(--text); }
+.icon-btn.danger:hover { background: rgba(239,68,68,0.15); color: #f87171; }
+
+/* ── Bookmarks ── */
+.bookmarks-list {
+  padding: 10px 12px; display: flex; flex-direction: column; gap: 4px;
+  max-height: 340px; overflow-y: auto;
+}
+.bookmarks-list::-webkit-scrollbar { width: 4px; }
+.bookmarks-list::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 4px; }
+
+.bookmark-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+  border-radius: var(--radius-sm); cursor: pointer; transition: background var(--transition); position: relative;
+}
+.bookmark-item:hover { background: var(--bg3); }
+.bookmark-favicon { width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0; object-fit: contain; }
+.bookmark-favicon-fallback {
+  width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0; display: flex;
+  align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff;
+}
+.bookmark-name { font-size: 13px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bookmark-item-actions { display: flex; gap: 2px; opacity: 0; transition: opacity var(--transition); flex-shrink: 0; }
+.bookmark-item:hover .bookmark-item-actions { opacity: 1; }
+.bk-btn {
+  background: transparent; border: none; color: var(--text-muted); cursor: pointer;
+  border-radius: 5px; width: 22px; height: 22px; display: flex; align-items: center;
+  justify-content: center; font-size: 12px; transition: background var(--transition), color var(--transition);
+}
+.bk-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+.bk-btn.danger:hover { color: #f87171; }
+
+.empty-state { text-align: center; padding: 24px 16px; color: var(--text-muted); font-size: 13px; }
+.empty-state-icon { font-size: 28px; margin-bottom: 8px; }
+
+.add-bookmark-btn {
+  display: flex; align-items: center; gap: 8px; width: 100%; background: transparent;
+  border: none; color: var(--text-muted); font-size: 13px; padding: 10px 20px 14px;
+  cursor: pointer; transition: color var(--transition);
+}
+.add-bookmark-btn:hover { color: var(--text); }
+.add-bookmark-btn .plus { font-size: 16px; font-weight: 300; }
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none;
+  align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+  width: 420px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  animation: modal-in 0.2s ease;
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 22px 24px 0; }
+.modal-header h2 { font-size: 17px; font-weight: 600; }
+.modal-close {
+  background: transparent; border: none; color: var(--text-muted); font-size: 16px;
+  cursor: pointer; padding: 4px 6px; border-radius: 6px; transition: background var(--transition);
+}
+.modal-close:hover { background: var(--bg3); color: var(--text); }
+.modal-body { padding: 20px 24px; }
+.field-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px; }
+.field-input {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text); font-size: 14px; padding: 10px 14px; outline: none; transition: border-color var(--transition);
+}
+.field-input:focus { border-color: #6C63FF; }
+.field-input::placeholder { color: var(--text-muted); }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 0 24px 22px; }
+
+.color-picker { display: flex; gap: 10px; flex-wrap: wrap; }
+.color-dot {
+  width: 32px; height: 32px; border-radius: 50%; border: 3px solid transparent;
+  cursor: pointer; transition: transform var(--transition), border-color var(--transition);
+}
+.color-dot:hover { transform: scale(1.15); }
+.color-dot.active { border-color: #fff; transform: scale(1.1); }
+
+.context-menu {
+  position: fixed; background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); box-shadow: var(--shadow); z-index: 2000;
+  display: none; flex-direction: column; min-width: 160px; overflow: hidden;
+}
+.context-menu.open { display: flex; }
+.ctx-item { background: transparent; border: none; color: var(--text); font-size: 13px; padding: 10px 16px; cursor: pointer; text-align: left; transition: background var(--transition); }
+.ctx-item:hover { background: var(--bg3); }
+.ctx-danger:hover { color: #f87171 !important; }
+
+.highlight { background: rgba(108,99,255,0.3); border-radius: 2px; }
+.panel-card.hidden { display: none; }
+.bookmark-item.hidden { display: none; }
+.no-results { text-align: center; padding: 60px 20px; color: var(--text-muted); grid-column: 1 / -1; }
+.no-results-icon { font-size: 48px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-left">
+        <h1 class="header-title">Мои закладки</h1>
+        <span class="header-sub" id="total-count">0 ссылок</span>
+      </div>
+      <div class="header-right">
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.5" fill="none"/><line x1="12.5" y1="12.5" x2="17" y2="17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input type="text" id="global-search" class="search-input" placeholder="Поиск по закладкам..." />
+        </div>
+        <button class="btn-primary" id="add-panel-btn">+ Новая панель</button>
+      </div>
+    </header>
+
+    <div class="stats-row" id="stats-row"></div>
+    <main class="panels-grid" id="panels-grid"></main>
+  </div>
+
+  <div class="modal-overlay" id="panel-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="panel-modal-title">Новая панель</h2>
+        <button class="modal-close" id="panel-modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <label class="field-label">Название панели</label>
+        <input type="text" id="panel-name-input" class="field-input" placeholder="Например: Работа, Учёба..." />
+        <label class="field-label" style="margin-top:16px">Цвет акцента</label>
+        <div class="color-picker" id="color-picker">
+          <button class="color-dot active" data-color="#6C63FF" style="background:#6C63FF"></button>
+          <button class="color-dot" data-color="#00C2A8" style="background:#00C2A8"></button>
+          <button class="color-dot" data-color="#FF6584" style="background:#FF6584"></button>
+          <button class="color-dot" data-color="#F59E0B" style="background:#F59E0B"></button>
+          <button class="color-dot" data-color="#10B981" style="background:#10B981"></button>
+          <button class="color-dot" data-color="#3B82F6" style="background:#3B82F6"></button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" id="panel-modal-cancel">Отмена</button>
+        <button class="btn-primary" id="panel-modal-save">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="bookmark-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="bookmark-modal-title">Новая ссылка</h2>
+        <button class="modal-close" id="bookmark-modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <label class="field-label">Название</label>
+        <input type="text" id="bookmark-name-input" class="field-input" placeholder="Название сайта" />
+        <label class="field-label" style="margin-top:16px">URL</label>
+        <input type="url" id="bookmark-url-input" class="field-input" placeholder="https://..." />
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" id="bookmark-modal-cancel">Отмена</button>
+        <button class="btn-primary" id="bookmark-modal-save">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="context-menu" id="context-menu">
+    <button class="ctx-item" id="ctx-edit">✏️ Редактировать</button>
+    <button class="ctx-item ctx-danger" id="ctx-delete">🗑️ Удалить</button>
+  </div>
+
+  <script>
+'use strict';
+const DB = {
+  load() { try { return JSON.parse(localStorage.getItem('dashboard_data') || 'null'); } catch { return null; } },
+  save(data) { localStorage.setItem('dashboard_data', JSON.stringify(data)); },
+  defaults() {
+    return { panels: [
+      { id: uid(), name: 'Работа', color: '#6C63FF', bookmarks: [
+        { id: uid(), name: 'Gmail', url: 'https://mail.google.com' },
+        { id: uid(), name: 'Google Drive', url: 'https://drive.google.com' },
+        { id: uid(), name: 'Slack', url: 'https://slack.com' },
+        { id: uid(), name: 'Notion', url: 'https://notion.so' },
+      ]},
+      { id: uid(), name: 'Новости', color: '#00C2A8', bookmarks: [
+        { id: uid(), name: 'Habr', url: 'https://habr.com' },
+        { id: uid(), name: 'TechCrunch', url: 'https://techcrunch.com' },
+      ]},
+      { id: uid(), name: 'Учёба', color: '#F59E0B', bookmarks: [
+        { id: uid(), name: 'YouTube', url: 'https://youtube.com' },
+        { id: uid(), name: 'Coursera', url: 'https://coursera.org' },
+      ]},
+      { id: uid(), name: 'Развлечения', color: '#FF6584', bookmarks: [
+        { id: uid(), name: 'Кинопоиск', url: 'https://kinopoisk.ru' },
+        { id: uid(), name: 'Spotify', url: 'https://spotify.com' },
+      ]},
+      { id: uid(), name: 'Инструменты', color: '#10B981', bookmarks: [
+        { id: uid(), name: 'Figma', url: 'https://figma.com' },
+        { id: uid(), name: 'GitHub', url: 'https://github.com' },
+        { id: uid(), name: 'ChatGPT', url: 'https://chatgpt.com' },
+      ]},
+      { id: uid(), name: 'Личное', color: '#3B82F6', bookmarks: [] },
+    ]};
+  }
+};
+
+function uid() { return Math.random().toString(36).slice(2, 10); }
+
+let state = DB.load() || DB.defaults();
+let editingPanelId = null, editingBookmarkId = null, editingBookmarkPanelId = null, contextTarget = null;
+
+function faviconUrl(url) {
+  try { return `https://www.google.com/s2/favicons?sz=32&domain=${new URL(url).hostname}`; } catch { return null; }
+}
+function initials(name) { return name.trim().slice(0, 2).toUpperCase(); }
+const COLORS = ['#6C63FF','#00C2A8','#FF6584','#F59E0B','#10B981','#3B82F6'];
+function colorForName(name) { return COLORS[name.charCodeAt(0) % COLORS.length]; }
+
+function render() {
+  DB.save(state);
+  renderStats();
+  renderPanels();
+}
+
+function renderStats() {
+  const total = state.panels.reduce((s,p) => s + p.bookmarks.length, 0);
+  document.getElementById('total-count').textContent = `${total} ссылок · ${state.panels.length} панелей`;
+  const items = [
+    { icon:'🗂️', color:'#6C63FF', value: state.panels.length, label:'Панелей' },
+    { icon:'🔗', color:'#00C2A8', value: total, label:'Всего ссылок' },
+    ...state.panels.slice(0,3).map(p => ({ icon:'📌', color: p.color, value: p.bookmarks.length, label: p.name }))
+  ];
+  document.getElementById('stats-row').innerHTML = items.map(it => `
+    <div class="stat-card">
+      <div class="stat-icon" style="background:${it.color}22"><span>${it.icon}</span></div>
+      <div><div class="stat-value">${it.value}</div><div class="stat-label">${it.label}</div></div>
+    </div>`).join('');
+}
+
+function renderPanels(q = '') {
+  const ql = q.toLowerCase();
+  const grid = document.getElementById('panels-grid');
+  if (!state.panels.length) { grid.innerHTML = `<div class="no-results"><div class="no-results-icon">📭</div><p>Нет панелей</p></div>`; return; }
+  grid.innerHTML = state.panels.map(panel => {
+    const bks = ql ? panel.bookmarks.filter(b => b.name.toLowerCase().includes(ql) || b.url.toLowerCase().includes(ql)) : panel.bookmarks;
+    const vis = !ql || bks.length > 0 || panel.name.toLowerCase().includes(ql);
+    return `<div class="panel-card${vis?'':' hidden'}" data-panel-id="${panel.id}">
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <div class="panel-accent" style="background:${panel.color}"></div>
+          <span class="panel-title">${esc(panel.name)}</span>
+          <span class="panel-count">${panel.bookmarks.length}</span>
+        </div>
+        <div class="panel-actions">
+          <button class="icon-btn" onclick="openEditPanel('${panel.id}')">✏️</button>
+          <button class="icon-btn danger" onclick="deletePanel('${panel.id}')">🗑️</button>
+        </div>
+      </div>
+      <div class="bookmarks-list">
+        ${bks.length === 0 && !ql ? `<div class="empty-state"><div class="empty-state-icon">🔗</div><p>Добавьте первую ссылку</p></div>`
+          : bks.map(bk => renderBk(bk, panel.id, ql)).join('')}
+      </div>
+      <button class="add-bookmark-btn" onclick="openAddBookmark('${panel.id}')">
+        <span class="plus">+</span> Добавить ссылку
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function renderBk(bk, panelId, q) {
+  const fav = faviconUrl(bk.url);
+  const fc = colorForName(bk.name);
+  const nameHtml = q ? highlight(esc(bk.name), q) : esc(bk.name);
+  const faviconEl = fav
+    ? `<img class="bookmark-favicon" src="${fav}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt=""/><div class="bookmark-favicon-fallback" style="background:${fc};display:none">${initials(bk.name)}</div>`
+    : `<div class="bookmark-favicon-fallback" style="background:${fc}">${initials(bk.name)}</div>`;
+  return `<div class="bookmark-item" onclick="openUrl('${esc(bk.url)}')" oncontextmenu="showCtx(event,'bookmark','${panelId}','${bk.id}')">
+    ${faviconEl}
+    <span class="bookmark-name" title="${esc(bk.url)}">${nameHtml}</span>
+    <div class="bookmark-item-actions" onclick="event.stopPropagation()">
+      <button class="bk-btn" onclick="openEditBookmark('${panelId}','${bk.id}')">✏️</button>
+      <button class="bk-btn danger" onclick="deleteBookmark('${panelId}','${bk.id}')">✕</button>
+    </div>
+  </div>`;
+}
+
+function highlight(text, q) {
+  return text.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'), '<mark class="highlight">$1</mark>');
+}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function openUrl(url) { window.open(url, '_blank'); }
+
+let selectedColor = '#6C63FF';
+function openAddPanel() { editingPanelId=null; document.getElementById('panel-modal-title').textContent='Новая панель'; document.getElementById('panel-name-input').value=''; selectedColor='#6C63FF'; syncColorPicker(); openModal('panel-modal'); }
+function openEditPanel(id) { const p=state.panels.find(p=>p.id===id); if(!p)return; editingPanelId=id; document.getElementById('panel-modal-title').textContent='Редактировать панель'; document.getElementById('panel-name-input').value=p.name; selectedColor=p.color; syncColorPicker(); openModal('panel-modal'); }
+function savePanelModal() {
+  const name=document.getElementById('panel-name-input').value.trim(); if(!name)return;
+  if(editingPanelId) { const p=state.panels.find(p=>p.id===editingPanelId); if(p){p.name=name;p.color=selectedColor;} }
+  else state.panels.push({id:uid(),name,color:selectedColor,bookmarks:[]});
+  closeModal('panel-modal'); render();
+}
+function deletePanel(id) { if(!confirm('Удалить панель?'))return; state.panels=state.panels.filter(p=>p.id!==id); render(); }
+
+function openAddBookmark(panelId) { editingBookmarkId=null; editingBookmarkPanelId=panelId; document.getElementById('bookmark-modal-title').textContent='Новая ссылка'; document.getElementById('bookmark-name-input').value=''; document.getElementById('bookmark-url-input').value=''; openModal('bookmark-modal'); }
+function openEditBookmark(panelId,bkId) { const p=state.panels.find(p=>p.id===panelId); const bk=p?.bookmarks.find(b=>b.id===bkId); if(!bk)return; editingBookmarkId=bkId; editingBookmarkPanelId=panelId; document.getElementById('bookmark-modal-title').textContent='Редактировать ссылку'; document.getElementById('bookmark-name-input').value=bk.name; document.getElementById('bookmark-url-input').value=bk.url; openModal('bookmark-modal'); }
+function saveBookmarkModal() {
+  const name=document.getElementById('bookmark-name-input').value.trim(); let url=document.getElementById('bookmark-url-input').value.trim(); if(!name||!url)return;
+  if(!/^https?:\/\//i.test(url)) url='https://'+url;
+  const p=state.panels.find(p=>p.id===editingBookmarkPanelId); if(!p)return;
+  if(editingBookmarkId) { const bk=p.bookmarks.find(b=>b.id===editingBookmarkId); if(bk){bk.name=name;bk.url=url;} }
+  else p.bookmarks.push({id:uid(),name,url});
+  closeModal('bookmark-modal'); render();
+}
+function deleteBookmark(panelId,bkId) { const p=state.panels.find(p=>p.id===panelId); if(!p)return; p.bookmarks=p.bookmarks.filter(b=>b.id!==bkId); render(); }
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function syncColorPicker() { document.querySelectorAll('.color-dot').forEach(d=>d.classList.toggle('active',d.dataset.color===selectedColor)); }
+
+function showCtx(e,type,panelId,bkId) { e.preventDefault(); contextTarget={type,panelId,bookmarkId:bkId}; const m=document.getElementById('context-menu'); m.style.left=e.clientX+'px'; m.style.top=e.clientY+'px'; m.classList.add('open'); }
+function hideCtx() { document.getElementById('context-menu').classList.remove('open'); }
+
+document.getElementById('global-search').addEventListener('input',e=>renderPanels(e.target.value));
+document.getElementById('add-panel-btn').addEventListener('click',openAddPanel);
+document.getElementById('panel-modal-close').addEventListener('click',()=>closeModal('panel-modal'));
+document.getElementById('panel-modal-cancel').addEventListener('click',()=>closeModal('panel-modal'));
+document.getElementById('panel-modal-save').addEventListener('click',savePanelModal);
+document.getElementById('panel-name-input').addEventListener('keydown',e=>{if(e.key==='Enter')savePanelModal();});
+document.getElementById('bookmark-modal-close').addEventListener('click',()=>closeModal('bookmark-modal'));
+document.getElementById('bookmark-modal-cancel').addEventListener('click',()=>closeModal('bookmark-modal'));
+document.getElementById('bookmark-modal-save').addEventListener('click',saveBookmarkModal);
+document.getElementById('bookmark-url-input').addEventListener('keydown',e=>{if(e.key==='Enter')saveBookmarkModal();});
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+document.getElementById('color-picker').addEventListener('click',e=>{const d=e.target.closest('.color-dot');if(!d)return;selectedColor=d.dataset.color;syncColorPicker();});
+document.getElementById('ctx-edit').addEventListener('click',()=>{hideCtx();if(!contextTarget)return;if(contextTarget.type==='bookmark')openEditBookmark(contextTarget.panelId,contextTarget.bookmarkId);else openEditPanel(contextTarget.panelId);});
+document.getElementById('ctx-delete').addEventListener('click',()=>{hideCtx();if(!contextTarget)return;if(contextTarget.type==='bookmark')deleteBookmark(contextTarget.panelId,contextTarget.bookmarkId);else deletePanel(contextTarget.panelId);});
+document.addEventListener('click',hideCtx);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal('panel-modal');closeModal('bookmark-modal');hideCtx();}});
+
+render();
+  </script>
+</body>
+</html>
