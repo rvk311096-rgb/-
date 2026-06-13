@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Focus — Рабочее место МОП</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg: #0f1117;
+  --bg2: #161b27;
+  --bg3: #1e2535;
+  --bg4: #252d3d;
+  --border: rgba(255,255,255,0.07);
+  --text: #e8eaf0;
+  --muted: #6b7492;
+  --accent: #4f8ef7;
+  --accent2: #7c5af7;
+  --green: #22c55e;
+  --orange: #f59e0b;
+  --red: #ef4444;
+  --purple: #a855f7;
+}
+body { font-family: -apple-system,'Inter',sans-serif; background:var(--bg); color:var(--text); font-size:13px; min-height:100vh; overflow-x:hidden; }
+
+/* ── SCREEN SWITCHER ── */
+.screens { position:relative; }
+.screen { display:none; min-height:100vh; }
+.screen.active { display:flex; flex-direction:column; }
+
+/* ── NAV ── */
+.nav-dots {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+  display:flex; gap:8px; z-index:1000; background:rgba(0,0,0,0.5);
+  padding:8px 14px; border-radius:20px; backdrop-filter:blur(12px);
+  border:1px solid var(--border);
+}
+.nav-dot { width:8px; height:8px; border-radius:50%; background:var(--muted); cursor:pointer; transition:all 0.2s; }
+.nav-dot.active { background:var(--accent); width:24px; border-radius:4px; }
+.nav-label {
+  position:fixed; bottom:68px; left:50%; transform:translateX(-50%);
+  background:rgba(0,0,0,0.7); color:var(--muted); font-size:10px;
+  padding:4px 12px; border-radius:10px; backdrop-filter:blur(8px);
+  white-space:nowrap; letter-spacing:0.5px; text-transform:uppercase;
+}
+
+/* ── COMMON ── */
+.card { background:var(--bg2); border:1px solid var(--border); border-radius:16px; }
+.badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:10px; font-weight:600; }
+.badge-red { background:rgba(239,68,68,0.15); color:var(--red); }
+.badge-green { background:rgba(34,197,94,0.15); color:var(--green); }
+.badge-orange { background:rgba(245,158,11,0.15); color:var(--orange); }
+.badge-blue { background:rgba(79,142,247,0.15); color:var(--accent); }
+.badge-purple { background:rgba(168,85,247,0.15); color:var(--purple); }
+.btn { padding:10px 18px; border-radius:10px; font-size:12px; font-weight:600; cursor:pointer; border:none; transition:all 0.2s; font-family:inherit; }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-primary:hover { background:#3d7de0; transform:translateY(-1px); }
+.btn-ghost { background:var(--bg3); color:var(--muted); border:1px solid var(--border); }
+.btn-ghost:hover { background:var(--bg4); color:var(--text); }
+.btn-green { background:rgba(34,197,94,0.15); color:var(--green); border:1px solid rgba(34,197,94,0.3); }
+.btn-green:hover { background:rgba(34,197,94,0.25); }
+.btn-orange { background:rgba(245,158,11,0.15); color:var(--orange); border:1px solid rgba(245,158,11,0.3); }
+.btn-red { background:rgba(239,68,68,0.1); color:var(--red); border:1px solid rgba(239,68,68,0.25); }
+.glow-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.glow-dot.red { background:var(--red); box-shadow:0 0 8px var(--red); }
+.glow-dot.green { background:var(--green); box-shadow:0 0 8px var(--green); }
+.glow-dot.orange { background:var(--orange); box-shadow:0 0 8px var(--orange); }
+.glow-dot.pulse { animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.4)} }
+.divider { height:1px; background:var(--border); }
+.avatar { border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; flex-shrink:0; }
+.progress-wrap { height:6px; background:var(--bg4); border-radius:3px; overflow:hidden; }
+.progress-fill { height:100%; border-radius:3px; transition:width 0.6s ease; }
+
+/* ══════════════════════════════════════
+   SCREEN 1 — УТРЕННИЙ БРИФИНГ
+══════════════════════════════════════ */
+#s1 { background:var(--bg); flex-direction:column; }
+.morning-header {
+  padding:40px 32px 24px; display:flex; align-items:flex-start; justify-content:space-between;
+}
+.morning-greeting { }
+.morning-greeting h1 { font-size:28px; font-weight:700; color:var(--text); }
+.morning-greeting h1 span { color:var(--accent); }
+.morning-greeting p { color:var(--muted); font-size:13px; margin-top:4px; }
+.morning-time { text-align:right; }
+.morning-time .time { font-size:36px; font-weight:700; color:var(--text); letter-spacing:-1px; font-variant-numeric:tabular-nums; }
+.morning-time .date { font-size:11px; color:var(--muted); margin-top:2px; }
+
+.morning-body { padding:0 32px 100px; display:grid; grid-template-columns:1fr 340px; gap:16px; }
+
+/* Today focus */
+.focus-card { padding:24px; }
+.focus-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--accent); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.focus-label::before { content:''; display:block; width:3px; height:14px; background:var(--accent); border-radius:2px; }
+.focus-item {
+  display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:12px;
+  margin-bottom:8px; cursor:pointer; border:1px solid transparent; transition:all 0.2s; position:relative; overflow:hidden;
+}
+.focus-item::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:2px 0 0 2px; }
+.focus-item.prio-1 { background:rgba(239,68,68,0.07); border-color:rgba(239,68,68,0.2); }
+.focus-item.prio-1::before { background:var(--red); }
+.focus-item.prio-1:hover { background:rgba(239,68,68,0.12); }
+.focus-item.prio-2 { background:rgba(79,142,247,0.07); border-color:rgba(79,142,247,0.2); }
+.focus-item.prio-2::before { background:var(--accent); }
+.focus-item.prio-2:hover { background:rgba(79,142,247,0.12); }
+.focus-item.prio-3 { background:rgba(34,197,94,0.07); border-color:rgba(34,197,94,0.2); }
+.focus-item.prio-3::before { background:var(--green); }
+.focus-item.prio-3:hover { background:rgba(34,197,94,0.12); }
+.focus-num { font-size:22px; font-weight:800; color:var(--bg4); min-width:28px; }
+.focus-item.prio-1 .focus-num { color:rgba(239,68,68,0.3); }
+.focus-item.prio-2 .focus-num { color:rgba(79,142,247,0.3); }
+.focus-item.prio-3 .focus-num { color:rgba(34,197,94,0.3); }
+.focus-content { flex:1; }
+.focus-title { font-size:13px; font-weight:600; color:var(--text); }
+.focus-sub { font-size:11px; color:var(--muted); margin-top:3px; }
+.focus-meta { display:flex; align-items:center; gap:6px; }
+.focus-action { padding:8px 14px; border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; border:none; font-family:inherit; }
+
+/* Right column morning */
+.morning-right { display:flex; flex-direction:column; gap:12px; }
+.stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:16px; }
+.stat-item { background:var(--bg3); border-radius:10px; padding:12px 14px; }
+.stat-num { font-size:22px; font-weight:800; }
+.stat-num.green { color:var(--green); }
+.stat-num.orange { color:var(--orange); }
+.stat-num.blue { color:var(--accent); }
+.stat-num.purple { color:var(--purple); }
+.stat-label { font-size:10px; color:var(--muted); margin-top:2px; }
+.stat-change { font-size:10px; margin-top:4px; font-weight:600; }
+.stat-change.up { color:var(--green); }
+.stat-change.down { color:var(--red); }
+
+/* Energy bar */
+.energy-card { padding:16px 20px; }
+.energy-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:12px; }
+.energy-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.energy-name { font-size:11px; color:var(--text); width:80px; }
+.energy-bar-wrap { flex:1; height:8px; background:var(--bg4); border-radius:4px; overflow:hidden; }
+.energy-bar { height:100%; border-radius:4px; }
+
+/* Start day btn */
+.start-btn {
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff; border:none; border-radius:14px; padding:16px;
+  font-size:14px; font-weight:700; cursor:pointer; width:100%;
+  font-family:inherit; display:flex; align-items:center; justify-content:center;
+  gap:10px; transition:all 0.2s; box-shadow:0 8px 24px rgba(79,142,247,0.3);
+}
+.start-btn:hover { transform:translateY(-2px); box-shadow:0 12px 32px rgba(79,142,247,0.4); }
+
+/* ══════════════════════════════════════
+   SCREEN 2 — ОЧЕРЕДЬ ЗАДАЧ (TINDER)
+══════════════════════════════════════ */
+#s2 {
+  background:radial-gradient(ellipse at top, #1a1f35 0%, var(--bg) 70%);
+  padding:32px; padding-bottom:100px; align-items:center; justify-content:flex-start;
+}
+.queue-header { width:100%; max-width:520px; margin:0 auto 24px; display:flex; align-items:center; justify-content:space-between; }
+.queue-title { font-size:20px; font-weight:700; }
+.queue-sub { font-size:12px; color:var(--muted); margin-top:2px; }
+.queue-counter { font-size:12px; color:var(--muted); }
+
+.deal-card-stack { width:100%; max-width:520px; margin:0 auto; position:relative; height:420px; }
+.deal-card {
+  position:absolute; inset:0; background:var(--bg2); border:1px solid var(--border);
+  border-radius:24px; padding:28px; transition:all 0.3s;
+  box-shadow:0 24px 60px rgba(0,0,0,0.4);
+}
+.deal-card.back1 { transform:translateY(10px) scale(0.97); opacity:0.6; z-index:1; }
+.deal-card.back2 { transform:translateY(18px) scale(0.94); opacity:0.3; z-index:0; }
+.deal-card.front { z-index:2; cursor:grab; }
+.deal-card.front:active { cursor:grabbing; }
+
+.deal-card-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; }
+.deal-company { font-size:18px; font-weight:700; }
+.deal-contact { font-size:12px; color:var(--muted); margin-top:4px; }
+.deal-amount { font-size:24px; font-weight:800; color:var(--green); text-align:right; }
+.deal-pct { font-size:11px; color:var(--muted); text-align:right; margin-top:2px; }
+
+.deal-signals { display:flex; flex-direction:column; gap:8px; margin-bottom:20px; }
+.signal-item { display:flex; align-items:center; gap:10px; background:var(--bg3); border-radius:10px; padding:10px 14px; }
+.signal-icon { font-size:16px; }
+.signal-text { font-size:12px; color:var(--text); }
+.signal-text strong { color:var(--orange); }
+
+.deal-stage-bar { margin-bottom:20px; }
+.deal-stage-label { display:flex; justify-content:space-between; font-size:10px; color:var(--muted); margin-bottom:6px; }
+.stage-dots { display:flex; gap:4px; }
+.stage-dot { flex:1; height:4px; border-radius:2px; background:var(--bg4); }
+.stage-dot.done { background:var(--accent); }
+.stage-dot.current { background:var(--orange); }
+
+.deal-actions { display:flex; gap:10px; }
+.deal-action-btn {
+  flex:1; padding:14px; border-radius:12px; border:none; font-size:12px; font-weight:700;
+  cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center;
+  gap:6px; transition:all 0.2s;
+}
+.deal-action-btn.call { background:rgba(34,197,94,0.15); color:var(--green); border:1px solid rgba(34,197,94,0.3); }
+.deal-action-btn.call:hover { background:rgba(34,197,94,0.25); }
+.deal-action-btn.msg { background:rgba(79,142,247,0.15); color:var(--accent); border:1px solid rgba(79,142,247,0.3); }
+.deal-action-btn.msg:hover { background:rgba(79,142,247,0.25); }
+.deal-action-btn.skip { background:var(--bg3); color:var(--muted); border:1px solid var(--border); }
+.deal-action-btn.skip:hover { background:var(--bg4); }
+
+/* Swipe hint */
+.swipe-hint { display:flex; justify-content:center; gap:24px; margin-top:16px; max-width:520px; width:100%; margin-left:auto; margin-right:auto; }
+.hint-item { display:flex; align-items:center; gap:6px; font-size:10px; color:var(--muted); }
+
+/* ══════════════════════════════════════
+   SCREEN 3 — ФОКУС-РЕЖИМ (ЗВОНКИ)
+══════════════════════════════════════ */
+#s3 { background:var(--bg); }
+.focus-mode-header {
+  background:linear-gradient(135deg,rgba(239,68,68,0.15),rgba(239,68,68,0.05));
+  border-bottom:1px solid rgba(239,68,68,0.2); padding:20px 32px;
+  display:flex; align-items:center; gap:16px;
+}
+.focus-mode-badge {
+  background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.4);
+  color:var(--red); padding:6px 14px; border-radius:20px; font-size:11px; font-weight:700;
+  display:flex; align-items:center; gap:6px;
+}
+.focus-mode-title { font-size:15px; font-weight:700; }
+.focus-mode-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+.focus-mode-timer {
+  margin-left:auto; font-size:28px; font-weight:800; color:var(--red);
+  font-variant-numeric:tabular-nums; letter-spacing:-1px;
+}
+.focus-mode-timer.warning { animation:timerPulse 1s infinite; }
+@keyframes timerPulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+.focus-body { display:grid; grid-template-columns:1fr 320px; gap:0; flex:1; }
+.focus-left { padding:24px 32px; border-right:1px solid var(--border); }
+.focus-right { padding:24px; background:var(--bg2); }
+
+/* Call list */
+.call-list-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.call-list-title { font-size:13px; font-weight:700; }
+.call-progress-text { font-size:11px; color:var(--muted); }
+.call-item {
+  display:flex; align-items:center; gap:12px; padding:12px 16px; border-radius:12px;
+  margin-bottom:6px; border:1px solid transparent; cursor:pointer; transition:all 0.15s;
+}
+.call-item.active { background:rgba(79,142,247,0.1); border-color:rgba(79,142,247,0.3); }
+.call-item.done { opacity:0.4; }
+.call-item:not(.active):not(.done):hover { background:var(--bg3); }
+.call-avatar { width:36px; height:36px; font-size:12px; }
+.call-name { font-size:12px; font-weight:600; }
+.call-company { font-size:10px; color:var(--muted); margin-top:1px; }
+.call-amount { font-size:12px; font-weight:700; color:var(--green); margin-left:auto; }
+.call-badge { margin-left:8px; }
+
+/* Active call panel */
+.active-call-card { background:var(--bg3); border-radius:16px; padding:20px; margin-bottom:16px; }
+.active-call-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--red); margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+.active-call-name { font-size:16px; font-weight:700; margin-bottom:2px; }
+.active-call-company { font-size:11px; color:var(--muted); margin-bottom:14px; }
+.call-btn-row { display:flex; gap:8px; margin-bottom:14px; }
+.call-btn { flex:1; padding:12px 8px; border-radius:10px; border:none; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:5px; }
+.call-btn.dial { background:var(--green); color:#fff; }
+.call-btn.dial:hover { background:#16a34a; }
+.call-btn.whatsapp { background:rgba(34,197,94,0.15); color:var(--green); border:1px solid rgba(34,197,94,0.3); }
+.call-btn.email { background:rgba(79,142,247,0.15); color:var(--accent); border:1px solid rgba(79,142,247,0.3); }
+
+/* Script mini */
+.script-mini { background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:10px; padding:12px; font-size:11px; color:var(--text); line-height:1.6; }
+.script-mini strong { color:var(--orange); }
+
+/* Results */
+.results-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:8px; }
+.result-btn { display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:var(--bg3); margin-bottom:6px; cursor:pointer; font-size:11px; font-weight:600; transition:all 0.15s; width:100%; font-family:inherit; color:var(--text); text-align:left; }
+.result-btn:hover { background:var(--bg4); border-color:rgba(255,255,255,0.15); }
+.result-btn .ricon { font-size:14px; }
+.result-btn .rarrow { margin-left:auto; color:var(--muted); }
+
+/* Focus stats */
+.focus-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:16px; }
+.focus-stat { background:var(--bg3); border-radius:10px; padding:10px 12px; }
+.focus-stat-num { font-size:18px; font-weight:800; }
+.focus-stat-label { font-size:9px; color:var(--muted); margin-top:1px; text-transform:uppercase; letter-spacing:0.5px; }
+
+/* ══════════════════════════════════════
+   SCREEN 4 — СВЕТОФОР СДЕЛОК
+══════════════════════════════════════ */
+#s4 { padding:24px 32px 100px; }
+.traffic-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.traffic-title { font-size:20px; font-weight:700; }
+.traffic-filters { display:flex; gap:8px; }
+.filter-btn { padding:6px 14px; border-radius:20px; font-size:11px; font-weight:600; cursor:pointer; border:1px solid var(--border); background:var(--bg2); color:var(--muted); transition:all 0.15s; }
+.filter-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+.traffic-columns { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.traffic-col { }
+.traffic-col-header { display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px; margin-bottom:10px; }
+.traffic-col-header.red { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); }
+.traffic-col-header.orange { background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.2); }
+.traffic-col-header.green { background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.2); }
+.traffic-col-header.gray { background:rgba(107,116,146,0.1); border:1px solid rgba(107,116,146,0.2); }
+.col-title { font-size:11px; font-weight:700; }
+.col-count { margin-left:auto; font-size:10px; font-weight:700; }
+.red .col-title, .red .col-count { color:var(--red); }
+.orange .col-title, .orange .col-count { color:var(--orange); }
+.green .col-title, .green .col-count { color:var(--green); }
+.gray .col-title, .gray .col-count { color:var(--muted); }
+
+.deal-mini { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:12px 14px; margin-bottom:8px; cursor:pointer; transition:all 0.15s; }
+.deal-mini:hover { border-color:rgba(255,255,255,0.15); transform:translateY(-1px); }
+.deal-mini-name { font-size:12px; font-weight:600; margin-bottom:3px; }
+.deal-mini-amount { font-size:11px; color:var(--green); font-weight:700; }
+.deal-mini-meta { font-size:10px; color:var(--muted); margin-top:4px; }
+.deal-mini-alert { font-size:10px; margin-top:6px; padding:4px 8px; border-radius:6px; }
+.deal-mini-alert.red { background:rgba(239,68,68,0.1); color:var(--red); }
+.deal-mini-alert.orange { background:rgba(245,158,11,0.1); color:var(--orange); }
+.deal-mini-stage { display:flex; gap:3px; margin-top:8px; }
+.mini-stage-dot { flex:1; height:3px; border-radius:2px; background:var(--bg4); }
+.mini-stage-dot.done { background:var(--accent); }
+.mini-stage-dot.now.red-now { background:var(--red); }
+.mini-stage-dot.now.orange-now { background:var(--orange); }
+.mini-stage-dot.now.green-now { background:var(--green); }
+
+/* ══════════════════════════════════════
+   SCREEN 5 — ГЕЙМИФИКАЦИЯ / ИТОГИ НЕДЕЛИ
+══════════════════════════════════════ */
+#s5 {
+  background:radial-gradient(ellipse at 20% 20%, rgba(79,142,247,0.15) 0%, transparent 60%),
+             radial-gradient(ellipse at 80% 80%, rgba(168,85,247,0.1) 0%, transparent 60%),
+             var(--bg);
+  padding:32px; padding-bottom:100px;
+}
+.game-header { text-align:center; margin-bottom:28px; }
+.game-title { font-size:24px; font-weight:800; }
+.game-title span { background:linear-gradient(135deg,var(--accent),var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.game-sub { font-size:13px; color:var(--muted); margin-top:4px; }
+
+.game-grid { display:grid; grid-template-columns:300px 1fr 260px; gap:16px; max-width:1100px; margin:0 auto; }
+
+/* XP & Level */
+.xp-card { padding:24px; display:flex; flex-direction:column; gap:16px; }
+.level-badge { display:flex; align-items:center; gap:14px; }
+.level-icon { width:60px; height:60px; border-radius:16px; background:linear-gradient(135deg,var(--accent),var(--purple)); display:flex; align-items:center; justify-content:center; font-size:28px; flex-shrink:0; box-shadow:0 8px 24px rgba(79,142,247,0.4); }
+.level-num { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+.level-name { font-size:18px; font-weight:800; margin-top:2px; }
+.xp-row { display:flex; justify-content:space-between; font-size:10px; color:var(--muted); margin-bottom:6px; }
+.xp-bar { height:8px; background:var(--bg4); border-radius:4px; overflow:hidden; }
+.xp-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--purple)); border-radius:4px; }
+
+/* Streak */
+.streak-row { display:flex; gap:6px; flex-wrap:wrap; }
+.streak-day { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; }
+.streak-day.done { background:rgba(34,197,94,0.2); color:var(--green); border:1px solid rgba(34,197,94,0.4); }
+.streak-day.today { background:var(--green); color:#fff; box-shadow:0 4px 12px rgba(34,197,94,0.4); }
+.streak-day.miss { background:var(--bg4); color:var(--muted); border:1px solid var(--border); }
+.streak-day.future { background:var(--bg3); color:var(--muted); border:1px dashed var(--border); }
+
+/* Week stats */
+.week-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; padding:20px; }
+.week-stat { background:var(--bg3); border-radius:12px; padding:16px; text-align:center; }
+.week-stat-num { font-size:26px; font-weight:800; }
+.week-stat-label { font-size:10px; color:var(--muted); margin-top:3px; text-transform:uppercase; letter-spacing:0.5px; }
+.week-stat-change { font-size:10px; margin-top:6px; font-weight:600; }
+
+.chart-area { padding:0 20px 20px; }
+.chart-label { font-size:11px; color:var(--muted); margin-bottom:10px; }
+.bar-chart { display:flex; align-items:flex-end; gap:8px; height:80px; }
+.bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; }
+.bar { width:100%; border-radius:4px 4px 0 0; transition:height 0.5s ease; min-height:4px; }
+.bar.blue { background:linear-gradient(to top,var(--accent),rgba(79,142,247,0.5)); }
+.bar.today-bar { background:linear-gradient(to top,var(--green),rgba(34,197,94,0.5)); }
+.bar-day { font-size:9px; color:var(--muted); }
+.bar-num { font-size:9px; color:var(--text); font-weight:600; }
+
+/* Achievements */
+.ach-card { padding:16px; }
+.ach-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:14px; }
+.ach-item { display:flex; align-items:center; gap:10px; padding:10px; border-radius:10px; margin-bottom:6px; transition:all 0.15s; cursor:pointer; }
+.ach-item:hover { background:var(--bg3); }
+.ach-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.ach-icon.unlocked { background:rgba(245,158,11,0.2); }
+.ach-icon.locked { background:var(--bg4); filter:grayscale(1); opacity:0.5; }
+.ach-name { font-size:12px; font-weight:600; }
+.ach-desc { font-size:10px; color:var(--muted); margin-top:1px; }
+.ach-badge { margin-left:auto; font-size:10px; color:var(--orange); font-weight:700; }
+.ach-badge.locked { color:var(--muted); }
+
+/* Style card */
+.style-card { background:linear-gradient(135deg,rgba(168,85,247,0.15),rgba(79,142,247,0.1)); border:1px solid rgba(168,85,247,0.3); border-radius:14px; padding:16px 20px; }
+.style-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--purple); margin-bottom:8px; }
+.style-name { font-size:18px; font-weight:800; color:var(--text); }
+.style-desc { font-size:11px; color:var(--muted); line-height:1.5; margin-top:4px; }
+
+/* ══════════════════════════════════════
+   SCREEN 6 — УМНОЕ РАСПИСАНИЕ
+══════════════════════════════════════ */
+#s6 { padding:24px 32px 100px; }
+.schedule-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.schedule-title { font-size:20px; font-weight:700; }
+.schedule-date { font-size:12px; color:var(--muted); background:var(--bg2); border:1px solid var(--border); padding:6px 14px; border-radius:8px; }
+
+.schedule-layout { display:grid; grid-template-columns:1fr 280px; gap:16px; }
+.schedule-left { }
+.timeline-wrap { position:relative; }
+.time-block {
+  display:flex; gap:14px; margin-bottom:8px; cursor:pointer;
+  transition:all 0.15s;
+}
+.time-block:hover .block-card { border-color:rgba(255,255,255,0.15); }
+.time-col { width:52px; flex-shrink:0; text-align:right; }
+.time-hour { font-size:11px; color:var(--muted); font-variant-numeric:tabular-nums; line-height:1; margin-top:14px; }
+.time-line { flex:0 0 1px; background:var(--border); position:relative; }
+.block-card {
+  flex:1; border-radius:12px; border:1px solid var(--border); padding:14px 16px;
+  transition:all 0.15s; min-height:52px;
+}
+.block-card.calls { background:rgba(239,68,68,0.07); border-color:rgba(239,68,68,0.2); }
+.block-card.letters { background:rgba(79,142,247,0.07); border-color:rgba(79,142,247,0.2); }
+.block-card.meet { background:rgba(168,85,247,0.07); border-color:rgba(168,85,247,0.2); }
+.block-card.crm { background:rgba(34,197,94,0.07); border-color:rgba(34,197,94,0.2); }
+.block-card.free { background:var(--bg3); border-style:dashed; }
+.block-card.current { box-shadow:0 0 0 2px var(--accent); border-color:var(--accent); }
+.block-type { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px; }
+.calls .block-type { color:var(--red); }
+.letters .block-type { color:var(--accent); }
+.meet .block-type { color:var(--purple); }
+.crm .block-type { color:var(--green); }
+.free .block-type { color:var(--muted); }
+.block-title { font-size:13px; font-weight:600; }
+.free .block-title { color:var(--muted); }
+.block-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+.block-actions { display:flex; gap:6px; margin-top:8px; }
+.block-tag { font-size:10px; padding:3px 8px; border-radius:5px; font-weight:600; }
+.calls .block-tag { background:rgba(239,68,68,0.15); color:var(--red); }
+.letters .block-tag { background:rgba(79,142,247,0.15); color:var(--accent); }
+.meet .block-tag { background:rgba(168,85,247,0.15); color:var(--purple); }
+.crm .block-tag { background:rgba(34,197,94,0.15); color:var(--green); }
+
+/* Current time line */
+.current-time-line {
+  display:flex; align-items:center; gap:8px; margin-bottom:0;
+  position:relative; z-index:10;
+}
+.ctl-dot { width:10px; height:10px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); flex-shrink:0; margin-left:66px; }
+.ctl-line { flex:1; height:2px; background:var(--accent); opacity:0.6; }
+.ctl-time { font-size:11px; color:var(--accent); font-weight:700; white-space:nowrap; }
+
+/* Schedule right */
+.schedule-right { display:flex; flex-direction:column; gap:12px; }
+.hint-card { padding:16px; }
+.hint-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:12px; }
+.hint-item { display:flex; align-items:flex-start; gap:10px; padding:10px; border-radius:10px; margin-bottom:6px; background:var(--bg3); }
+.hint-icon { font-size:16px; flex-shrink:0; }
+.hint-text { font-size:11px; color:var(--text); line-height:1.5; }
+.hint-text strong { color:var(--orange); }
+
+/* ══════════════════════════════════════
+   SCREEN 7 — ДАШБОРД РОП (скрытый контроль)
+══════════════════════════════════════ */
+#s7 { background:var(--bg); padding:24px 32px 100px; }
+.rop-header { display:flex; align-items:center; gap:14px; margin-bottom:20px; }
+.rop-title { font-size:20px; font-weight:700; }
+.rop-subtitle { font-size:12px; color:var(--muted); margin-top:2px; }
+.rop-badge { background:rgba(239,68,68,0.15); color:var(--red); border:1px solid rgba(239,68,68,0.3); padding:5px 12px; border-radius:20px; font-size:10px; font-weight:700; margin-left:auto; }
+
+.rop-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+
+/* Heatmap */
+.heatmap-card { padding:20px; }
+.heatmap-title { font-size:12px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+.heatmap-grid { display:grid; grid-template-columns:40px repeat(12,1fr); gap:3px; }
+.heatmap-label { font-size:9px; color:var(--muted); display:flex; align-items:center; justify-content:flex-end; padding-right:4px; }
+.heatmap-hour { font-size:8px; color:var(--muted); text-align:center; }
+.heatmap-cell { height:20px; border-radius:3px; transition:all 0.15s; cursor:pointer; }
+.heatmap-cell:hover { opacity:0.8; transform:scale(1.1); }
+.h0 { background:var(--bg4); }
+.h1 { background:rgba(79,142,247,0.2); }
+.h2 { background:rgba(79,142,247,0.4); }
+.h3 { background:rgba(79,142,247,0.65); }
+.h4 { background:var(--accent); }
+.h5 { background:#2dd4f0; }
+
+/* Manager table */
+.managers-card { padding:20px; }
+.managers-title { font-size:12px; font-weight:700; margin-bottom:14px; }
+.manager-row { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; margin-bottom:4px; transition:all 0.15s; cursor:pointer; }
+.manager-row:hover { background:var(--bg3); }
+.manager-rank { font-size:11px; font-weight:800; color:var(--muted); width:20px; text-align:center; }
+.manager-name { font-size:12px; font-weight:600; flex:1; }
+.manager-calls { font-size:11px; color:var(--muted); width:70px; text-align:center; }
+.manager-conv { font-size:11px; font-weight:700; width:50px; text-align:center; }
+.manager-health { width:80px; }
+.health-bar { height:6px; background:var(--bg4); border-radius:3px; overflow:hidden; }
+.health-fill { height:100%; border-radius:3px; }
+.manager-alert { font-size:10px; }
+
+/* Violations */
+.violations-card { padding:20px; }
+.viol-title { font-size:12px; font-weight:700; margin-bottom:14px; }
+.viol-item { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:10px; background:var(--bg3); margin-bottom:6px; }
+.viol-icon { font-size:14px; }
+.viol-text { font-size:11px; color:var(--text); flex:1; }
+.viol-time { font-size:10px; color:var(--muted); }
+
+/* Forecast */
+.forecast-card { padding:20px; }
+.forecast-title { font-size:12px; font-weight:700; margin-bottom:14px; }
+.forecast-num { font-size:32px; font-weight:800; color:var(--green); }
+.forecast-label { font-size:11px; color:var(--muted); margin-top:4px; }
+.forecast-bar-row { display:flex; gap:6px; height:60px; align-items:flex-end; margin-top:14px; }
+.forecast-bar-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; }
+.forecast-bar-el { width:100%; border-radius:4px 4px 0 0; }
+.forecast-bar-label { font-size:8px; color:var(--muted); }
+.forecast-bar-amount { font-size:9px; font-weight:700; }
+
+/* WATERMARK for ROP screen */
+.rop-watermark {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-15deg);
+  font-size:120px; opacity:0.02; pointer-events:none; user-select:none; font-weight:900;
+  white-space:nowrap; color:var(--red);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<div class="nav-label" id="navLabel">Утренний брифинг</div>
+<div class="nav-dots" id="navDots"></div>
+
+<div class="screens">
+
+<!-- ═══════════════════════ SCREEN 1 ═══════════════════════ -->
+<div class="screen active" id="s1">
+  <div class="morning-header">
+    <div class="morning-greeting">
+      <h1>Доброе утро, <span>Иван</span> ☀️</h1>
+      <p>Пятница, 13 июня 2026 · Неделя идёт хорошо — не сбавляй темп</p>
+    </div>
+    <div class="morning-time">
+      <div class="time" id="clock">09:14</div>
+      <div class="date">пт, 13 июня 2026</div>
+    </div>
+  </div>
+
+  <div class="morning-body">
+    <!-- Focus -->
+    <div class="card focus-card">
+      <div class="focus-label">Твой фокус на сегодня · 3 приоритета</div>
+
+      <div class="focus-item prio-1">
+        <div class="focus-num">1</div>
+        <div class="focus-content">
+          <div class="focus-title">📞 Позвонить Смирнову (ООО «Технологии»)</div>
+          <div class="focus-sub">Сделка ₽485 000 · Ждут ответа 3 дня · Риск ухода к конкурентам</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+          <span class="badge badge-red">🔥 Горит</span>
+          <span style="font-size:10px;color:var(--muted)">до 12:00</span>
+        </div>
+      </div>
+
+      <div class="focus-item prio-2">
+        <div class="focus-num">2</div>
+        <div class="focus-content">
+          <div class="focus-title">✉️ Отправить КП в ТехноПром (85 чел.)</div>
+          <div class="focus-sub">Подготовлено вчера · Требует только финальной проверки и отправки</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+          <span class="badge badge-blue">КП готово</span>
+          <span style="font-size:10px;color:var(--muted)">до 15:00</span>
+        </div>
+      </div>
+
+      <div class="focus-item prio-3">
+        <div class="focus-num">3</div>
+        <div class="focus-content">
+          <div class="focus-title">📅 Встреча: «АвтоГрупп» — демо продукта</div>
+          <div class="focus-sub">Тёплый лид · Бюджет ₽220 000 · Встреча в 14:00</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+          <span class="badge badge-green">В 14:00</span>
+          <span style="font-size:10px;color:var(--muted)">+4ч 46мин</span>
+        </div>
+      </div>
+
+      <div style="height:12px"></div>
+      <div style="padding:12px 16px;background:var(--bg3);border-radius:12px;border:1px solid var(--border)">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.8px;font-weight:700">Остальные сделки — на потом (8 в очереди)</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="badge badge-blue">ООО Горизонт</span>
+          <span class="badge" style="background:var(--bg4);color:var(--muted)">МедТехника</span>
+          <span class="badge" style="background:var(--bg4);color:var(--muted)">Стройком</span>
+          <span class="badge" style="background:var(--bg4);color:var(--muted)">+5 ещё</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right -->
+    <div class="morning-right">
+      <!-- Stats -->
+      <div class="card">
+        <div class="stat-grid">
+          <div class="stat-item">
+            <div class="stat-num green">₽1.9М</div>
+            <div class="stat-label">Прогноз / мес</div>
+            <div class="stat-change up">▲ 112% плана</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num orange">14</div>
+            <div class="stat-label">Сделок в работе</div>
+            <div class="stat-change up">▲ норма</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num blue">71%</div>
+            <div class="stat-label">Конверсия</div>
+            <div class="stat-change up">▲ +6% vs нед</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num purple">🔥 8</div>
+            <div class="stat-label">Дней без просрочек</div>
+            <div class="stat-change up">Серия!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Energy -->
+      <div class="card energy-card">
+        <div class="energy-label">Активность по типам</div>
+        <div class="energy-row">
+          <div class="energy-name">📞 Звонки</div>
+          <div class="energy-bar-wrap"><div class="energy-bar" style="width:82%;background:linear-gradient(90deg,var(--red),rgba(239,68,68,0.5))"></div></div>
+          <div style="font-size:10px;color:var(--muted);width:30px;text-align:right">82%</div>
+        </div>
+        <div class="energy-row">
+          <div class="energy-name">✉️ Письма</div>
+          <div class="energy-bar-wrap"><div class="energy-bar" style="width:65%;background:linear-gradient(90deg,var(--accent),rgba(79,142,247,0.5))"></div></div>
+          <div style="font-size:10px;color:var(--muted);width:30px;text-align:right">65%</div>
+        </div>
+        <div class="energy-row">
+          <div class="energy-name">📋 CRM</div>
+          <div class="energy-bar-wrap"><div class="energy-bar" style="width:48%;background:linear-gradient(90deg,var(--green),rgba(34,197,94,0.5))"></div></div>
+          <div style="font-size:10px;color:var(--muted);width:30px;text-align:right">48%</div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:8px">⚡ Заполняй карточки после каждого звонка — советник станет точнее</div>
+      </div>
+
+      <!-- Start btn -->
+      <button class="start-btn" onclick="goToScreen(1)">
+        ▶ Начать день — первый звонок
+        <span style="font-size:11px;opacity:0.75">→ Смирнов, +7 916 234-56-78</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SCREEN 2 ═══════════════════════ -->
+<div class="screen" id="s2">
+  <div class="queue-header">
+    <div>
+      <div class="queue-title">Очередь сделок</div>
+      <div class="queue-sub">Система выбрала приоритет — просто работай</div>
+    </div>
+    <div class="queue-counter">Осталось <strong style="color:var(--text)">8</strong> из 14</div>
+  </div>
+
+  <div class="deal-card-stack">
+    <!-- BACK 2 -->
+    <div class="deal-card back2">
+      <div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px">Горизонт Плюс · ₽180 000</div>
+    </div>
+    <!-- BACK 1 -->
+    <div class="deal-card back1">
+      <div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px">МедТехника 2000 · ₽310 000</div>
+    </div>
+    <!-- FRONT -->
+    <div class="deal-card front">
+      <div class="deal-card-header">
+        <div>
+          <div class="deal-company">ООО «Технологии Будущего»</div>
+          <div class="deal-contact">Смирнов А.В. · Генеральный директор · ЛПР</div>
+        </div>
+        <div>
+          <div class="deal-amount">₽ 485 000</div>
+          <div class="deal-pct">65% вероятность</div>
+        </div>
+      </div>
+
+      <div class="deal-signals">
+        <div class="signal-item">
+          <div class="signal-icon">⏰</div>
+          <div class="signal-text">Последний контакт <strong>3 дня назад</strong> — клиент может уйти к конкуренту</div>
+        </div>
+        <div class="signal-item">
+          <div class="signal-icon">👁️</div>
+          <div class="signal-text">Клиент <strong>открывал КП 2 раза</strong> — он думает, нужен дожим</div>
+        </div>
+        <div class="signal-item">
+          <div class="signal-icon">💡</div>
+          <div class="signal-text">Советник: «Предложи ROI-расчёт — их главное возражение это цена»</div>
+        </div>
+      </div>
+
+      <div class="deal-stage-bar">
+        <div class="deal-stage-label">
+          <span>Этап: КП отправлено</span>
+          <span>4 из 7</span>
+        </div>
+        <div class="stage-dots">
+          <div class="stage-dot done"></div>
+          <div class="stage-dot done"></div>
+          <div class="stage-dot done"></div>
+          <div class="stage-dot current"></div>
+          <div class="stage-dot"></div>
+          <div class="stage-dot"></div>
+          <div class="stage-dot"></div>
+        </div>
+      </div>
+
+      <div class="deal-actions">
+        <button class="deal-action-btn call">📞 Позвонить</button>
+        <button class="deal-action-btn msg">✉️ Написать</button>
+        <button class="deal-action-btn skip" onclick="animateSkip()">→ Пропустить</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="swipe-hint">
+    <div class="hint-item">📞 <span>Нажми «Позвонить» — скрипт откроется автоматически</span></div>
+    <div class="hint-item">→ <span>Пропустить = перенести на завтра (система запомнит)</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SCREEN 3 ═══════════════════════ -->
+<div class="screen" id="s3">
+  <div class="focus-mode-header">
+    <div class="focus-mode-badge"><div class="glow-dot red pulse"></div> РЕЖИМ ЗВОНКОВ</div>
+    <div>
+      <div class="focus-mode-title">Блок звонков · 09:00 – 10:30</div>
+      <div class="focus-mode-sub">Только звонки. Письма и CRM — после 10:30. Ты в потоке.</div>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:16px">
+      <div style="text-align:center">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:2px">ПРОГРЕСС</div>
+        <div style="font-size:13px;font-weight:700;color:var(--green)">5 / 12</div>
+      </div>
+      <div class="focus-mode-timer" id="focusTimer">47:23</div>
+    </div>
+  </div>
+
+  <div style="padding:4px 32px;background:rgba(239,68,68,0.05);border-bottom:1px solid rgba(239,68,68,0.1)">
+    <div class="progress-wrap"><div class="progress-fill" style="width:42%;background:linear-gradient(90deg,var(--red),rgba(239,68,68,0.4))"></div></div>
+  </div>
+
+  <div class="focus-body">
+    <!-- LEFT: call list -->
+    <div class="focus-left">
+      <div class="call-list-header">
+        <div class="call-list-title">Очередь звонков</div>
+        <div class="call-progress-text">5 выполнено · 7 осталось</div>
+      </div>
+
+      <div class="call-item done"><div class="avatar call-avatar" style="background:#3a4060;font-size:11px">АС</div><div><div class="call-name" style="text-decoration:line-through">Смирнов А.В.</div><div class="call-company">ООО Технологии</div></div><span class="badge badge-green" style="margin-left:auto">✓ Готово</span></div>
+      <div class="call-item done"><div class="avatar call-avatar" style="background:#3a4060;font-size:11px">МК</div><div><div class="call-name" style="text-decoration:line-through">Козлов М.Н.</div><div class="call-company">ТехноПром</div></div><span class="badge badge-orange" style="margin-left:auto">↩ Перезвон</span></div>
+      <div class="call-item done"><div class="avatar call-avatar" style="background:#3a4060;font-size:11px">ОВ</div><div><div class="call-name" style="text-decoration:line-through">Воронова О.С.</div><div class="call-company">Медцентр Юг</div></div><span class="badge badge-green" style="margin-left:auto">✓ Встреча</span></div>
+      <div class="call-item done"><div class="avatar call-avatar" style="background:#3a4060;font-size:11px">ПА</div><div><div class="call-name" style="text-decoration:line-through">Антонов П.Р.</div><div class="call-company">АвтоГрупп</div></div><span class="badge badge-green" style="margin-left:auto">✓ Готово</span></div>
+      <div class="call-item done"><div class="avatar call-avatar" style="background:#3a4060;font-size:11px">НЛ</div><div><div class="call-name" style="text-decoration:line-through">Ларионов Н.В.</div><div class="call-company">СтройКом</div></div><span class="badge badge-red" style="margin-left:auto">✗ Отказ</span></div>
+
+      <div style="height:1px;background:var(--border);margin:10px 0"></div>
+
+      <div class="call-item active">
+        <div class="avatar call-avatar" style="background:linear-gradient(135deg,var(--accent),var(--accent2));font-size:11px">ИР</div>
+        <div><div class="call-name">Романов И.С.</div><div class="call-company">Горизонт Плюс · ₽180 000</div></div>
+        <div class="focus-stats" style="display:flex;gap:6px;margin-left:auto;margin-top:0">
+          <span class="badge badge-orange">🔥 Горячий</span>
+        </div>
+      </div>
+
+      <div class="call-item"><div class="avatar call-avatar" style="background:#1e2535;font-size:11px;color:var(--muted)">ТМ</div><div><div class="call-name">Михайлова Т.В.</div><div class="call-company">МедТехника · ₽310 000</div></div><span class="call-amount">₽310K</span></div>
+      <div class="call-item"><div class="avatar call-avatar" style="background:#1e2535;font-size:11px;color:var(--muted)">КС</div><div><div class="call-name">Соколов К.А.</div><div class="call-company">АгроИнвест · ₽95 000</div></div><span class="call-amount">₽95K</span></div>
+      <div class="call-item"><div class="avatar call-avatar" style="background:#1e2535;font-size:11px;color:var(--muted)">БД</div><div><div class="call-name">Белова Д.Н.</div><div class="call-company">ЛогистПро · ₽430 000</div></div><span class="call-amount">₽430K</span></div>
+      <div class="call-item"><div class="avatar call-avatar" style="background:#1e2535;font-size:11px;color:var(--muted)">ФЕ</div><div><div class="call-name">Федоров Е.П.</div><div class="call-company">ТехСервис · ₽55 000</div></div><span class="call-amount">₽55K</span></div>
+
+      <div class="focus-stats">
+        <div class="focus-stat"><div class="focus-stat-num" style="color:var(--green)">5</div><div class="focus-stat-label">Звонков</div></div>
+        <div class="focus-stat"><div class="focus-stat-num" style="color:var(--orange)">2</div><div class="focus-stat-label">Перезвона</div></div>
+        <div class="focus-stat"><div class="focus-stat-num" style="color:var(--purple)">1</div><div class="focus-stat-label">Встреча</div></div>
+        <div class="focus-stat"><div class="focus-stat-num" style="color:var(--red)">1</div><div class="focus-stat-label">Отказ</div></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: active call -->
+    <div class="focus-right">
+      <div class="active-call-card">
+        <div class="active-call-label"><div class="glow-dot red pulse"></div>АКТИВНЫЙ ЗВОНОК</div>
+        <div class="active-call-name">Романов Игорь Сергеевич</div>
+        <div class="active-call-company">Горизонт Плюс · +7 (495) 123-45-67</div>
+        <div class="call-btn-row">
+          <button class="call-btn dial">📞 Позвонить</button>
+          <button class="call-btn whatsapp">💬 WA</button>
+          <button class="call-btn email">✉️ Email</button>
+        </div>
+        <div class="script-mini">
+          <strong>Цель:</strong> узнать решение по КП на автоматизацию склада.<br><br>
+          «Игорь Сергеевич, добрый день! Это Иван из [Компания]. Отправил вам предложение в понедельник — хотел уточнить, успели посмотреть?»<br><br>
+          <strong>Если видел:</strong> «Какие вопросы возникли?»<br>
+          <strong>Если нет:</strong> «Когда удобно 10 минут?»
+        </div>
+      </div>
+
+      <div class="results-label">Результат звонка:</div>
+      <button class="result-btn"><span class="ricon">✅</span><div><div style="font-weight:600">Договорились о встрече</div><div style="font-size:10px;color:var(--muted)">→ Этап изменится, встреча создастся</div></div><span class="rarrow">›</span></button>
+      <button class="result-btn"><span class="ricon">🤔</span><div><div style="font-weight:600">Думает, перезвонить</div><div style="font-size:10px;color:var(--muted)">→ Задача на перезвон через 2 дня</div></div><span class="rarrow">›</span></button>
+      <button class="result-btn"><span class="ricon">📵</span><div><div style="font-weight:600">Не взял трубку</div><div style="font-size:10px;color:var(--muted)">→ Повтор через 3 часа</div></div><span class="rarrow">›</span></button>
+      <button class="result-btn"><span class="ricon">❌</span><div><div style="font-weight:600">Отказ</div><div style="font-size:10px;color:var(--muted)">→ Фиксация причины + nurturing</div></div><span class="rarrow">›</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SCREEN 4 ═══════════════════════ -->
+<div class="screen" id="s4">
+  <div class="traffic-header">
+    <div>
+      <div class="traffic-title">Светофор сделок</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px">Система расставила приоритеты — действуй по красным</div>
+    </div>
+    <div class="traffic-filters">
+      <button class="filter-btn active">Все</button>
+      <button class="filter-btn">🔴 Горят (3)</button>
+      <button class="filter-btn">Мои</button>
+      <button class="filter-btn">В работе</button>
+    </div>
+  </div>
+
+  <div class="traffic-columns">
+    <!-- RED -->
+    <div class="traffic-col">
+      <div class="traffic-col-header red"><div class="glow-dot red pulse"></div><div class="col-title">🔴 ГОРИТ — действуй сейчас</div><div class="col-count">3</div></div>
+      <div class="deal-mini">
+        <div class="deal-mini-name">ООО «Технологии»</div>
+        <div class="deal-mini-amount">₽ 485 000</div>
+        <div class="deal-mini-meta">Смирнов А.В. · КП отправлено</div>
+        <div class="deal-mini-alert red">⚠️ Без касания 3 дня — риск отказа</div>
+        <div class="deal-mini-stage"><div class="mini-stage-dot done"></div><div class="mini-stage-dot done"></div><div class="mini-stage-dot done"></div><div class="mini-stage-dot now red-now"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div></div>
+      </div>
+      <div class="deal-mini">
+        <div class="deal-mini-name">АгроИнвест</div>
+        <div class="deal-mini-amount">₽ 95 000</div>
+        <div class="deal-mini-meta">Белоусов В.К. · Новая заявка</div>
+        <div class="deal-mini-alert red">⚠️ Заявка 2 часа без ответа — −40% конверсия</div>
+        <div class="deal-mini-stage"><div class="mini-stage-dot now red-now"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div></div>
+      </div>
+      <div class="deal-mini">
+        <div class="deal-mini-name">ЛогистПро</div>
+        <div class="deal-mini-amount">₽ 430 000</div>
+        <div class="deal-mini-meta">Белова Д.Н. · Согласование</div>
+        <div class="deal-mini-alert red">⚠️ Договор не отправлен 5 дней — конкурент наступает</div>
+        <div class="deal-mini-stage"><div class="mini-stage-dot done"></div><div class="mini-stage-dot done"></div><div class="mini-stage-dot done"></div><div class="mini-stage-dot done"></div><div class="mini-stage-dot now red-now"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div></div>
+      </div>
+    </div>
+
+    <!-- ORANGE -->
+    <div class="traffic-col">
+      <div class="traffic-col-header orange"><div class="glow-dot orange"></div><div class="col-title">🟡 ВНИМАНИЕ — сегодня</div><div class="col-count">4</div></div>
+      <div class="deal-mini">
+        <div class="deal-mini-name">ТехноПром</div>
+        <div class="deal-mini-amount">₽ 260 000</div>
+        <div class="deal-mini-meta">Козлов М.Н. · КП готово</div>
+        <div class="deal-mini-alert orange">⏰ КП нужно отправить до 15:00</div>
+        <div class="deal-mini-stage"><div class="mini-stage-dot done"></div><div class="mini-stage-dot done"></div><div class="mini-stage-dot done"></div><div class="mini-stage-dot now orange-now"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div></div>
+      </div>
+      <div class="deal-mini">
+        <div class="deal-mini-name">МедТехника 2000</div>
+        <div class="deal-mini-amount">₽ 310 000</div>
+        <div class="deal-mini-meta">Михайлова Т.В. · Встреча</div>
+        <div class="deal-mini-alert orange">⏰ Встреча сегодня в 14:00</div>
+        <div class="deal-mini-stage"><div class="mini-stage-dot done"></div><div class="mini-stage-dot done"></div><div class="mini-stage-dot now orange-now"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div></div>
+      </div>
+      <div class="deal-mini">
+        <div class="deal-mini-name">Горизонт Плюс</div>
+        <div class="deal-mini-amount">₽ 180 000</div>
+        <div class="deal-mini-meta">Романов И.С. · Квалификация</div>
+        <div class="deal-mini-alert orange">⏰ Ждёт перезвона — обещали сегодня</div>
+        <div class="deal-mini-stage"><div class="mini-stage-dot done"></div><div class="mini-stage-dot now orange-now"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div></div>
+      </div>
+      <div class="deal-mini">
+        <div class="deal-mini-name">ТехСервис</div>
+        <div class="deal-mini-amount">₽ 55 000</div>
+        <div class="deal-mini-meta">Федоров Е.П. · Квалификация</div>
+        <div class="deal-mini-alert orange">⏰ Нужно уточнить бюджет — без данных</div>
+        <div class="deal-mini-stage"><div class="mini-stage-dot done"></div><div class="mini-stage-dot now orange-now"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div></div>
+      </div>
+    </div>
+
+    <!-- GREEN -->
+    <div class="traffic-col">
+      <div class="traffic-col-header green"><div class="glow-dot green"></div><div class="col-title">🟢 НОРМА — по плану</div><div class="col-count">5</div></div>
+      <div class="deal-mini">
+        <div class="deal-mini-name">АвтоГрупп</div>
+        <div class="deal-mini-amount">₽ 220 000</div>
+        <div class="deal-mini-meta">Антонов П.Р. · Квалификация</div>
+        <div class="deal-mini-stage"><div class="mini-stage-dot done"></div><div class="mini-stage-dot now green-now"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div></div>
+      </div>
+      <div class="deal-mini" style="opacity:0.75">
+        <div class="deal-mini-name">СтройКомплект</div>
+        <div class="deal-mini-amount">₽ 140 000</div>
+        <div class="deal-mini-meta">Орлов С.К. · КП отправлено</div>
+        <div class="deal-mini-stage"><div class="mini-stage-dot done"></div><div class="mini-stage-dot done"></div><div class="mini-stage-dot done"></div><div class="mini-stage-dot now green-now"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div></div>
+      </div>
+      <div class="deal-mini" style="opacity:0.6">
+        <div class="deal-mini-name">ЭнергоТех</div>
+        <div class="deal-mini-amount">₽ 375 000</div>
+        <div class="deal-mini-meta">Новиков К.В. · Встреча</div>
+        <div class="deal-mini-stage"><div class="mini-stage-dot done"></div><div class="mini-stage-dot done"></div><div class="mini-stage-dot now green-now"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div><div class="mini-stage-dot"></div></div>
+      </div>
+    </div>
+
+    <!-- FROZEN -->
+    <div class="traffic-col">
+      <div class="traffic-col-header gray"><div style="width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0"></div><div class="col-title">⚫ ЗАМОРОЖЕНЫ</div><div class="col-count">2</div></div>
+      <div class="deal-mini" style="opacity:0.5">
+        <div class="deal-mini-name">Инфра Груп</div>
+        <div class="deal-mini-amount">₽ 850 000</div>
+        <div class="deal-mini-meta">Степанов А.В.</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:6px">😴 Клиент: «Свяжитесь в сентябре»</div>
+      </div>
+      <div class="deal-mini" style="opacity:0.5">
+        <div class="deal-mini-name">ГеоСервис</div>
+        <div class="deal-mini-amount">₽ 120 000</div>
+        <div class="deal-mini-meta">Кузнецов И.П.</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:6px">😴 Бюджет заморожен до Q4</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SCREEN 5 ═══════════════════════ -->
+<div class="screen" id="s5">
+  <div class="game-header">
+    <div class="game-title">Итоги недели — <span>Иван Петров</span></div>
+    <div class="game-sub">9–13 июня 2026 · Ты в топе команды 🏆</div>
+  </div>
+
+  <div class="game-grid">
+    <!-- XP & Level -->
+    <div class="card xp-card">
+      <div class="level-badge">
+        <div class="level-icon">🦅</div>
+        <div>
+          <div class="level-num">Уровень 12</div>
+          <div class="level-name">Хищник продаж</div>
+        </div>
+      </div>
+      <div>
+        <div class="xp-row"><span>Опыт</span><span style="color:var(--accent);font-weight:700">2 840 / 3 500 XP</span></div>
+        <div class="xp-bar"><div class="xp-fill" style="width:81%"></div></div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">660 XP до уровня 13 «Легенда»</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px">🔥 Серия без просрочек</div>
+      <div class="streak-row">
+        <div><div class="streak-day done" title="Пн">Пн</div></div>
+        <div><div class="streak-day done" title="Вт">Вт</div></div>
+        <div><div class="streak-day done" title="Ср">Ср</div></div>
+        <div><div class="streak-day done" title="Чт">Чт</div></div>
+        <div><div class="streak-day today" title="Пт">Пт</div></div>
+        <div><div class="streak-day future" title="Сб">Сб</div></div>
+        <div><div class="streak-day future" title="Вс">Вс</div></div>
+      </div>
+      <div style="font-size:11px;color:var(--green);font-weight:600;margin-top:8px">🔥 5 дней подряд! Рекорд: 12 дней</div>
+
+      <div class="divider"></div>
+
+      <div class="style-card">
+        <div class="style-title">Твой стиль продаж</div>
+        <div class="style-name">«Дожимщик»</div>
+        <div class="style-desc">80% сделок закрываешь на 3–5 касании. Умеешь работать с возражениями. Слабое место — быстрая квалификация новых лидов.</div>
+      </div>
+    </div>
+
+    <!-- Center: stats + chart -->
+    <div class="card" style="display:flex;flex-direction:column">
+      <div class="week-stats">
+        <div class="week-stat">
+          <div class="week-stat-num" style="color:var(--green)">₽ 340К</div>
+          <div class="week-stat-label">Закрыто</div>
+          <div class="week-stat-change" style="color:var(--green)">▲ +18% vs нед</div>
+        </div>
+        <div class="week-stat">
+          <div class="week-stat-num" style="color:var(--accent)">47</div>
+          <div class="week-stat-label">Звонков</div>
+          <div class="week-stat-change" style="color:var(--orange)">— рекорд 52</div>
+        </div>
+        <div class="week-stat">
+          <div class="week-stat-num" style="color:var(--purple)">71%</div>
+          <div class="week-stat-label">Конверсия</div>
+          <div class="week-stat-change" style="color:var(--green)">▲ +6%</div>
+        </div>
+        <div class="week-stat">
+          <div class="week-stat-num" style="color:var(--orange)">4.2</div>
+          <div class="week-stat-label">Ср. касаний</div>
+          <div class="week-stat-change" style="color:var(--green)">▼ норма 5</div>
+        </div>
+        <div class="week-stat">
+          <div class="week-stat-num" style="color:var(--green)">3</div>
+          <div class="week-stat-label">Сделок закрыто</div>
+          <div class="week-stat-change" style="color:var(--green)">▲ план 2</div>
+        </div>
+        <div class="week-stat">
+          <div class="week-stat-num" style="color:var(--red)">0</div>
+          <div class="week-stat-label">Просрочено</div>
+          <div class="week-stat-change" style="color:var(--green)">🔥 Чисто!</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="chart-area">
+        <div class="chart-label">Звонков по дням недели</div>
+        <div class="bar-chart">
+          <div class="bar-wrap"><div class="bar-num">8</div><div class="bar blue" style="height:60%"></div><div class="bar-day">Пн</div></div>
+          <div class="bar-wrap"><div class="bar-num">11</div><div class="bar blue" style="height:85%"></div><div class="bar-day">Вт</div></div>
+          <div class="bar-wrap"><div class="bar-num">12</div><div class="bar blue" style="height:93%"></div><div class="bar-day">Ср</div></div>
+          <div class="bar-wrap"><div class="bar-num">9</div><div class="bar blue" style="height:70%"></div><div class="bar-day">Чт</div></div>
+          <div class="bar-wrap"><div class="bar-num">7</div><div class="bar today-bar" style="height:54%"></div><div class="bar-day" style="color:var(--green)">Пт←</div></div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:6px">Лучший день: среда (12 звонков)</div>
+      </div>
+      <div class="divider"></div>
+      <div style="padding:16px 20px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px">💡 Инсайт недели</div>
+        <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--text);line-height:1.6">
+          Твои <strong style="color:var(--orange)">вторник и среда</strong> вдвое продуктивнее понедельника. Рекомендуем переносить самые важные звонки на эти дни. Также: клиенты из сегмента IT лучше берут трубку <strong style="color:var(--orange)">с 10 до 12</strong>.
+        </div>
+      </div>
+    </div>
+
+    <!-- Achievements -->
+    <div class="card ach-card">
+      <div class="ach-title">Достижения</div>
+      <div class="ach-item">
+        <div class="ach-icon unlocked">🔥</div>
+        <div><div class="ach-name">Без просрочек 5 дней</div><div class="ach-desc">Серия чистых дней</div></div>
+        <div class="ach-badge">+150 XP</div>
+      </div>
+      <div class="ach-item">
+        <div class="ach-icon unlocked">💰</div>
+        <div><div class="ach-name">Закрыл 3 сделки за неделю</div><div class="ach-desc">Перевыполнение плана</div></div>
+        <div class="ach-badge">+200 XP</div>
+      </div>
+      <div class="ach-item">
+        <div class="ach-icon unlocked">⚡</div>
+        <div><div class="ach-name">Первый звонок за 5 минут</div><div class="ach-desc">Мгновенная реакция на лид</div></div>
+        <div class="ach-badge">+80 XP</div>
+      </div>
+      <div class="ach-item">
+        <div class="ach-icon unlocked">🎯</div>
+        <div><div class="ach-name">Конверсия 70%+</div><div class="ach-desc">Высокое качество работы</div></div>
+        <div class="ach-badge">+120 XP</div>
+      </div>
+      <div class="ach-item">
+        <div class="ach-icon locked">🏆</div>
+        <div><div class="ach-name" style="color:var(--muted)">Рекорд звонков (52)</div><div class="ach-desc">Побить личный рекорд</div></div>
+        <div class="ach-badge locked">🔒 locked</div>
+      </div>
+      <div class="ach-item">
+        <div class="ach-icon locked">💎</div>
+        <div><div class="ach-name" style="color:var(--muted)">Серия 30 дней</div><div class="ach-desc">Месяц без просрочек</div></div>
+        <div class="ach-badge locked">🔒 locked</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SCREEN 6 ═══════════════════════ -->
+<div class="screen" id="s6">
+  <div class="schedule-header">
+    <div>
+      <div class="schedule-title">Расписание дня</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px">Автопилот — система сама расставила блоки по приоритету</div>
+    </div>
+    <div class="schedule-date">пт, 13 июня 2026</div>
+  </div>
+  <div class="schedule-layout">
+    <div class="schedule-left timeline-wrap">
+      <div class="time-block">
+        <div class="time-col"><div class="time-hour">09:00</div></div>
+        <div class="block-card calls">
+          <div class="block-type">🔴 Блок звонков</div>
+          <div class="block-title">12 звонков в очереди</div>
+          <div class="block-sub">Горящие сделки · Дожим · Новые лиды</div>
+          <div class="block-actions"><span class="block-tag calls">1ч 30мин</span><span class="block-tag calls">12 контактов</span></div>
+        </div>
+      </div>
+
+      <div class="time-block">
+        <div class="time-col"><div class="time-hour">10:30</div></div>
+        <div class="block-card free">
+          <div class="block-type">☕ Перерыв</div>
+          <div class="block-title">30 минут свободного времени</div>
+        </div>
+      </div>
+
+      <div class="current-time-line" style="margin:6px 0">
+        <div class="ctl-dot"></div>
+        <div class="ctl-line"></div>
+        <div class="ctl-time">Сейчас · 09:14</div>
+      </div>
+
+      <div class="time-block">
+        <div class="time-col"><div class="time-hour">11:00</div></div>
+        <div class="block-card letters current">
+          <div class="block-type">✉️ Письма и КП</div>
+          <div class="block-title">Отправить КП в ТехноПром + ответы</div>
+          <div class="block-sub">3 письма в очереди · КП готово, нужна проверка</div>
+          <div class="block-actions"><span class="block-tag letters">1ч 30мин</span><span class="block-tag letters">3 задачи</span></div>
+        </div>
+      </div>
+
+      <div class="time-block">
+        <div class="time-col"><div class="time-hour">12:30</div></div>
+        <div class="block-card free">
+          <div class="block-type">🍽️ Обед</div>
+          <div class="block-title">30 минут</div>
+        </div>
+      </div>
+
+      <div class="time-block">
+        <div class="time-col"><div class="time-hour">13:00</div></div>
+        <div class="block-card meet">
+          <div class="block-type">📅 Встреча</div>
+          <div class="block-title">АвтоГрупп — демонстрация продукта</div>
+          <div class="block-sub">Антонов П.Р. · ₽220 000 · Онлайн Zoom</div>
+          <div class="block-actions"><span class="block-tag meet">1 час</span><span class="block-tag meet">Советник готов</span></div>
+        </div>
+      </div>
+
+      <div class="time-block">
+        <div class="time-col"><div class="time-hour">14:30</div></div>
+        <div class="block-card calls">
+          <div class="block-type">🔴 Блок дожима</div>
+          <div class="block-title">«Думающие» клиенты — второй круг</div>
+          <div class="block-sub">5 контактов · Скрипт: работа с возражениями</div>
+          <div class="block-actions"><span class="block-tag calls">1 час</span><span class="block-tag calls">5 контактов</span></div>
+        </div>
+      </div>
+
+      <div class="time-block">
+        <div class="time-col"><div class="time-hour">15:30</div></div>
+        <div class="block-card crm">
+          <div class="block-type">📋 Обновление CRM</div>
+          <div class="block-title">Внести все результаты дня</div>
+          <div class="block-sub">Обязательно — советник обновит рекомендации</div>
+          <div class="block-actions"><span class="block-tag crm">30 мин</span></div>
+        </div>
+      </div>
+
+      <div class="time-block">
+        <div class="time-col"><div class="time-hour">16:00</div></div>
+        <div class="block-card free">
+          <div class="block-type">📊 Итоги + план на завтра</div>
+          <div class="block-title">Система сформирует расписание автоматически</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="schedule-right">
+      <div class="card hint-card">
+        <div class="hint-title">💡 Советы на сегодня</div>
+        <div class="hint-item"><div class="hint-icon">📞</div><div class="hint-text">Клиенты из IT-сегмента лучше берут трубку <strong>с 10 до 12</strong>. Первые звонки — самые конверсионные.</div></div>
+        <div class="hint-item"><div class="hint-icon">🔥</div><div class="hint-text">Смирнов (<strong>₽485K</strong>) — без касания 3 дня. Позвони первым делом, пока не ушёл к AmoCRM.</div></div>
+        <div class="hint-item"><div class="hint-icon">🎯</div><div class="hint-text">Если дозвонишься до 5 из 12 — план дня выполнен. Качество важнее количества.</div></div>
+      </div>
+
+      <div class="card" style="padding:16px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px">⚡ Энергия дня</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;color:var(--muted);width:60px">Утро</span>
+            <div class="progress-wrap" style="flex:1"><div class="progress-fill" style="width:90%;background:var(--green)"></div></div>
+            <span style="font-size:10px;color:var(--green);font-weight:700">Пик</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;color:var(--muted);width:60px">День</span>
+            <div class="progress-wrap" style="flex:1"><div class="progress-fill" style="width:60%;background:var(--orange)"></div></div>
+            <span style="font-size:10px;color:var(--orange);font-weight:700">Норма</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;color:var(--muted);width:60px">Вечер</span>
+            <div class="progress-wrap" style="flex:1"><div class="progress-fill" style="width:35%;background:var(--muted)"></div></div>
+            <span style="font-size:10px;color:var(--muted);font-weight:700">Спад</span>
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:10px">Тяжёлые переговоры — ставь утром. CRM и письма — после 15:30.</div>
+      </div>
+
+      <div class="card" style="padding:16px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px">🔥 Серия</div>
+        <div style="font-size:28px;font-weight:800;color:var(--green)">8 дней</div>
+        <div style="font-size:11px;color:var(--muted)">без просроченных задач</div>
+        <div style="font-size:11px;color:var(--orange);margin-top:6px;font-weight:600">Не останови — рекорд 12 дней!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SCREEN 7 ═══════════════════════ -->
+<div class="screen" id="s7" style="position:relative">
+  <div class="rop-watermark">РОП</div>
+  <div class="rop-header">
+    <div>
+      <div class="rop-title">Дашборд руководителя</div>
+      <div class="rop-subtitle">Менеджер видит только своего «помощника» — ты видишь всё</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+      <span style="font-size:11px;color:var(--muted)">Команда: 5 менеджеров</span>
+      <div class="rop-badge">⚠️ 2 нарушения сегодня</div>
+    </div>
+  </div>
+
+  <div class="rop-grid">
+    <!-- Heatmap -->
+    <div class="card heatmap-card">
+      <div class="heatmap-title">🌡️ Тепловая карта активности по часам (эта неделя)</div>
+      <div class="heatmap-grid">
+        <div class="heatmap-label"></div>
+        <div class="heatmap-hour">9</div><div class="heatmap-hour">10</div><div class="heatmap-hour">11</div><div class="heatmap-hour">12</div>
+        <div class="heatmap-hour">13</div><div class="heatmap-hour">14</div><div class="heatmap-hour">15</div><div class="heatmap-hour">16</div>
+        <div class="heatmap-hour">17</div><div class="heatmap-hour">18</div><div class="heatmap-hour">19</div><div class="heatmap-hour">20</div>
+
+        <div class="heatmap-label">Иван П.</div>
+        <div class="heatmap-cell h4"></div><div class="heatmap-cell h5"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div>
+        <div class="heatmap-cell h1"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div>
+        <div class="heatmap-cell h1"></div><div class="heatmap-cell h0"></div><div class="heatmap-cell h0"></div><div class="heatmap-cell h0"></div>
+
+        <div class="heatmap-label">Мария С.</div>
+        <div class="heatmap-cell h1"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h3"></div>
+        <div class="heatmap-cell h0"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h1"></div><div class="heatmap-cell h3"></div>
+        <div class="heatmap-cell h2"></div><div class="heatmap-cell h0"></div><div class="heatmap-cell h0"></div><div class="heatmap-cell h0"></div>
+
+        <div class="heatmap-label">Олег К.</div>
+        <div class="heatmap-cell h0"></div><div class="heatmap-cell h1"></div><div class="heatmap-cell h0"></div><div class="heatmap-cell h2"></div>
+        <div class="heatmap-cell h3"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div>
+        <div class="heatmap-cell h4"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h1"></div><div class="heatmap-cell h0"></div>
+
+        <div class="heatmap-label">Анна Р.</div>
+        <div class="heatmap-cell h3"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div>
+        <div class="heatmap-cell h2"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h2"></div>
+        <div class="heatmap-cell h1"></div><div class="heatmap-cell h0"></div><div class="heatmap-cell h0"></div><div class="heatmap-cell h0"></div>
+
+        <div class="heatmap-label">Сергей Н.</div>
+        <div class="heatmap-cell h0"></div><div class="heatmap-cell h0"></div><div class="heatmap-cell h1"></div><div class="heatmap-cell h0"></div>
+        <div class="heatmap-cell h2"></div><div class="heatmap-cell h1"></div><div class="heatmap-cell h0"></div><div class="heatmap-cell h1"></div>
+        <div class="heatmap-cell h0"></div><div class="heatmap-cell h0"></div><div class="heatmap-cell h0"></div><div class="heatmap-cell h0"></div>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:12px;align-items:center">
+        <span style="font-size:9px;color:var(--muted)">Мало</span>
+        <div class="heatmap-cell h0" style="width:16px;border-radius:2px"></div>
+        <div class="heatmap-cell h1" style="width:16px;border-radius:2px"></div>
+        <div class="heatmap-cell h2" style="width:16px;border-radius:2px"></div>
+        <div class="heatmap-cell h3" style="width:16px;border-radius:2px"></div>
+        <div class="heatmap-cell h4" style="width:16px;border-radius:2px"></div>
+        <div class="heatmap-cell h5" style="width:16px;border-radius:2px"></div>
+        <span style="font-size:9px;color:var(--muted)">Много</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--muted)">⚠️ Сергей Н. — критически низкая активность</span>
+      </div>
+    </div>
+
+    <!-- Manager table -->
+    <div class="card managers-card">
+      <div class="managers-title">👥 Рейтинг команды · Июнь 2026</div>
+      <div style="display:grid;grid-template-columns:20px 1fr 70px 50px 80px 60px;gap:8px;padding:6px 12px;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">
+        <div>#</div><div>Менеджер</div><div>Звонки</div><div>Конв.</div><div>Здоровье</div><div>Статус</div>
+      </div>
+      <div class="manager-row">
+        <div class="manager-rank" style="color:var(--orange)">1</div>
+        <div style="display:flex;align-items:center;gap:8px;flex:1"><div class="avatar" style="width:28px;height:28px;font-size:10px;background:linear-gradient(135deg,var(--accent),var(--accent2))">ИП</div><div class="manager-name">Иван Петров</div></div>
+        <div class="manager-calls">47 зв.</div>
+        <div class="manager-conv" style="color:var(--green)">71%</div>
+        <div class="manager-health"><div class="health-bar"><div class="health-fill" style="width:88%;background:var(--green)"></div></div></div>
+        <div class="manager-alert" style="color:var(--green)">🟢 Топ</div>
+      </div>
+      <div class="manager-row">
+        <div class="manager-rank">2</div>
+        <div style="display:flex;align-items:center;gap:8px;flex:1"><div class="avatar" style="width:28px;height:28px;font-size:10px;background:#a855f7">АР</div><div class="manager-name">Анна Романова</div></div>
+        <div class="manager-calls">39 зв.</div>
+        <div class="manager-conv" style="color:var(--green)">68%</div>
+        <div class="manager-health"><div class="health-bar"><div class="health-fill" style="width:75%;background:var(--green)"></div></div></div>
+        <div class="manager-alert" style="color:var(--green)">🟢 OK</div>
+      </div>
+      <div class="manager-row">
+        <div class="manager-rank">3</div>
+        <div style="display:flex;align-items:center;gap:8px;flex:1"><div class="avatar" style="width:28px;height:28px;font-size:10px;background:#0891b2">МС</div><div class="manager-name">Мария Смирнова</div></div>
+        <div class="manager-calls">34 зв.</div>
+        <div class="manager-conv" style="color:var(--orange)">58%</div>
+        <div class="manager-health"><div class="health-bar"><div class="health-fill" style="width:60%;background:var(--orange)"></div></div></div>
+        <div class="manager-alert" style="color:var(--orange)">🟡 Следи</div>
+      </div>
+      <div class="manager-row">
+        <div class="manager-rank">4</div>
+        <div style="display:flex;align-items:center;gap:8px;flex:1"><div class="avatar" style="width:28px;height:28px;font-size:10px;background:#dc2626">ОК</div><div class="manager-name">Олег Козлов</div></div>
+        <div class="manager-calls">28 зв.</div>
+        <div class="manager-conv" style="color:var(--orange)">51%</div>
+        <div class="manager-health"><div class="health-bar"><div class="health-fill" style="width:48%;background:var(--orange)"></div></div></div>
+        <div class="manager-alert" style="color:var(--orange)">🟡 Дожим</div>
+      </div>
+      <div class="manager-row" style="background:rgba(239,68,68,0.05);border-radius:10px">
+        <div class="manager-rank" style="color:var(--red)">5</div>
+        <div style="display:flex;align-items:center;gap:8px;flex:1"><div class="avatar" style="width:28px;height:28px;font-size:10px;background:#374151">СН</div><div class="manager-name">Сергей Никитин</div></div>
+        <div class="manager-calls" style="color:var(--red)">11 зв.</div>
+        <div class="manager-conv" style="color:var(--red)">32%</div>
+        <div class="manager-health"><div class="health-bar"><div class="health-fill" style="width:22%;background:var(--red)"></div></div></div>
+        <div class="manager-alert" style="color:var(--red)">🔴 Риск</div>
+      </div>
+    </div>
+
+    <!-- Violations -->
+    <div class="card violations-card">
+      <div class="viol-title">⚠️ Нарушения регламента сегодня</div>
+      <div class="viol-item">
+        <div class="viol-icon">⏰</div>
+        <div class="viol-text"><strong>Сергей Н.</strong> — не взял новый лид за 47 минут (норма: 5 мин)</div>
+        <div class="viol-time">09:03</div>
+      </div>
+      <div class="viol-item">
+        <div class="viol-icon">📋</div>
+        <div class="viol-text"><strong>Олег К.</strong> — не заполнил карточку после 3 звонков вчера</div>
+        <div class="viol-time">вчера</div>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:12px;padding:10px;background:var(--bg3);border-radius:8px">
+        💡 Сергей Н. получил уведомление: «Новый лид ждёт! Позвоните первым — конверсия в 3 раза выше» — он не знает, что нарушение зафиксировано.
+      </div>
+    </div>
+
+    <!-- Forecast -->
+    <div class="card forecast-card">
+      <div class="forecast-title">📈 Прогноз выручки · Июнь</div>
+      <div class="forecast-num">₽ 4 200 000</div>
+      <div class="forecast-label">Прогноз закрытия · План: ₽3 800 000</div>
+      <div style="margin-top:8px"><span class="badge badge-green">▲ +10.5% к плану</span></div>
+      <div class="forecast-bar-row">
+        <div class="forecast-bar-item"><div class="forecast-bar-amount" style="color:var(--green)">₽1.1М</div><div class="forecast-bar-el" style="height:80%;background:var(--green);border-radius:4px 4px 0 0"></div><div class="forecast-bar-label">Иван П.</div></div>
+        <div class="forecast-bar-item"><div class="forecast-bar-amount" style="color:var(--green)">₽0.9М</div><div class="forecast-bar-el" style="height:65%;background:var(--accent);border-radius:4px 4px 0 0"></div><div class="forecast-bar-label">Анна Р.</div></div>
+        <div class="forecast-bar-item"><div class="forecast-bar-amount" style="color:var(--orange)">₽0.8М</div><div class="forecast-bar-el" style="height:56%;background:var(--orange);border-radius:4px 4px 0 0"></div><div class="forecast-bar-label">Мария С.</div></div>
+        <div class="forecast-bar-item"><div class="forecast-bar-amount" style="color:var(--orange)">₽0.9М</div><div class="forecast-bar-el" style="height:62%;background:var(--orange);border-radius:4px 4px 0 0"></div><div class="forecast-bar-label">Олег К.</div></div>
+        <div class="forecast-bar-item"><div class="forecast-bar-amount" style="color:var(--red)">₽0.5М</div><div class="forecast-bar-el" style="height:33%;background:var(--red);border-radius:4px 4px 0 0"></div><div class="forecast-bar-label">Сергей Н.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /screens -->
+
+<script>
+const screens = ['s1','s2','s3','s4','s5','s6','s7'];
+const labels  = ['Утренний брифинг','Очередь сделок (Tinder)','Режим фокуса · Звонки','Светофор сделок','Итоги недели · Геймификация','Умное расписание','Дашборд РОП (скрытый)'];
+let current = 0;
+
+// Build nav dots
+const dotsEl = document.getElementById('navDots');
+screens.forEach((_,i)=>{
+  const d = document.createElement('div');
+  d.className = 'nav-dot' + (i===0?' active':'');
+  d.onclick = ()=>goToScreen(i);
+  dotsEl.appendChild(d);
+});
+
+function goToScreen(idx){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-dot').forEach(d=>d.classList.remove('active'));
+  document.getElementById(screens[idx]).classList.add('active');
+  dotsEl.children[idx].classList.add('active');
+  document.getElementById('navLabel').textContent = labels[idx];
+  current = idx;
+  window.scrollTo(0,0);
+}
+
+// Keyboard nav
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'&&current<screens.length-1) goToScreen(current+1);
+  if(e.key==='ArrowLeft'&&current>0) goToScreen(current-1);
+});
+
+// Clock
+function updateClock(){
+  const now=new Date();
+  const h=String(now.getHours()).padStart(2,'0');
+  const m=String(now.getMinutes()).padStart(2,'0');
+  const el=document.getElementById('clock');
+  if(el) el.textContent=h+':'+m;
+}
+updateClock(); setInterval(updateClock,10000);
+
+// Focus timer countdown
+let timerSec = 47*60+23;
+function updateTimer(){
+  timerSec--;
+  if(timerSec<0) timerSec=0;
+  const m=Math.floor(timerSec/60), s=timerSec%60;
+  const el=document.getElementById('focusTimer');
+  if(el){
+    el.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    if(timerSec<300) el.classList.add('warning'); else el.classList.remove('warning');
+  }
+}
+setInterval(updateTimer,1000);
+
+// Skip animation
+function animateSkip(){
+  const front=document.querySelector('.deal-card.front');
+  if(!front) return;
+  front.style.transition='all 0.4s ease';
+  front.style.transform='translateX(120%) rotate(15deg)';
+  front.style.opacity='0';
+  setTimeout(()=>{
+    front.style.transition='';
+    front.style.transform='';
+    front.style.opacity='1';
+  },500);
+}
+
+// Touch swipe support
+let touchStartX=0;
+document.addEventListener('touchstart',e=>{ touchStartX=e.touches[0].clientX; });
+document.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-touchStartX;
+  if(dx<-60&&current<screens.length-1) goToScreen(current+1);
+  if(dx>60&&current>0) goToScreen(current-1);
+});
+
+// Animate bars on screen load
+function animateBars(){
+  document.querySelectorAll('.funnel-bar,.progress-fill,.xp-fill,.energy-bar,.health-fill,.forecast-bar-el').forEach(el=>{
+    const w=el.style.width||el.style.height;
+    if(w){
+      const prop=el.style.height?'height':'width';
+      el.style[prop]='0';
+      setTimeout(()=>{ el.style[prop]=w; },100);
+    }
+  });
+}
+setTimeout(animateBars,200);
+</script>
+</body>
+</html>
