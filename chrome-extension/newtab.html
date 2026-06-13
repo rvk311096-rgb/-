@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <h1 class="header-title">Мои закладки</h1>
+        <span class="header-sub" id="total-count">0 ссылок</span>
+      </div>
+      <div class="header-right">
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.5" fill="none"/><line x1="12.5" y1="12.5" x2="17" y2="17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input type="text" id="global-search" class="search-input" placeholder="Поиск по закладкам..." />
+        </div>
+        <button class="btn-primary" id="add-panel-btn">+ Новая панель</button>
+      </div>
+    </header>
+
+    <!-- Stats row -->
+    <div class="stats-row" id="stats-row"></div>
+
+    <!-- Panels grid -->
+    <main class="panels-grid" id="panels-grid"></main>
+  </div>
+
+  <!-- Modal: Add/Edit Panel -->
+  <div class="modal-overlay" id="panel-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="panel-modal-title">Новая панель</h2>
+        <button class="modal-close" id="panel-modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <label class="field-label">Название панели</label>
+        <input type="text" id="panel-name-input" class="field-input" placeholder="Например: Работа, Учёба..." />
+        <label class="field-label" style="margin-top:16px">Цвет акцента</label>
+        <div class="color-picker" id="color-picker">
+          <button class="color-dot active" data-color="#6C63FF" style="background:#6C63FF"></button>
+          <button class="color-dot" data-color="#00C2A8" style="background:#00C2A8"></button>
+          <button class="color-dot" data-color="#FF6584" style="background:#FF6584"></button>
+          <button class="color-dot" data-color="#F59E0B" style="background:#F59E0B"></button>
+          <button class="color-dot" data-color="#10B981" style="background:#10B981"></button>
+          <button class="color-dot" data-color="#3B82F6" style="background:#3B82F6"></button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" id="panel-modal-cancel">Отмена</button>
+        <button class="btn-primary" id="panel-modal-save">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add/Edit Bookmark -->
+  <div class="modal-overlay" id="bookmark-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="bookmark-modal-title">Новая ссылка</h2>
+        <button class="modal-close" id="bookmark-modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <label class="field-label">Название</label>
+        <input type="text" id="bookmark-name-input" class="field-input" placeholder="Название сайта" />
+        <label class="field-label" style="margin-top:16px">URL</label>
+        <input type="url" id="bookmark-url-input" class="field-input" placeholder="https://..." />
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" id="bookmark-modal-cancel">Отмена</button>
+        <button class="btn-primary" id="bookmark-modal-save">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Context menu -->
+  <div class="context-menu" id="context-menu">
+    <button class="ctx-item" id="ctx-edit">✏️ Редактировать</button>
+    <button class="ctx-item ctx-danger" id="ctx-delete">🗑️ Удалить</button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
