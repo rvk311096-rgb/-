@@ -5,31 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Plan — Макет</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --glass: rgba(255,255,255,0.07);
-  --glass-b: rgba(255,255,255,0.11);
-  --glass-h: rgba(255,255,255,0.11);
-  --blur: blur(28px);
-  --text: rgba(255,255,255,0.90);
-  --muted: rgba(255,255,255,0.40);
-  --subtle: rgba(255,255,255,0.14);
+  --glass:   rgba(255,255,255,0.055);
+  --glass-b: rgba(255,255,255,0.10);
+  --glass-h: rgba(255,255,255,0.10);
+  --blur: blur(32px);
+  --text:   rgba(255,255,255,0.92);
+  --muted:  rgba(255,255,255,0.38);
+  --subtle: rgba(255,255,255,0.12);
+  --accent: #c0152a;
+  --accent2: #1e3a8a;
   --r: 16px;
   --r-sm: 10px;
 }
 
-html, body { height: 100%; overflow: hidden; font-family: 'Inter', system-ui, sans-serif; font-size: 13.5px; color: var(--text); background: #09091f; }
+html, body { height: 100%; overflow: hidden; font-family: 'DM Sans', system-ui, sans-serif; font-size: 13.5px; color: var(--text); background: #06060f; }
 
 /* ── Orbs ── */
 .orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-.orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: .42; animation: drift 20s ease-in-out infinite alternate; }
-.o1 { width: 640px; height: 640px; background: #312e81; top: -220px; left: -160px; }
-.o2 { width: 520px; height: 520px; background: #6b21a8; bottom: -160px; right: -80px; animation-delay: -7s; }
-.o3 { width: 380px; height: 380px; background: #0c4a6e; bottom: 5%; left: 38%; animation-delay: -14s; }
-@keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(36px,26px) scale(1.07); } }
+.orb { position: absolute; border-radius: 50%; filter: blur(110px); opacity: .50; animation: drift 22s ease-in-out infinite alternate; }
+.o1 { width: 680px; height: 680px; background: #8b0000; top: -260px; left: -180px; }
+.o2 { width: 520px; height: 520px; background: #0d1f5c; bottom: -160px; right: -80px; animation-delay: -8s; }
+.o3 { width: 420px; height: 420px; background: #6d0020; bottom: 10%; left: 42%; animation-delay: -15s; opacity: .28; }
+@keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(40px,30px) scale(1.09); } }
 
 /* ── Shell ── */
 #app { position: relative; z-index: 1; height: 100vh; display: flex; flex-direction: column; }
@@ -42,20 +44,20 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', system-ui, sa
   border-bottom: 1px solid var(--subtle);
 }
 .logo {
-  font-family: 'Cormorant Garamond', serif; font-size: 21px; font-weight: 500;
-  letter-spacing: 2px; color: rgba(255,255,255,.88); margin-right: 28px; user-select: none;
+  font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700;
+  letter-spacing: 4px; text-transform: uppercase; color: rgba(255,255,255,.92); margin-right: 28px; user-select: none;
 }
 .nav { display: flex; gap: 2px; }
 .nb {
   background: transparent; border: none; color: var(--muted);
-  font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400;
-  padding: 5px 15px; border-radius: 20px; cursor: pointer; transition: all .16s;
+  font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 400;
+  padding: 5px 15px; border-radius: 20px; cursor: pointer; transition: all .16s; letter-spacing: .2px;
 }
 .nb:hover, .nb.on { color: var(--text); background: var(--glass); }
 .spacer { flex: 1; }
 .top-new {
   background: var(--glass); border: 1px solid var(--subtle); color: var(--muted);
-  font-family: 'Inter', sans-serif; font-size: 12px; padding: 5px 14px;
+  font-family: 'DM Sans', sans-serif; font-size: 12px; padding: 5px 14px;
   border-radius: 8px; cursor: pointer; transition: all .16s;
 }
 .top-new:hover { color: var(--text); background: var(--glass-h); }
@@ -78,7 +80,7 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', system-ui, sa
 .sc::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--cc, #6366f1); }
 .sc:hover { background: var(--glass-h); transform: translateY(-2px); border-color: rgba(255,255,255,.18); }
 .sc-top { display: flex; align-items: center; justify-content: space-between; }
-.sc-name { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 500; letter-spacing: .2px; }
+.sc-name { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 600; letter-spacing: -.1px; }
 .sc-lock { font-size: 13px; opacity: .38; }
 .sc-meta { font-size: 11.5px; color: var(--muted); }
 .sc-bar { height: 2px; background: rgba(255,255,255,.08); border-radius: 1px; }
@@ -90,7 +92,7 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', system-ui, sa
 .act {
   background: rgba(255,255,255,.05); border: 1px solid var(--subtle);
   color: var(--muted); font-size: 11px; padding: 3px 10px; border-radius: 20px;
-  cursor: pointer; font-family: 'Inter', sans-serif; transition: all .14s;
+  cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .14s;
 }
 .act:hover { color: var(--text); background: rgba(255,255,255,.1); }
 .act.del:hover { color: #f87171; border-color: rgba(248,113,113,.3); }
@@ -113,11 +115,11 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', system-ui, sa
 
 /* ── Section view ── */
 .sec-bar { display: flex; align-items: center; gap: 14px; }
-.back { background: transparent; border: none; color: var(--muted); font-size: 12.5px; cursor: pointer; font-family: 'Inter', sans-serif; transition: color .14s; }
+.back { background: transparent; border: none; color: var(--muted); font-size: 12.5px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: color .14s; }
 .back:hover { color: var(--text); }
 .sec-title-wrap { display: flex; align-items: center; gap: 10px; }
 .sec-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
-.sec-h1 { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 500; }
+.sec-h1 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 700; letter-spacing: -.3px; }
 
 /* inline rename */
 .sec-h1[contenteditable="true"] {
@@ -130,7 +132,7 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', system-ui, sa
 .btn-g {
   background: var(--glass); border: 1px solid var(--subtle); color: var(--muted);
   font-size: 12.5px; padding: 6px 16px; border-radius: 8px; cursor: pointer;
-  font-family: 'Inter', sans-serif; transition: all .15s;
+  font-family: 'DM Sans', sans-serif; transition: all .15s;
 }
 .btn-g:hover { color: var(--text); }
 
@@ -138,7 +140,7 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', system-ui, sa
 .vtog { display: flex; gap: 3px; background: var(--glass); border: 1px solid var(--glass-b); width: fit-content; padding: 3px; border-radius: 10px; }
 .vt {
   background: transparent; border: none; color: var(--muted); font-size: 12px;
-  padding: 5px 14px; border-radius: 7px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all .14s;
+  padding: 5px 14px; border-radius: 7px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .14s;
 }
 .vt.on { background: rgba(255,255,255,.12); color: var(--text); }
 
@@ -151,11 +153,11 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', system-ui, sa
 }
 .item:hover { background: var(--glass-h); }
 .idot { width: 7px; height: 7px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
-.dp { background: rgba(148,163,184,.65); }
-.da { background: rgba(99,179,237,.9); box-shadow: 0 0 8px rgba(99,179,237,.45); }
-.dd { background: rgba(74,222,128,.85); }
+.dp { background: rgba(180,180,200,.55); }
+.da { background: rgba(192,21,42,.90); box-shadow: 0 0 10px rgba(192,21,42,.45); }
+.dd { background: rgba(100,130,220,.80); }
 .ibody { flex: 1; }
-.ititle { font-size: 14px; font-weight: 400; letter-spacing: -.1px; line-height: 1.4; }
+.ititle { font-size: 14px; font-weight: 400; letter-spacing: -.05px; line-height: 1.45; }
 .ititle.done { opacity: .42; text-decoration: line-through; }
 .inote { font-size: 12px; color: var(--muted); margin-top: 3px; }
 .idates { font-size: 11px; color: var(--muted); margin-top: 6px; display: flex; gap: 8px; align-items: center; }
@@ -164,7 +166,7 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', system-ui, sa
 .item:hover .iacts { opacity: 1; }
 .ia {
   background: rgba(255,255,255,.05); border: 1px solid var(--subtle); color: var(--muted);
-  font-size: 11px; padding: 2px 8px; border-radius: 20px; cursor: pointer; font-family: 'Inter', sans-serif;
+  font-size: 11px; padding: 2px 8px; border-radius: 20px; cursor: pointer; font-family: 'DM Sans', sans-serif;
 }
 .ia:hover { color: var(--text); }
 .ia.del:hover { color: #f87171; }
@@ -188,7 +190,7 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', system-ui, sa
 
 /* ── Timeline view ── */
 .tl-head { display: flex; flex-direction: column; gap: 5px; }
-.ph1 { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 500; }
+.ph1 { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: -.3px; }
 .psub { font-size: 12.5px; color: var(--muted); }
 .chips { display: flex; flex-wrap: wrap; gap: 9px; }
 .chip {
@@ -201,17 +203,18 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', system-ui, sa
 .cname { font-size: 12.5px; }
 .clock { font-size: 11px; opacity: .45; }
 .btn-p {
-  background: rgba(99,102,241,.65); border: 1px solid rgba(99,102,241,.9);
+  background: rgba(180,16,36,.60); border: 1px solid rgba(200,20,42,.75);
   color: #fff; font-size: 12.5px; font-weight: 500; padding: 8px 22px;
-  border-radius: 8px; cursor: pointer; font-family: 'Inter', sans-serif;
-  backdrop-filter: blur(8px); transition: all .15s; width: fit-content;
+  border-radius: 8px; cursor: pointer; font-family: 'DM Sans', sans-serif;
+  backdrop-filter: blur(8px); transition: all .15s; width: fit-content; letter-spacing: .2px;
 }
-.btn-p:hover { background: rgba(99,102,241,.9); }
+.btn-p:hover { background: rgba(200,20,42,.82); }
 
 /* ── Timeline gantt section header ── */
 .g-sec-hdr {
-  margin: 20px 0 8px; font-family: 'Cormorant Garamond', serif;
-  font-size: 15px; color: var(--muted); display: flex; align-items: center; gap: 10px;
+  margin: 20px 0 8px; font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase;
+  color: var(--muted); display: flex; align-items: center; gap: 10px;
 }
 .g-sec-hdr::after { content: ''; flex: 1; height: 1px; background: var(--subtle); }
 
@@ -227,13 +230,13 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', system-ui, sa
   display: flex; flex-direction: column; gap: 12px;
   box-shadow: 0 32px 80px rgba(0,0,0,.55);
 }
-.mt { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; }
+.mt { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -.2px; }
 .fl { font-size: 11px; color: var(--muted); letter-spacing: .5px; text-transform: uppercase; margin-bottom: 2px; }
 .opt { text-transform: none; letter-spacing: 0; font-size: 10.5px; }
 .fi {
   width: 100%; background: rgba(255,255,255,.06); border: 1px solid var(--subtle);
   border-radius: 8px; padding: 9px 12px; color: var(--text);
-  font-family: 'Inter', sans-serif; font-size: 13px; outline: none;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none;
 }
 .fi:focus { border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.08); }
 .fi::placeholder { color: var(--muted); }
@@ -247,7 +250,7 @@ textarea.fi { resize: vertical; min-height: 52px; }
 .sb {
   background: var(--glass); border: 1px solid var(--subtle); color: var(--muted);
   font-size: 12px; padding: 5px 12px; border-radius: 20px;
-  cursor: pointer; font-family: 'Inter', sans-serif; transition: all .14s;
+  cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .14s;
 }
 .sb.on { background: rgba(255,255,255,.15); color: var(--text); border-color: rgba(255,255,255,.28); }
 
@@ -399,13 +402,13 @@ textarea.fi { resize: vertical; min-height: 52px; }
 
 <script>
 /* ─── Demo Data ─────────────────────────────────────── */
-const COLORS = ['#6366f1','#8b5cf6','#ec4899','#f43f5e','#f97316','#eab308','#22c55e','#14b8a6','#3b82f6'];
+const COLORS = ['#c0152a','#1e3a8a','#9f1239','#1d4ed8','#be123c','#7f1d1d','#1e40af','#b91c1c','#1e3a6e'];
 let selColor = COLORS[0];
 
 let sections = [
-  { id:1, name:'Работа',   color:'#6366f1', locked:false },
-  { id:2, name:'Личное',   color:'#22c55e', locked:true  },
-  { id:3, name:'Проект X', color:'#ec4899', locked:false },
+  { id:1, name:'Работа',   color:'#c0152a', locked:false },
+  { id:2, name:'Личное',   color:'#1e3a8a', locked:true  },
+  { id:3, name:'Проект X', color:'#9f1239', locked:false },
 ];
 
 let itemsBySection = {
