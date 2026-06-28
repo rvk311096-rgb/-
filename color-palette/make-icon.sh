@@ -155,14 +155,20 @@ PYEOF
   echo -e "  ${GREEN}✓${RESET} Icon installed to app bundle"
 fi
 
-# ── Step 5: Desktop shortcut ───────────────────────────────
-DESKTOP_LINK="$HOME/Desktop/Chromia.app"
-if [ ! -e "$DESKTOP_LINK" ]; then
-  ln -s "$APP_DIR" "$DESKTOP_LINK"
-  echo -e "  ${GREEN}✓${RESET} Desktop shortcut created"
-fi
+# ── Step 5: Desktop shortcut (hidden label) ───────────────
+# Remove old shortcut if exists
+rm -f "$HOME/Desktop/Chromia.app" 2>/dev/null || true
+
+# Create shortcut with invisible name (non-breaking space)
+INVISIBLE_NAME=$(printf '\xc2\xa0')
+DESKTOP_LINK="$HOME/Desktop/${INVISIBLE_NAME}.app"
+ln -sf "$APP_DIR" "$DESKTOP_LINK" 2>/dev/null || ln -s "$APP_DIR" "$HOME/Desktop/Chromia.app"
+echo -e "  ${GREEN}✓${RESET} Desktop shortcut created (no label)"
+
+# Refresh Finder to show new icon
+killall Finder 2>/dev/null || true
+sleep 1
 
 echo ""
-echo -e "${GREEN}${BOLD}Done!${RESET} CHROMIA icon is ready."
-echo -e "  Look for it on your Desktop and in ${CYAN}~/Applications${RESET}"
+echo -e "${GREEN}${BOLD}Done!${RESET} CHROMIA icon is ready on your Desktop."
 echo ""

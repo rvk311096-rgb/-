@@ -1,54 +1,127 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#1a1a2e"/>
-      <stop offset="100%" stop-color="#0d0d1a"/>
+    <!-- Dark dramatic background -->
+    <radialGradient id="bg" cx="50%" cy="40%" r="65%">
+      <stop offset="0%" stop-color="#1a0a12"/>
+      <stop offset="100%" stop-color="#050308"/>
     </radialGradient>
-    <linearGradient id="arc1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FF6B9D"/>
-      <stop offset="100%" stop-color="#C44569"/>
+
+    <!-- Crimson arc -->
+    <linearGradient id="arc-red" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8B0000"/>
+      <stop offset="50%" stop-color="#C41E3A"/>
+      <stop offset="100%" stop-color="#6B0F1A"/>
     </linearGradient>
-    <linearGradient id="arc2" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#F8B500"/>
-      <stop offset="100%" stop-color="#E07B00"/>
+
+    <!-- Deep burgundy arc -->
+    <linearGradient id="arc-burg" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#5C0A2E"/>
+      <stop offset="100%" stop-color="#8B1A4A"/>
     </linearGradient>
-    <linearGradient id="arc3" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#6BCB77"/>
-      <stop offset="100%" stop-color="#2D9E47"/>
+
+    <!-- Deep indigo arc -->
+    <linearGradient id="arc-indigo" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0D0D3B"/>
+      <stop offset="100%" stop-color="#1E1B5E"/>
     </linearGradient>
-    <linearGradient id="arc4" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#4D96FF"/>
-      <stop offset="100%" stop-color="#1A5FB4"/>
+
+    <!-- Muted rose arc -->
+    <linearGradient id="arc-rose" x1="100%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#3D0D1F"/>
+      <stop offset="100%" stop-color="#7A2040"/>
     </linearGradient>
-    <linearGradient id="arc5" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#B5179E"/>
-      <stop offset="100%" stop-color="#7209B7"/>
-    </linearGradient>
+
+    <!-- Center glow -->
+    <radialGradient id="center-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2a0a14"/>
+      <stop offset="100%" stop-color="#08030a"/>
+    </radialGradient>
+
+    <!-- Subtle red glow behind icon -->
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8B0000" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#8B0000" stop-opacity="0"/>
+    </radialGradient>
+
+    <filter id="blur-glow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <filter id="inner-shadow">
+      <feGaussianBlur stdDeviation="4"/>
+    </filter>
   </defs>
 
-  <!-- Background circle -->
-  <circle cx="256" cy="256" r="256" fill="url(#bg)"/>
+  <!-- Rounded rect background (macOS style) -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
 
-  <!-- Color wheel arcs -->
-  <path d="M256 80 A176 176 0 0 1 432 256 L256 256 Z" fill="url(#arc4)" opacity="0.9"/>
-  <path d="M432 256 A176 176 0 0 1 256 432 L256 256 Z" fill="url(#arc3)" opacity="0.9"/>
-  <path d="M256 432 A176 176 0 0 1 80 256 L256 256 Z" fill="url(#arc2)" opacity="0.9"/>
-  <path d="M80 256 A176 176 0 0 1 256 80 L256 256 Z" fill="url(#arc1)" opacity="0.9"/>
+  <!-- Background red glow -->
+  <ellipse cx="256" cy="230" rx="180" ry="160" fill="url(#glow)"/>
 
-  <!-- Inner overlay for depth -->
-  <circle cx="256" cy="256" r="176" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <!-- Outer ring base -->
+  <circle cx="256" cy="256" r="185" fill="none" stroke="rgba(139,0,0,0.08)" stroke-width="2"/>
 
-  <!-- Center circle -->
-  <circle cx="256" cy="256" r="80" fill="#0d0d1a"/>
-  <circle cx="256" cy="256" r="72" fill="#1a1a2e"/>
+  <!-- Color arc segments — clockwise from top -->
+  <!-- Crimson: top-right (0° to 90°) -->
+  <path d="M256 71 A185 185 0 0 1 441 256 L256 256 Z"
+        fill="url(#arc-red)" opacity="0.95"/>
 
-  <!-- Center letter C -->
-  <text x="256" y="280" font-family="Georgia, serif" font-size="72" font-weight="bold"
-        text-anchor="middle" fill="white" letter-spacing="-2">C</text>
+  <!-- Burgundy: bottom-right (90° to 180°) -->
+  <path d="M441 256 A185 185 0 0 1 256 441 L256 256 Z"
+        fill="url(#arc-burg)" opacity="0.95"/>
 
-  <!-- Highlight dots on arcs -->
-  <circle cx="344" cy="168" r="8" fill="white" opacity="0.6"/>
-  <circle cx="344" cy="344" r="8" fill="white" opacity="0.6"/>
-  <circle cx="168" cy="344" r="8" fill="white" opacity="0.6"/>
-  <circle cx="168" cy="168" r="8" fill="white" opacity="0.6"/>
+  <!-- Indigo: bottom-left (180° to 270°) -->
+  <path d="M256 441 A185 185 0 0 1 71 256 L256 256 Z"
+        fill="url(#arc-indigo)" opacity="0.95"/>
+
+  <!-- Rose-dark: top-left (270° to 360°) -->
+  <path d="M71 256 A185 185 0 0 1 256 71 L256 256 Z"
+        fill="url(#arc-rose)" opacity="0.95"/>
+
+  <!-- Segment separator lines -->
+  <line x1="256" y1="71" x2="256" y2="256" stroke="rgba(0,0,0,0.4)" stroke-width="1.5"/>
+  <line x1="441" y1="256" x2="256" y2="256" stroke="rgba(0,0,0,0.4)" stroke-width="1.5"/>
+  <line x1="256" y1="441" x2="256" y2="256" stroke="rgba(0,0,0,0.4)" stroke-width="1.5"/>
+  <line x1="71" y1="256" x2="256" y2="256" stroke="rgba(0,0,0,0.4)" stroke-width="1.5"/>
+
+  <!-- Outer ring overlay for depth -->
+  <circle cx="256" cy="256" r="185"
+          fill="none"
+          stroke="rgba(255,255,255,0.04)"
+          stroke-width="1"/>
+
+  <!-- Inner circle — dark center -->
+  <circle cx="256" cy="256" r="100" fill="url(#center-glow)"/>
+
+  <!-- Inner circle border -->
+  <circle cx="256" cy="256" r="100"
+          fill="none"
+          stroke="rgba(196,30,58,0.2)"
+          stroke-width="1.5"/>
+
+  <!-- Center: letter C in crimson -->
+  <text x="256" y="299"
+        font-family="-apple-system, 'SF Pro Display', Georgia, serif"
+        font-size="100"
+        font-weight="700"
+        text-anchor="middle"
+        fill="#C41E3A"
+        opacity="0.9"
+        letter-spacing="-3">C</text>
+
+  <!-- Subtle highlight dot top-right of C -->
+  <circle cx="295" cy="216" r="5" fill="#C41E3A" opacity="0.5"/>
+
+  <!-- Corner accent dots on arcs -->
+  <circle cx="370" cy="142" r="5" fill="rgba(196,30,58,0.6)"/>
+  <circle cx="370" cy="370" r="5" fill="rgba(92,10,46,0.6)"/>
+  <circle cx="142" cy="370" r="5" fill="rgba(13,13,59,0.8)"/>
+  <circle cx="142" cy="142" r="5" fill="rgba(122,32,64,0.6)"/>
+
+  <!-- Very subtle outer vignette -->
+  <rect width="512" height="512" rx="112"
+        fill="none"
+        stroke="rgba(0,0,0,0.6)"
+        stroke-width="4"/>
 </svg>
