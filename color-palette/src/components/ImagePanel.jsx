@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { X, ExternalLink, RefreshCw } from 'lucide-react'
 import './ImagePanel.css'
 

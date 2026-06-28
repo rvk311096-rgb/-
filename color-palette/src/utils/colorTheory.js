@@ -100,13 +100,16 @@ export function complementary(hex, count = 2) {
   return colors.slice(0, count);
 }
 
-// 2. Analogous — adjacent colors (30° apart)
+// 2. Analogous — adjacent colors (30° apart), base color always included
 export function analogous(hex, count = 3) {
   const { h, s, l } = hexToHSL(hex);
   const step = count <= 3 ? 30 : 20;
-  const half = Math.floor(count / 2);
-  return Array.from({ length: count }, (_, i) =>
-    hslToHex(h + (i - half) * step, s * (0.85 + (i % 2) * 0.15), l)
+  if (count === 1) return [hex];
+  // Center slot = base, expand left/right symmetrically
+  const half = Math.floor((count - 1) / 2);
+  const offsets = Array.from({ length: count }, (_, i) => i - half);
+  return offsets.map(offset =>
+    offset === 0 ? hex : hslToHex(h + offset * step, s, l)
   );
 }
 
@@ -159,16 +162,28 @@ export function doubleSplitComplementary(hex, count = 4) {
   return colors.slice(0, count);
 }
 
-// 7. Monochromatic — same hue, varied saturation & lightness
+// 7. Monochromatic — same hue, varied saturation & lightness, base always included
 export function monochromatic(hex, count = 4) {
   const { h, s, l } = hexToHSL(hex);
+  if (count === 1) return [hex];
   if (count === 2) return [hex, hslToHex(h, s, l > 50 ? l - 30 : l + 30)];
 
-  const lightSteps = Array.from({ length: count }, (_, i) => {
+  // Build steps from darkest to lightest, snap closest step to exact base
+  const steps = Array.from({ length: count }, (_, i) => {
     const factor = i / (count - 1);
-    return hslToHex(h, s * (0.5 + factor * 0.5), 20 + factor * 65);
+    return { hex: hslToHex(h, s * (0.5 + factor * 0.5), 15 + factor * 70), factor };
   });
-  return lightSteps;
+
+  // Replace the step nearest in lightness to base with exact base
+  let nearest = 0;
+  let minDiff = Infinity;
+  const norm = (l - 15) / 70; // base l normalized to 0–1
+  steps.forEach((s, i) => {
+    const diff = Math.abs(s.factor - norm);
+    if (diff < minDiff) { minDiff = diff; nearest = i; }
+  });
+  steps[nearest].hex = hex;
+  return steps.map(s => s.hex);
 }
 
 // 8. Achromatic — neutral gray scale
