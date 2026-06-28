@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan — Макет</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --glass: rgba(255,255,255,0.07);
+  --glass-b: rgba(255,255,255,0.11);
+  --glass-h: rgba(255,255,255,0.11);
+  --blur: blur(28px);
+  --text: rgba(255,255,255,0.90);
+  --muted: rgba(255,255,255,0.40);
+  --subtle: rgba(255,255,255,0.14);
+  --r: 16px;
+  --r-sm: 10px;
+}
+
+html, body { height: 100%; overflow: hidden; font-family: 'Inter', system-ui, sans-serif; font-size: 13.5px; color: var(--text); background: #09091f; }
+
+/* ── Orbs ── */
+.orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: .42; animation: drift 20s ease-in-out infinite alternate; }
+.o1 { width: 640px; height: 640px; background: #312e81; top: -220px; left: -160px; }
+.o2 { width: 520px; height: 520px; background: #6b21a8; bottom: -160px; right: -80px; animation-delay: -7s; }
+.o3 { width: 380px; height: 380px; background: #0c4a6e; bottom: 5%; left: 38%; animation-delay: -14s; }
+@keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(36px,26px) scale(1.07); } }
+
+/* ── Shell ── */
+#app { position: relative; z-index: 1; height: 100vh; display: flex; flex-direction: column; }
+
+/* ── Topbar ── */
+.topbar {
+  display: flex; align-items: center; gap: 0; padding: 0 28px;
+  height: 52px; flex-shrink: 0;
+  background: rgba(9,9,31,.65); backdrop-filter: var(--blur);
+  border-bottom: 1px solid var(--subtle);
+}
+.logo {
+  font-family: 'Cormorant Garamond', serif; font-size: 21px; font-weight: 500;
+  letter-spacing: 2px; color: rgba(255,255,255,.88); margin-right: 28px; user-select: none;
+}
+.nav { display: flex; gap: 2px; }
+.nb {
+  background: transparent; border: none; color: var(--muted);
+  font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400;
+  padding: 5px 15px; border-radius: 20px; cursor: pointer; transition: all .16s;
+}
+.nb:hover, .nb.on { color: var(--text); background: var(--glass); }
+.spacer { flex: 1; }
+.top-new {
+  background: var(--glass); border: 1px solid var(--subtle); color: var(--muted);
+  font-family: 'Inter', sans-serif; font-size: 12px; padding: 5px 14px;
+  border-radius: 8px; cursor: pointer; transition: all .16s;
+}
+.top-new:hover { color: var(--text); background: var(--glass-h); }
+
+/* ── Views ── */
+.view { display: none; flex: 1; overflow-y: auto; padding: 28px 32px; }
+.view.on { display: flex; flex-direction: column; gap: 22px; }
+
+/* ── Home grid ── */
+.grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px;
+}
+
+.sc {
+  background: var(--glass); backdrop-filter: var(--blur);
+  border: 1px solid var(--glass-b); border-radius: var(--r);
+  padding: 20px 20px 16px; cursor: pointer; transition: all .2s;
+  display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden;
+}
+.sc::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--cc, #6366f1); }
+.sc:hover { background: var(--glass-h); transform: translateY(-2px); border-color: rgba(255,255,255,.18); }
+.sc-top { display: flex; align-items: center; justify-content: space-between; }
+.sc-name { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 500; letter-spacing: .2px; }
+.sc-lock { font-size: 13px; opacity: .38; }
+.sc-meta { font-size: 11.5px; color: var(--muted); }
+.sc-bar { height: 2px; background: rgba(255,255,255,.08); border-radius: 1px; }
+.sc-fill { height: 100%; border-radius: 1px; }
+
+/* hover actions */
+.sc-acts { display: flex; gap: 6px; opacity: 0; transition: opacity .18s; margin-top: 2px; }
+.sc:hover .sc-acts { opacity: 1; }
+.act {
+  background: rgba(255,255,255,.05); border: 1px solid var(--subtle);
+  color: var(--muted); font-size: 11px; padding: 3px 10px; border-radius: 20px;
+  cursor: pointer; font-family: 'Inter', sans-serif; transition: all .14s;
+}
+.act:hover { color: var(--text); background: rgba(255,255,255,.1); }
+.act.del:hover { color: #f87171; border-color: rgba(248,113,113,.3); }
+
+/* editable name */
+.sc-name[contenteditable="true"] {
+  outline: none; border-bottom: 1px solid rgba(255,255,255,.3);
+  padding-bottom: 1px; cursor: text;
+}
+
+.new-sc {
+  background: transparent; border: 1px dashed var(--subtle);
+  border-radius: var(--r); padding: 20px; min-height: 118px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 7px; color: var(--muted); cursor: pointer; transition: all .2s;
+}
+.new-sc:hover { border-color: rgba(255,255,255,.28); color: var(--text); background: var(--glass); }
+.new-sc .plus { font-size: 26px; opacity: .35; }
+.new-sc .lbl { font-size: 12px; }
+
+/* ── Section view ── */
+.sec-bar { display: flex; align-items: center; gap: 14px; }
+.back { background: transparent; border: none; color: var(--muted); font-size: 12.5px; cursor: pointer; font-family: 'Inter', sans-serif; transition: color .14s; }
+.back:hover { color: var(--text); }
+.sec-title-wrap { display: flex; align-items: center; gap: 10px; }
+.sec-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.sec-h1 { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 500; }
+
+/* inline rename */
+.sec-h1[contenteditable="true"] {
+  outline: none; border-bottom: 1px solid rgba(255,255,255,.3); padding-bottom: 1px; cursor: text;
+}
+.rename-hint { font-size: 11px; color: var(--muted); margin-left: 4px; opacity: 0; transition: opacity .2s; }
+.sec-title-wrap:hover .rename-hint { opacity: 1; }
+
+.sec-acts { margin-left: auto; display: flex; gap: 8px; }
+.btn-g {
+  background: var(--glass); border: 1px solid var(--subtle); color: var(--muted);
+  font-size: 12.5px; padding: 6px 16px; border-radius: 8px; cursor: pointer;
+  font-family: 'Inter', sans-serif; transition: all .15s;
+}
+.btn-g:hover { color: var(--text); }
+
+/* view toggle */
+.vtog { display: flex; gap: 3px; background: var(--glass); border: 1px solid var(--glass-b); width: fit-content; padding: 3px; border-radius: 10px; }
+.vt {
+  background: transparent; border: none; color: var(--muted); font-size: 12px;
+  padding: 5px 14px; border-radius: 7px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all .14s;
+}
+.vt.on { background: rgba(255,255,255,.12); color: var(--text); }
+
+/* ── Items list ── */
+.items { display: flex; flex-direction: column; gap: 8px; }
+.item {
+  background: var(--glass); backdrop-filter: var(--blur); border: 1px solid var(--glass-b);
+  border-radius: var(--r-sm); padding: 13px 16px; display: flex; align-items: flex-start; gap: 12px;
+  transition: background .14s; cursor: default;
+}
+.item:hover { background: var(--glass-h); }
+.idot { width: 7px; height: 7px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.dp { background: rgba(148,163,184,.65); }
+.da { background: rgba(99,179,237,.9); box-shadow: 0 0 8px rgba(99,179,237,.45); }
+.dd { background: rgba(74,222,128,.85); }
+.ibody { flex: 1; }
+.ititle { font-size: 14px; font-weight: 400; letter-spacing: -.1px; line-height: 1.4; }
+.ititle.done { opacity: .42; text-decoration: line-through; }
+.inote { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.idates { font-size: 11px; color: var(--muted); margin-top: 6px; display: flex; gap: 8px; align-items: center; }
+.isep { opacity: .28; }
+.iacts { display: flex; gap: 5px; opacity: 0; transition: opacity .14s; }
+.item:hover .iacts { opacity: 1; }
+.ia {
+  background: rgba(255,255,255,.05); border: 1px solid var(--subtle); color: var(--muted);
+  font-size: 11px; padding: 2px 8px; border-radius: 20px; cursor: pointer; font-family: 'Inter', sans-serif;
+}
+.ia:hover { color: var(--text); }
+.ia.del:hover { color: #f87171; }
+
+/* ── Gantt board ── */
+.board-wrap { overflow-x: auto; padding-bottom: 12px; }
+.gantt { min-width: 680px; }
+.g-months { display: flex; margin-left: 150px; margin-bottom: 8px; }
+.g-mo { flex: 1; font-size: 10.5px; color: var(--muted); letter-spacing: .5px; text-transform: uppercase; }
+.g-row { display: flex; align-items: center; margin-bottom: 8px; min-height: 30px; }
+.g-label { width: 145px; flex-shrink: 0; font-size: 12.5px; opacity: .8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 10px; }
+.g-track { flex: 1; height: 26px; background: rgba(255,255,255,.04); border-radius: 5px; position: relative; }
+.g-bar {
+  position: absolute; top: 4px; height: 18px; border-radius: 4px;
+  display: flex; align-items: center; padding: 0 8px; font-size: 10.5px;
+  white-space: nowrap; overflow: hidden; backdrop-filter: blur(8px);
+  color: rgba(255,255,255,.9);
+}
+.g-today { position: absolute; top: -4px; bottom: -4px; width: 1px; background: rgba(255,255,255,.28); }
+.g-today::before { content: 'сегодня'; position: absolute; top: -16px; left: -18px; font-size: 9px; color: var(--muted); white-space: nowrap; }
+
+/* ── Timeline view ── */
+.tl-head { display: flex; flex-direction: column; gap: 5px; }
+.ph1 { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 500; }
+.psub { font-size: 12.5px; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 9px; }
+.chip {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--glass); border: 1px solid var(--glass-b);
+  border-radius: 20px; padding: 7px 14px; cursor: pointer; transition: all .15s; user-select: none;
+}
+.chip.on { background: rgba(255,255,255,.13); border-color: rgba(255,255,255,.28); }
+.cdot { width: 7px; height: 7px; border-radius: 50%; }
+.cname { font-size: 12.5px; }
+.clock { font-size: 11px; opacity: .45; }
+.btn-p {
+  background: rgba(99,102,241,.65); border: 1px solid rgba(99,102,241,.9);
+  color: #fff; font-size: 12.5px; font-weight: 500; padding: 8px 22px;
+  border-radius: 8px; cursor: pointer; font-family: 'Inter', sans-serif;
+  backdrop-filter: blur(8px); transition: all .15s; width: fit-content;
+}
+.btn-p:hover { background: rgba(99,102,241,.9); }
+
+/* ── Timeline gantt section header ── */
+.g-sec-hdr {
+  margin: 20px 0 8px; font-family: 'Cormorant Garamond', serif;
+  font-size: 15px; color: var(--muted); display: flex; align-items: center; gap: 10px;
+}
+.g-sec-hdr::after { content: ''; flex: 1; height: 1px; background: var(--subtle); }
+
+/* ── Modal ── */
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(6px);
+  z-index: 100; display: flex; align-items: center; justify-content: center;
+}
+.modal {
+  background: rgba(12,12,30,.93); backdrop-filter: blur(40px);
+  border: 1px solid var(--subtle); border-radius: 18px;
+  padding: 28px; width: 390px; max-width: 90vw;
+  display: flex; flex-direction: column; gap: 12px;
+  box-shadow: 0 32px 80px rgba(0,0,0,.55);
+}
+.mt { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; }
+.fl { font-size: 11px; color: var(--muted); letter-spacing: .5px; text-transform: uppercase; margin-bottom: 2px; }
+.opt { text-transform: none; letter-spacing: 0; font-size: 10.5px; }
+.fi {
+  width: 100%; background: rgba(255,255,255,.06); border: 1px solid var(--subtle);
+  border-radius: 8px; padding: 9px 12px; color: var(--text);
+  font-family: 'Inter', sans-serif; font-size: 13px; outline: none;
+}
+.fi:focus { border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.08); }
+.fi::placeholder { color: var(--muted); }
+textarea.fi { resize: vertical; min-height: 52px; }
+.dr { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ma { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+.cr { display: flex; gap: 8px; flex-wrap: wrap; }
+.sw { width: 26px; height: 26px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: all .14s; }
+.sw.on { border-color: rgba(255,255,255,.8); transform: scale(1.15); }
+.sr { display: flex; gap: 6px; }
+.sb {
+  background: var(--glass); border: 1px solid var(--subtle); color: var(--muted);
+  font-size: 12px; padding: 5px 12px; border-radius: 20px;
+  cursor: pointer; font-family: 'Inter', sans-serif; transition: all .14s;
+}
+.sb.on { background: rgba(255,255,255,.15); color: var(--text); border-color: rgba(255,255,255,.28); }
+
+/* rename tooltip */
+.rename-tip {
+  font-size: 10.5px; color: var(--muted); background: rgba(255,255,255,.06);
+  border: 1px solid var(--subtle); border-radius: 6px; padding: 3px 9px;
+  pointer-events: none;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+
+<div id="app">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="logo">Plan</div>
+    <nav class="nav">
+      <button class="nb on" onclick="show('home')">Разделы</button>
+      <button class="nb" onclick="show('timeline')">Сводная карта</button>
+    </nav>
+    <div class="spacer"></div>
+    <button class="top-new" onclick="openModal('m-section')">＋ Новый раздел</button>
+  </header>
+
+  <!-- HOME -->
+  <main id="home" class="view on">
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <!-- SECTION VIEW -->
+  <main id="section" class="view">
+    <div class="sec-bar">
+      <button class="back" onclick="show('home')">← Разделы</button>
+      <div class="sec-title-wrap">
+        <div class="sec-dot" id="sdot"></div>
+        <h1 class="sec-h1" id="sec-h1" title="Нажмите для переименования"></h1>
+        <span class="rename-hint rename-tip">✎ переименовать</span>
+      </div>
+      <div class="sec-acts">
+        <button class="btn-g" onclick="openModal('m-item')">＋ Добавить</button>
+        <button class="btn-g" onclick="toggleLockDemo()">⋯</button>
+      </div>
+    </div>
+    <div class="vtog">
+      <button class="vt on" onclick="setSubview('list',this)">Список</button>
+      <button class="vt" onclick="setSubview('board',this)">Доска</button>
+    </div>
+
+    <div id="sv-list">
+      <div class="items" id="items-demo"></div>
+    </div>
+    <div id="sv-board" style="display:none">
+      <div class="board-wrap"><div class="gantt" id="gantt-demo"></div></div>
+    </div>
+  </main>
+
+  <!-- TIMELINE VIEW -->
+  <main id="timeline" class="view">
+    <div class="tl-head">
+      <div class="ph1">Сводная карта</div>
+      <div class="psub">Выберите разделы для объединения — защищённые запросят пароль</div>
+    </div>
+    <div class="chips" id="tl-chips"></div>
+    <button class="btn-p" onclick="buildTimeline()">Показать карту</button>
+    <div id="tl-canvas"></div>
+  </main>
+
+</div>
+
+<!-- MODALS -->
+<div class="overlay" id="overlay" style="display:none" onclick="if(event.target===this)closeModal()">
+
+  <!-- New section -->
+  <div class="modal" id="m-section" style="display:none">
+    <div class="mt">Новый раздел</div>
+    <div>
+      <div class="fl">Название</div>
+      <input class="fi" id="ms-name" placeholder="Работа / Личное / Проект…">
+    </div>
+    <div>
+      <div class="fl">Цвет</div>
+      <div class="cr" id="ms-colors"></div>
+    </div>
+    <div>
+      <div class="fl">Пароль <span class="opt">— необязательно</span></div>
+      <input class="fi" id="ms-pass" type="password" placeholder="Оставьте пустым для открытого доступа">
+    </div>
+    <div class="ma">
+      <button class="btn-g" onclick="closeModal()">Отмена</button>
+      <button class="btn-p" onclick="createSectionDemo()">Создать</button>
+    </div>
+  </div>
+
+  <!-- Add item -->
+  <div class="modal" id="m-item" style="display:none">
+    <div class="mt">Новый план</div>
+    <div>
+      <div class="fl">Идея / задача</div>
+      <input class="fi" id="mi-title" placeholder="Что нужно сделать?">
+    </div>
+    <div>
+      <div class="fl">Заметка <span class="opt">— необязательно</span></div>
+      <textarea class="fi" id="mi-note" placeholder="Подробности…"></textarea>
+    </div>
+    <div class="dr">
+      <div>
+        <div class="fl">Начало</div>
+        <input class="fi" id="mi-start" type="date">
+      </div>
+      <div>
+        <div class="fl">Срок</div>
+        <input class="fi" id="mi-due" type="date">
+      </div>
+    </div>
+    <div>
+      <div class="fl">Статус</div>
+      <div class="sr" id="mi-statuses">
+        <button class="sb on" data-s="planned">Запланировано</button>
+        <button class="sb" data-s="active">В процессе</button>
+        <button class="sb" data-s="done">Готово</button>
+      </div>
+    </div>
+    <div class="ma">
+      <button class="btn-g" onclick="closeModal()">Отмена</button>
+      <button class="btn-p" onclick="addItemDemo()">Сохранить</button>
+    </div>
+  </div>
+
+  <!-- Password -->
+  <div class="modal" id="m-pass" style="display:none">
+    <div class="mt">🔒 Раздел защищён</div>
+    <div class="psub" id="mp-desc"></div>
+    <input class="fi" id="mp-input" type="password" placeholder="Введите пароль…">
+    <div class="ma">
+      <button class="btn-g" onclick="closeModal()">Отмена</button>
+      <button class="btn-p" onclick="passOk()">Войти</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ─── Demo Data ─────────────────────────────────────── */
+const COLORS = ['#6366f1','#8b5cf6','#ec4899','#f43f5e','#f97316','#eab308','#22c55e','#14b8a6','#3b82f6'];
+let selColor = COLORS[0];
+
+let sections = [
+  { id:1, name:'Работа',   color:'#6366f1', locked:false },
+  { id:2, name:'Личное',   color:'#22c55e', locked:true  },
+  { id:3, name:'Проект X', color:'#ec4899', locked:false },
+];
+
+let itemsBySection = {
+  1: [
+    { id:1, title:'Квартальный отчёт', note:'Финансовый блок', start:'2026-06-01', due:'2026-06-30', status:'done' },
+    { id:2, title:'Стратегия на Q3',   note:'',                start:'2026-07-01', due:'2026-08-15', status:'active' },
+    { id:3, title:'Нанять дизайнера',  note:'UX/UI',           start:'2026-07-10', due:'2026-07-25', status:'planned' },
+    { id:4, title:'Запуск продукта',   note:'',                start:'2026-08-01', due:'2026-09-01', status:'planned' },
+  ],
+  2: [
+    { id:5, title:'Спортзал 3×/нед',   note:'',                start:'2026-06-15', due:'2026-12-31', status:'active' },
+    { id:6, title:'Отпуск в Испании',  note:'Барселона',       start:'2026-08-10', due:'2026-08-20', status:'planned' },
+  ],
+  3: [
+    { id:7, title:'MVP прототип',      note:'',                start:'2026-06-20', due:'2026-07-20', status:'active' },
+    { id:8, title:'Питч инвесторам',   note:'Deck + demo',     start:'2026-07-25', due:'2026-08-05', status:'planned' },
+  ],
+};
+
+let curSection = null;
+let nextId = 10;
+let passCallback = null;
+
+/* ─── Nav ───────────────────────────────────────────── */
+function show(v) {
+  document.querySelectorAll('.view').forEach(x => x.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('on'));
+  document.getElementById(v).classList.add('on');
+  if (v === 'home') { renderGrid(); document.querySelectorAll('.nb')[0].classList.add('on'); }
+  if (v === 'timeline') { renderChips(); document.getElementById('tl-canvas').innerHTML=''; document.querySelectorAll('.nb')[1].classList.add('on'); }
+}
+
+/* ─── Grid ──────────────────────────────────────────── */
+function renderGrid() {
+  const g = document.getElementById('grid');
+  g.innerHTML = '';
+  sections.forEach(sec => {
+    const items = itemsBySection[sec.id] || [];
+    const done = items.filter(i => i.status==='done').length;
+    const pct = items.length ? Math.round(done/items.length*100) : 0;
+    const d = document.createElement('div');
+    d.className = 'sc';
+    d.style.setProperty('--cc', sec.color);
+    d.innerHTML = `
+      <div class="sc-top">
+        <div class="sc-name" id="sn-${sec.id}" contenteditable="false"
+          title="Двойной клик для переименования">${esc(sec.name)}</div>
+        ${sec.locked ? '<div class="sc-lock">🔒</div>' : ''}
+      </div>
+      <div class="sc-meta">${items.length} ${pl(items.length,'план','плана','планов')} · ${pct}% выполнено</div>
+      <div class="sc-bar"><div class="sc-fill" style="width:${pct}%;background:${sec.color}"></div></div>
+      <div class="sc-acts">
+        <button class="act" onclick="openSec(${sec.id})">Открыть</button>
+        <button class="act" onclick="startRename(${sec.id},event)">✎ Переименовать</button>
+        <button class="act del" onclick="delSec(${sec.id},event)">Удалить</button>
+      </div>
+    `;
+    // double-click to rename directly
+    d.querySelector(`#sn-${sec.id}`).addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      startRenameInline(sec.id);
+    });
+    d.addEventListener('click', (e) => {
+      if (!e.target.closest('.sc-acts') && !e.target.closest('[contenteditable="true"]'))
+        openSec(sec.id);
+    });
+    g.appendChild(d);
+  });
+
+  const add = document.createElement('div');
+  add.className = 'new-sc';
+  add.innerHTML = `<div class="plus">＋</div><div class="lbl">Новый раздел</div>`;
+  add.onclick = () => openModal('m-section');
+  g.appendChild(add);
+}
+
+/* ─── Inline rename on card ─────────────────────────── */
+function startRename(id, e) {
+  e.stopPropagation();
+  startRenameInline(id);
+}
+function startRenameInline(id) {
+  const el = document.getElementById(`sn-${id}`);
+  if (!el) return;
+  el.contentEditable = 'true';
+  el.focus();
+  // select all text
+  const range = document.createRange(); range.selectNodeContents(el);
+  const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  el.addEventListener('blur', () => finishRename(id, el), { once: true });
+  el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } }, { once: true });
+}
+function finishRename(id, el) {
+  const newName = el.textContent.trim();
+  el.contentEditable = 'false';
+  if (!newName) { el.textContent = sections.find(s=>s.id===id)?.name || ''; return; }
+  const sec = sections.find(s => s.id === id);
+  if (sec) { sec.name = newName; }
+  // update section view title if open
+  if (curSection?.id === id) {
+    document.getElementById('sec-h1').textContent = newName;
+  }
+}
+
+/* ─── Open section ──────────────────────────────────── */
+function openSec(id) {
+  const sec = sections.find(s => s.id === id);
+  if (sec.locked) {
+    document.getElementById('mp-desc').textContent = `Раздел «${sec.name}» защищён паролем`;
+    document.getElementById('mp-input').value = '';
+    passCallback = () => { showSection(sec); closeModal(); };
+    openModal('m-pass');
+    setTimeout(() => document.getElementById('mp-input').focus(), 60);
+    return;
+  }
+  showSection(sec);
+}
+
+function showSection(sec) {
+  curSection = sec;
+  document.getElementById('sdot').style.background = sec.color;
+  const h1 = document.getElementById('sec-h1');
+  h1.textContent = sec.name;
+  // make heading inline-editable
+  h1.style.cursor = 'text';
+  h1.ondblclick = () => {
+    h1.contentEditable = 'true';
+    h1.focus();
+    const range = document.createRange(); range.selectNodeContents(h1);
+    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    const done = () => {
+      const nw = h1.textContent.trim();
+      h1.contentEditable = 'false';
+      if (nw) { sec.name = nw; const el = document.getElementById(`sn-${sec.id}`); if (el) el.textContent = nw; }
+      else h1.textContent = sec.name;
+    };
+    h1.addEventListener('blur', done, { once: true });
+    h1.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); h1.blur(); } }, { once: true });
+  };
+  show('section');
+  setSubview('list', document.querySelector('.vt.on') || document.querySelectorAll('.vt')[0]);
+  renderItems();
+}
+
+/* ─── Subview ───────────────────────────────────────── */
+function setSubview(name, btn) {
+  document.querySelectorAll('.vt').forEach(b => b.classList.remove('on'));
+  btn?.classList.add('on');
+  document.getElementById('sv-list').style.display = name === 'list' ? 'block' : 'none';
+  document.getElementById('sv-board').style.display = name === 'board' ? 'block' : 'none';
+  if (name === 'board') renderGantt(itemsBySection[curSection?.id] || [], 'gantt-demo', curSection?.color);
+}
+
+/* ─── Items ─────────────────────────────────────────── */
+function renderItems() {
+  const list = document.getElementById('items-demo');
+  list.innerHTML = '';
+  const items = [...(itemsBySection[curSection?.id] || [])].sort((a,b) => a.start.localeCompare?.(b.start) || a.start_date?.localeCompare(b.start_date));
+  if (!items.length) {
+    list.innerHTML = `<div style="color:var(--muted);text-align:center;padding:40px 0;font-size:13px">Нет планов — добавьте первый</div>`; return;
+  }
+  items.forEach(item => {
+    const over = new Date(item.due) < new Date() && item.status !== 'done';
+    const d = document.createElement('div');
+    d.className = 'item';
+    d.innerHTML = `
+      <div class="idot d${item.status[0]}"></div>
+      <div class="ibody">
+        <div class="ititle ${item.status==='done'?'done':''}">${esc(item.title)}</div>
+        ${item.note ? `<div class="inote">${esc(item.note)}</div>` : ''}
+        <div class="idates">
+          <span>${fmt(item.start)}</span><span class="isep">→</span>
+          <span style="${over?'color:rgba(248,113,113,.8)':''}">${fmt(item.due)}${over?' ⚠':''}</span>
+        </div>
+      </div>
+      <div class="iacts">
+        <button class="ia" onclick="cycleStatus(${item.id})">Статус</button>
+        <button class="ia del" onclick="delItem(${item.id})">✕</button>
+      </div>
+    `;
+    list.appendChild(d);
+  });
+}
+
+function cycleStatus(id) {
+  const order = ['planned','active','done'];
+  const items = itemsBySection[curSection.id];
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  item.status = order[(order.indexOf(item.status)+1) % order.length];
+  renderItems();
+}
+function delItem(id) {
+  itemsBySection[curSection.id] = itemsBySection[curSection.id].filter(i => i.id !== id);
+  renderItems();
+}
+function delSec(id, e) {
+  e.stopPropagation();
+  if (!confirm('Удалить раздел?')) return;
+  sections = sections.filter(s => s.id !== id);
+  renderGrid();
+}
+
+/* ─── Add item demo ─────────────────────────────────── */
+document.querySelectorAll('#mi-statuses .sb').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#mi-statuses .sb').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+}));
+function addItemDemo() {
+  const title = document.getElementById('mi-title').value.trim();
+  if (!title) return;
+  const st = document.querySelector('#mi-statuses .sb.on')?.dataset.s || 'planned';
+  const item = {
+    id: nextId++,
+    title,
+    note: document.getElementById('mi-note').value.trim(),
+    start: document.getElementById('mi-start').value || today(),
+    due:   document.getElementById('mi-due').value  || today(),
+    status: st,
+  };
+  if (!itemsBySection[curSection.id]) itemsBySection[curSection.id] = [];
+  itemsBySection[curSection.id].push(item);
+  closeModal();
+  renderItems();
+}
+
+/* ─── New section demo ──────────────────────────────── */
+function createSectionDemo() {
+  const name = document.getElementById('ms-name').value.trim();
+  if (!name) return;
+  const locked = !!document.getElementById('ms-pass').value;
+  const sec = { id: nextId++, name, color: selColor, locked };
+  sections.push(sec);
+  itemsBySection[sec.id] = [];
+  closeModal();
+  renderGrid();
+}
+
+/* ─── Gantt ─────────────────────────────────────────── */
+function renderGantt(items, containerId, color, groupLabel) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = '';
+  if (!items.length) {
+    c.innerHTML = `<div style="color:var(--muted);text-align:center;padding:30px;font-size:13px">Нет планов</div>`; return;
+  }
+  const starts = items.map(i => i.start || i.start_date).sort();
+  const ends   = items.map(i => i.due   || i.due_date).sort();
+  let minD = new Date(starts[0]); minD.setDate(minD.getDate()-5);
+  let maxD = new Date(ends[ends.length-1]); maxD.setDate(maxD.getDate()+12);
+  const total = maxD - minD;
+  const pct = d => Math.max(0, Math.min(100, (new Date(d)-minD)/total*100));
+
+  // months
+  const mrow = document.createElement('div'); mrow.className = 'g-months';
+  const cur = new Date(minD); cur.setDate(1);
+  while (cur <= maxD) {
+    const m = document.createElement('div'); m.className = 'g-mo';
+    m.textContent = cur.toLocaleString('ru',{month:'short',year:'2-digit'});
+    mrow.appendChild(m); cur.setMonth(cur.getMonth()+1);
+  }
+  c.appendChild(mrow);
+
+  const todayPct = pct(today());
+  items.forEach((item,idx) => {
+    const row = document.createElement('div'); row.className = 'g-row';
+    const lbl = document.createElement('div'); lbl.className = 'g-label';
+    lbl.textContent = item.title; lbl.title = item.title;
+    const track = document.createElement('div'); track.className = 'g-track';
+    const s = pct(item.start||item.start_date);
+    const e = pct(item.due||item.due_date);
+    const w = Math.max(e-s, 1.5);
+    const alpha = item.status==='done'?.35:item.status==='active'?.82:.58;
+    const bar = document.createElement('div'); bar.className = 'g-bar';
+    bar.style.cssText = `left:${s}%;width:${w}%;background:${hexA(item.section_color||color||'#6366f1',alpha)}`;
+    bar.textContent = item.title;
+    track.appendChild(bar);
+    if (idx===0) {
+      const tl = document.createElement('div'); tl.className = 'g-today';
+      tl.style.left = `${todayPct}%`; track.appendChild(tl);
+    }
+    row.appendChild(lbl); row.appendChild(track); c.appendChild(row);
+  });
+}
+
+/* ─── Timeline ──────────────────────────────────────── */
+function renderChips() {
+  const ch = document.getElementById('tl-chips'); ch.innerHTML='';
+  sections.forEach(sec => {
+    const chip = document.createElement('div'); chip.className = 'chip';
+    chip.dataset.id = sec.id;
+    chip.innerHTML = `<div class="cdot" style="background:${sec.color}"></div><span class="cname">${esc(sec.name)}</span>${sec.locked?'<span class="clock">🔒</span>':''}`;
+    chip.onclick = () => chip.classList.toggle('on');
+    ch.appendChild(chip);
+  });
+}
+
+function buildTimeline() {
+  const sel = [...document.querySelectorAll('#tl-chips .chip.on')].map(c => parseInt(c.dataset.id));
+  if (!sel.length) { alert('Выберите хотя бы один раздел'); return; }
+  const locked = sel.filter(id => sections.find(s=>s.id===id)?.locked);
+  if (locked.length) {
+    const sec = sections.find(s => s.id===locked[0]);
+    document.getElementById('mp-desc').textContent = `Раздел «${sec.name}» защищён паролем`;
+    document.getElementById('mp-input').value='';
+    passCallback = () => { closeModal(); buildTimelineRender(sel); };
+    openModal('m-pass');
+    setTimeout(()=>document.getElementById('mp-input').focus(),60);
+    return;
+  }
+  buildTimelineRender(sel);
+}
+
+function buildTimelineRender(ids) {
+  const canvas = document.getElementById('tl-canvas');
+  canvas.innerHTML='';
+  const gantt = document.createElement('div'); gantt.className='gantt';
+  // months row — global range
+  let all = [];
+  ids.forEach(id => { (itemsBySection[id]||[]).forEach(i => all.push({...i, section_id:id, section_color: sections.find(s=>s.id===id)?.color, section_name: sections.find(s=>s.id===id)?.name})); });
+  if (!all.length) { canvas.innerHTML=`<div style="color:var(--muted);text-align:center;padding:30px;font-size:13px">Нет планов в выбранных разделах</div>`; return; }
+
+  // group by section
+  ids.forEach(id => {
+    const sec = sections.find(s=>s.id===id);
+    const items = (itemsBySection[id]||[]).map(i=>({...i,section_color:sec.color,section_name:sec.name}));
+    if (!items.length) return;
+    const hdr = document.createElement('div'); hdr.className='g-sec-hdr';
+    hdr.innerHTML=`<span style="color:${sec.color}">${esc(sec.name)}</span>`;
+    gantt.appendChild(hdr);
+    const sub = document.createElement('div'); sub.id=`tl-sec-${id}`;
+    gantt.appendChild(sub);
+  });
+  canvas.appendChild(gantt);
+
+  // render each section's gantt
+  // global range
+  const starts = all.map(i=>i.start||i.start_date).sort();
+  const ends   = all.map(i=>i.due||i.due_date).sort();
+  let minD = new Date(starts[0]); minD.setDate(minD.getDate()-5);
+  let maxD = new Date(ends[ends.length-1]); maxD.setDate(maxD.getDate()+12);
+  const total = maxD-minD;
+  const pct = d => Math.max(0, Math.min(100,(new Date(d)-minD)/total*100));
+
+  // months in first section
+  const firstSub = document.getElementById(`tl-sec-${ids[0]}`);
+  const mrow = document.createElement('div'); mrow.className='g-months';
+  const cur = new Date(minD); cur.setDate(1);
+  while (cur<=maxD) {
+    const m = document.createElement('div'); m.className='g-mo';
+    m.textContent=cur.toLocaleString('ru',{month:'short',year:'2-digit'});
+    mrow.appendChild(m); cur.setMonth(cur.getMonth()+1);
+  }
+  firstSub.appendChild(mrow);
+
+  const todayPct = pct(today());
+  ids.forEach((id,si) => {
+    const sec = sections.find(s=>s.id===id);
+    const items = itemsBySection[id]||[];
+    const sub = document.getElementById(`tl-sec-${id}`);
+    items.forEach((item,idx) => {
+      const row = document.createElement('div'); row.className='g-row';
+      const lbl = document.createElement('div'); lbl.className='g-label'; lbl.textContent=item.title; lbl.title=item.title;
+      const track = document.createElement('div'); track.className='g-track';
+      const s=pct(item.start||item.start_date), e=pct(item.due||item.due_date);
+      const w=Math.max(e-s,1.5);
+      const alpha=item.status==='done'?.35:item.status==='active'?.82:.58;
+      const bar=document.createElement('div'); bar.className='g-bar';
+      bar.style.cssText=`left:${s}%;width:${w}%;background:${hexA(sec.color,alpha)}`;
+      bar.textContent=item.title;
+      track.appendChild(bar);
+      if (si===0&&idx===0) { const tl=document.createElement('div'); tl.className='g-today'; tl.style.left=`${todayPct}%`; track.appendChild(tl); }
+      row.appendChild(lbl); row.appendChild(track); sub.appendChild(row);
+    });
+  });
+}
+
+/* ─── Color picker ──────────────────────────────────── */
+function initColors() {
+  const cr = document.getElementById('ms-colors'); cr.innerHTML='';
+  COLORS.forEach(c => {
+    const sw = document.createElement('div'); sw.className=`sw${c===selColor?' on':''}`;
+    sw.style.background=c;
+    sw.onclick=()=>{ selColor=c; document.querySelectorAll('.sw').forEach(s=>s.classList.remove('on')); sw.classList.add('on'); };
+    cr.appendChild(sw);
+  });
+}
+
+/* ─── Modal ─────────────────────────────────────────── */
+function openModal(id) {
+  document.getElementById('overlay').style.display='flex';
+  document.querySelectorAll('.modal').forEach(m=>m.style.display='none');
+  document.getElementById(id).style.display='flex';
+  if (id==='m-section') { initColors(); document.getElementById('ms-name').value=''; document.getElementById('ms-pass').value=''; setTimeout(()=>document.getElementById('ms-name').focus(),60); }
+  if (id==='m-item') { document.getElementById('mi-title').value=''; document.getElementById('mi-note').value=''; document.getElementById('mi-start').value=today(); document.getElementById('mi-due').value=today(); document.querySelectorAll('#mi-statuses .sb').forEach(b=>b.classList.toggle('on',b.dataset.s==='planned')); setTimeout(()=>document.getElementById('mi-title').focus(),60); }
+}
+function closeModal() { document.getElementById('overlay').style.display='none'; }
+function passOk() { if(passCallback){passCallback(); passCallback=null;} else closeModal(); }
+document.getElementById('mp-input').addEventListener('keydown',e=>{ if(e.key==='Enter') passOk(); });
+
+/* ─── Lock demo ─────────────────────────────────────── */
+function toggleLockDemo() {
+  if (!curSection) return;
+  const msg = curSection.locked ? 'Снять защиту паролем?' : 'Установить пароль "demo"?';
+  if (confirm(msg)) { curSection.locked = !curSection.locked; }
+}
+
+/* ─── Utils ─────────────────────────────────────────── */
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmt(d){ if(!d) return ''; const [y,m,dd]=d.split('-'); return `${dd}.${m}.${y}`; }
+function today(){ return new Date().toISOString().slice(0,10); }
+function pl(n,a,b,c){ const m=n%100; if(m>=11&&m<=14)return `${n} ${c}`; const m1=n%10; if(m1===1)return `${n} ${a}`; if(m1>=2&&m1<=4)return `${n} ${b}`; return `${n} ${c}`; }
+function hexA(hex,a){ const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; }
+
+/* init */
+renderGrid();
+</script>
+</body>
+</html>
