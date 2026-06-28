@@ -7,7 +7,7 @@ import os, sys, math, struct, zlib, subprocess, shutil
 HOME    = os.path.expanduser('~')
 PLAN    = os.path.join(HOME, 'Plan', 'plan')
 DESKTOP = os.path.join(HOME, 'Desktop')
-APP     = os.path.join(DESKTOP, 'Plan.app')
+APP     = os.path.join(DESKTOP, '⠀.app')   # braille blank → no label in Finder
 
 # ── PNG writer (stdlib only) ──────────────────────────────────────────────
 def png(pixels, size):
@@ -64,44 +64,66 @@ def render(size):
             bg[1]  = clamp(bg[1] +  22 * bi)
             bg[2]  = clamp(bg[2] + 100 * bi)
 
-            # ── Letter P ───────────────────────────────────────────────
-            # Вертикальная штанга
-            px0 = S * 0.295; px1 = S * 0.395
-            py0 = S * 0.235; py1 = S * 0.765
-            # Полукруг (bump) справа от штанги
-            bumpCX = S * 0.395; bumpCY = S * 0.38
-            bumpR  = S * 0.168
-            bumpT  = S * 0.235; bumpB  = S * 0.525
-            # толщина bump
-            bumpW  = S * 0.10
+            # ── Target (мишень) ────────────────────────────────────────
+            td = math.sqrt((x - cx)**2 + (y - cy)**2)
 
-            in_stem  = (px0 <= x <= px1 and py0 <= y <= py1)
-            bump_dist = math.sqrt((x - bumpCX)**2 + (y - bumpCY)**2)
-            in_bump  = (bumpT <= y <= bumpB
-                        and bump_dist >= bumpR - bumpW
-                        and bump_dist <= bumpR + bumpW
-                        and x >= bumpCX - 4)
-            # горизонтальные перемычки
-            in_top  = (px0 <= x <= px1 + bumpR + bumpW and
-                       py0 <= y <= py0 + bumpW * 0.9)
-            in_mid  = (px0 <= x <= px1 + bumpR * 0.35 and
-                       bumpB - bumpW * 0.5 <= y <= bumpB + bumpW * 0.5)
+            # ring radii (center → outer)
+            r_dot   = S * 0.055   # solid inner dot
+            r1i     = S * 0.115; r1o = S * 0.145   # ring 1
+            r2i     = S * 0.205; r2o = S * 0.245   # ring 2
+            r3i     = S * 0.305; r3o = S * 0.350   # ring 3 (outer)
 
-            letter = in_stem or in_bump or in_top or in_mid
+            # crosshair: 4 thin lines from ring3 edge to ~0.46 radius, gap near center
+            gap   = S * 0.065
+            ch_w  = S * 0.018
+            ch_r  = S * 0.44
+            in_ch = False
+            if td > gap and td < ch_r:
+                dx2 = abs(x - cx); dy2 = abs(y - cy)
+                if (dx2 < ch_w and dy2 > gap) or (dy2 < ch_w and dx2 > gap):
+                    in_ch = True
 
-            if letter:
-                # белый с лёгким свечением
-                edge = min(
-                    abs(x - px0), abs(x - px1),
-                    abs(y - py0), abs(y - py1),
-                    bump_dist - (bumpR - bumpW) if in_bump else 999,
-                    (bumpR + bumpW) - bump_dist if in_bump else 999,
-                )
-                glow  = clamp(220 + min(edge * 6, 35))
-                alpha = min(1.0, edge * 0.6 + 0.7)
-                bg[0] = clamp(bg[0] * (1-alpha) + glow * alpha)
-                bg[1] = clamp(bg[1] * (1-alpha) + glow * alpha)
-                bg[2] = clamp(bg[2] * (1-alpha) + glow * alpha)
+            in_dot  = td <= r_dot
+            in_r1   = r1i <= td <= r1o
+            in_r2   = r2i <= td <= r2o
+            in_r3   = r3i <= td <= r3o
+
+            def ring_alpha(inner, outer, d, sharpness=6.0):
+                margin = (outer - inner) * 0.5
+                edge = min(d - inner, outer - d)
+                return min(1.0, max(0.0, edge / margin * sharpness) ** 0.5)
+
+            if in_dot or in_r1 or in_r2 or in_r3 or in_ch:
+                if in_dot:
+                    # центр — чистый малиновый
+                    a = min(1.0, (r_dot - td) / (r_dot * 0.4) * 4)
+                    target_r, target_g, target_b = 220, 18, 38
+                elif in_r1:
+                    a = ring_alpha(r1i, r1o, td)
+                    target_r, target_g, target_b = 210, 20, 38
+                elif in_r2:
+                    a = ring_alpha(r2i, r2o, td)
+                    # средний — переход к синему
+                    target_r, target_g, target_b = 140, 30, 120
+                elif in_r3:
+                    a = ring_alpha(r3i, r3o, td)
+                    target_r, target_g, target_b = 42, 60, 180
+                else:  # crosshair
+                    dx2 = abs(x - cx); dy2 = abs(y - cy)
+                    ew = min(ch_w - min(dx2 if dy2 < ch_w else dy2,
+                                       dy2 if dx2 < ch_w else dx2), ch_w)
+                    a = min(1.0, ew / ch_w * 2) * 0.55
+                    target_r, target_g, target_b = 200, 200, 220
+
+                # luminosity boost near dot
+                boost = max(0.0, 1.0 - td / (S * 0.25)) * 60
+                target_r = clamp(target_r + boost)
+                target_g = clamp(target_g + boost * 0.3)
+                target_b = clamp(target_b + boost * 0.5)
+
+                bg[0] = clamp(bg[0] * (1-a) + target_r * a)
+                bg[1] = clamp(bg[1] * (1-a) + target_g * a)
+                bg[2] = clamp(bg[2] * (1-a) + target_b * a)
 
             # apply aa mask
             if aa < 255:
@@ -184,7 +206,7 @@ with open(f'{APP}/Contents/Info.plist', 'w') as f:
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
   <key>CFBundleName</key><string>Plan</string>
-  <key>CFBundleDisplayName</key><string>Plan</string>
+  <key>CFBundleDisplayName</key><string> </string>
   <key>CFBundleIdentifier</key><string>com.plan.app</string>
   <key>CFBundleVersion</key><string>1.0</string>
   <key>CFBundleExecutable</key><string>plan</string>
@@ -201,4 +223,4 @@ subprocess.run(['xattr', '-cr', APP], capture_output=True)
 shutil.rmtree(ICONSET, ignore_errors=True)
 os.remove(icns_path)
 
-print(f'\n  ✓ Plan.app появился на рабочем столе\n  Двойной клик — запускает приложение\n')
+print(f'\n  ✓ Иконка появилась на рабочем столе (без подписи)\n  Двойной клик — запускает приложение\n')
