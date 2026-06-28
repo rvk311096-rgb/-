@@ -10,8 +10,8 @@ const state = {
 };
 
 const COLORS = [
-  '#6366f1','#8b5cf6','#ec4899','#f43f5e',
-  '#f97316','#eab308','#22c55e','#14b8a6','#3b82f6',
+  '#c0152a','#1e3a8a','#9f1239','#1d4ed8',
+  '#be123c','#7f1d1d','#1e40af','#b91c1c','#1e3a6e',
 ];
 
 /* ── Helpers ───────────────────────────────────────────────────────────── */
@@ -89,19 +89,27 @@ function renderSections() {
     card.style.setProperty('--card-color', sec.color);
     card.innerHTML = `
       <div class="sc-top">
-        <div class="sc-name">${esc(sec.name)}</div>
+        <div class="sc-name" id="sc-name-${sec.id}" title="Двойной клик — переименовать">${esc(sec.name)}</div>
         ${sec.locked ? '<div class="sc-lock">🔒</div>' : ''}
       </div>
       <div class="sc-meta">${total} ${plural(total,'план','плана','планов')}</div>
       <div class="sc-bar"><div class="sc-bar-fill" style="width:${pct}%;background:${sec.color}"></div></div>
       <div class="sc-actions">
-        <button class="sc-action-btn">Открыть</button>
+        <button class="sc-action-btn" data-open="${sec.id}">Открыть</button>
+        <button class="sc-action-btn" data-rename="${sec.id}">✎ Переименовать</button>
         <button class="sc-action-btn danger" data-del="${sec.id}">Удалить</button>
       </div>
     `;
+    card.querySelector(`#sc-name-${sec.id}`).addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      startCardRename(sec);
+    });
     card.addEventListener('click', (e) => {
-      if (e.target.dataset.del) { deleteSection(sec); return; }
-      openSection(sec);
+      if (e.target.dataset.del)    { deleteSection(sec); return; }
+      if (e.target.dataset.rename) { startCardRename(sec); return; }
+      if (e.target.dataset.open || (!e.target.closest('.sc-actions') && !e.target.closest('[contenteditable="true"]'))) {
+        openSection(sec);
+      }
     });
     grid.appendChild(card);
   });
@@ -168,6 +176,7 @@ async function loadSectionView(sec) {
   $('#section-title-label').textContent = sec.name;
   const dot = $('#section-dot');
   dot.style.background = sec.color;
+  initSectionTitleRename(sec);
 
   showView('section');
   setSubview('list');
@@ -579,15 +588,55 @@ async function unlockSequential(locked, sections, existingItems) {
   renderBoard(res.items, $('#timeline-canvas'), true);
 }
 
-/* ── Section menu (rename/recolor) ────────────────────────────────────── */
+/* ── Card rename ───────────────────────────────────────────────────────── */
+function startCardRename(sec) {
+  const el = $(`#sc-name-${sec.id}`);
+  if (!el) return;
+  el.contentEditable = 'true';
+  el.focus();
+  const range = document.createRange(); range.selectNodeContents(el);
+  const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  const finish = () => {
+    const name = el.textContent.trim();
+    el.contentEditable = 'false';
+    if (!name) { el.textContent = sec.name; return; }
+    api('PUT', `/api/sections/${sec.id}`, { name, color: sec.color })
+      .then(() => { sec.name = name; if (state.currentSection?.id === sec.id) $('#section-title-label').textContent = name; })
+      .catch(e => { alert(e.message); el.textContent = sec.name; });
+  };
+  el.addEventListener('blur', finish, { once: true });
+  el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } }, { once: true });
+}
+
+/* ── Section view inline rename ────────────────────────────────────────── */
+function initSectionTitleRename(sec) {
+  const el = $('#section-title-label');
+  el.ondblclick = () => {
+    el.contentEditable = 'true';
+    el.focus();
+    const range = document.createRange(); range.selectNodeContents(el);
+    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    const finish = () => {
+      const name = el.textContent.trim();
+      el.contentEditable = 'false';
+      if (!name) { el.textContent = sec.name; return; }
+      api('PUT', `/api/sections/${sec.id}`, { name, color: sec.color })
+        .then(() => { sec.name = name; const card = $(`#sc-name-${sec.id}`); if (card) card.textContent = name; })
+        .catch(e => { alert(e.message); el.textContent = sec.name; });
+    };
+    el.addEventListener('blur', finish, { once: true });
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } }, { once: true });
+  };
+}
+
+/* ── Section menu ──────────────────────────────────────────────────────── */
 $('#btn-section-menu').addEventListener('click', () => {
   const sec = state.currentSection;
-  const newName = prompt('Переименовать раздел:', sec.name);
-  if (newName && newName.trim() !== sec.name) {
-    api('PUT', `/api/sections/${sec.id}`, { name: newName.trim(), color: sec.color })
-      .then(() => { sec.name = newName.trim(); $('#section-title-label').textContent = sec.name; })
-      .catch(e => alert(e.message));
-  }
+  if (!sec) return;
+  const el = $('#section-title-label');
+  el.contentEditable = 'true'; el.focus();
+  const range = document.createRange(); range.selectNodeContents(el);
+  const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
 });
 
 /* ── Init ──────────────────────────────────────────────────────────────── */
