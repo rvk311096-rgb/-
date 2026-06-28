@@ -567,7 +567,7 @@ async function buildTimeline() {
     if (res.locked && res.locked.length) {
       await unlockSequential(res.locked, sections, res.items);
     } else {
-      renderBoard(res.items, $('#timeline-canvas'), true);
+      renderBranches(res.items, $('#timeline-canvas'));
     }
   } catch(e) { alert(e.message); }
 }
@@ -585,7 +585,71 @@ async function unlockSequential(locked, sections, existingItems) {
   }
   // retry with updated passwords
   const res = await api('POST', '/api/timeline', { sections });
-  renderBoard(res.items, $('#timeline-canvas'), true);
+  renderBranches(res.items, $('#timeline-canvas'));
+}
+
+/* ── Branch map (timeline view) ────────────────────────────────────────── */
+function renderBranches(items, canvas) {
+  canvas.innerHTML = '';
+  if (!items.length) {
+    canvas.innerHTML = `<div class="empty-state"><span>◌</span>Нет планов для отображения</div>`;
+    return;
+  }
+
+  // group by section
+  const sections = [];
+  const byId = {};
+  items.forEach(item => {
+    if (!byId[item.section_id]) {
+      byId[item.section_id] = { id: item.section_id, name: item.section_name, color: item.section_color, items: [] };
+      sections.push(byId[item.section_id]);
+    }
+    byId[item.section_id].items.push(item);
+  });
+
+  const wrap = document.createElement('div');
+  wrap.className = 'branches-wrap';
+
+  sections.forEach(sec => {
+    const branch = document.createElement('div');
+    branch.className = 'branch-row';
+    branch.style.setProperty('--bc', sec.color);
+
+    const lbl = document.createElement('div');
+    lbl.className = 'branch-section-label';
+    lbl.textContent = sec.name;
+
+    const chips = document.createElement('div');
+    chips.className = 'branch-chips';
+
+    sec.items
+      .slice()
+      .sort((a, b) => (a.start_date || '').localeCompare(b.start_date || ''))
+      .forEach(item => {
+        const chip = document.createElement('div');
+        chip.className = 'branch-chip';
+        chip.style.setProperty('--bc', sec.color);
+
+        const statusClass = { planned: 'st-planned', active: 'st-active', done: 'st-done' }[item.status] || 'st-planned';
+        const dateStr = [item.start_date, item.due_date].filter(Boolean).join(' → ');
+
+        chip.innerHTML = `
+          <div class="bchip-dot ${statusClass}"></div>
+          <div class="bchip-body">
+            <div class="bchip-title">${esc(item.title)}</div>
+            ${dateStr ? `<div class="bchip-date">${dateStr}</div>` : ''}
+            ${item.note ? `<div class="bchip-note">${esc(item.note)}</div>` : ''}
+          </div>
+        `;
+        chips.appendChild(chip);
+      });
+
+    branch.appendChild(lbl);
+    branch.appendChild(chips);
+    wrap.appendChild(branch);
+  });
+
+  canvas.appendChild(wrap);
 }
 
 /* ── Card rename ───────────────────────────────────────────────────────── */

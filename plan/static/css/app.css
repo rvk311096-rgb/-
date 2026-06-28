@@ -187,6 +187,80 @@ body {
 }
 .gantt-section-header::after { content: ''; flex: 1; height: 1px; background: var(--subtle); }
 
+/* ── Branch map ──────────────────────────────────────────────────────────── */
+.branches-wrap {
+  padding-left: 24px;
+  position: relative;
+}
+/* vertical spine */
+.branches-wrap::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 8px; bottom: 8px;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,.12) 8%, rgba(255,255,255,.12) 92%, transparent);
+}
+.branch-row {
+  position: relative;
+  margin-bottom: 36px;
+  padding-left: 28px;
+}
+/* horizontal connector */
+.branch-row::before {
+  content: '';
+  position: absolute;
+  left: -24px; top: 10px;
+  width: 24px; height: 2px;
+  background: var(--bc);
+  opacity: .7;
+}
+/* dot on spine */
+.branch-row::after {
+  content: '';
+  position: absolute;
+  left: -30px; top: 4px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--bc);
+  box-shadow: 0 0 10px var(--bc);
+}
+.branch-section-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--bc);
+  margin-bottom: 12px;
+}
+.branch-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.branch-chip {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: rgba(255,255,255,.045);
+  border: 1px solid rgba(255,255,255,.09);
+  border-left: 3px solid var(--bc);
+  border-radius: 10px;
+  padding: 10px 14px;
+  min-width: 180px;
+  max-width: 260px;
+  backdrop-filter: blur(16px);
+  transition: background .15s;
+}
+.branch-chip:hover { background: rgba(255,255,255,.08); }
+.bchip-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 4px;
+}
+.bchip-dot.st-planned { background: rgba(255,255,255,.3); }
+.bchip-dot.st-active  { background: var(--bc); box-shadow: 0 0 6px var(--bc); }
+.bchip-dot.st-done    { background: #1e3a8a; }
+.bchip-title { font-size: 13px; font-weight: 500; line-height: 1.4; }
+.bchip-date  { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.bchip-note  { font-size: 11px; color: var(--muted); margin-top: 4px; opacity: .7; }
+
 /* ── Timeline picker ─────────────────────────────────────────────────────── */
 .page-heading { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: -.3px; }
 .page-sub { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
