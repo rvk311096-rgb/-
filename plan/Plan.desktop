@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Plan
+Comment=Стратегическое планирование
+Exec=bash -c "cd %k/../ && python start.py & sleep 2 && xdg-open http://localhost:5005"
+Icon=%k/../static/icons/icon.svg
+Terminal=false
+Categories=Office;ProjectManagement;
+StartupNotify=true

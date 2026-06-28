@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0d1a">
+<title>Plan</title>
+<link rel="manifest" href="/static/manifest.json">
+<link rel="icon" href="/static/icons/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+
+<!-- BACKGROUND -->
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- APP SHELL -->
+<div id="app">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-logo">Plan</div>
+    <nav class="topbar-nav">
+      <button class="nav-btn active" data-view="home">Разделы</button>
+      <button class="nav-btn" data-view="timeline">Сводная карта</button>
+    </nav>
+    <button class="btn-ghost icon-btn" id="btn-new-section" title="Новый раздел">＋</button>
+  </header>
+
+  <!-- VIEWS -->
+  <main id="view-home" class="view active">
+    <div class="home-grid" id="sections-grid">
+      <!-- sections rendered by JS -->
+    </div>
+  </main>
+
+  <main id="view-section" class="view">
+    <div class="section-header-bar">
+      <button class="back-btn" id="btn-back">← Разделы</button>
+      <div class="section-title-wrap">
+        <span class="section-dot" id="section-dot"></span>
+        <h1 class="section-title" id="section-title-label"></h1>
+      </div>
+      <div class="section-actions">
+        <button class="btn-ghost" id="btn-add-item">＋ Добавить</button>
+        <button class="btn-ghost icon-btn" id="btn-section-menu" title="Настройки раздела">⋯</button>
+      </div>
+    </div>
+
+    <!-- BOARD toggle -->
+    <div class="view-toggle">
+      <button class="vtoggle active" data-subview="list">Список</button>
+      <button class="vtoggle" data-subview="board">Доска</button>
+    </div>
+
+    <div id="subview-list" class="subview active">
+      <div class="items-list" id="items-list"></div>
+    </div>
+    <div id="subview-board" class="subview">
+      <div class="board-canvas" id="board-canvas"></div>
+    </div>
+  </main>
+
+  <main id="view-timeline" class="view">
+    <div class="timeline-header">
+      <h2 class="page-heading">Сводная карта</h2>
+      <p class="page-sub">Выберите разделы для объединения</p>
+    </div>
+    <div class="timeline-section-picker" id="timeline-picker"></div>
+    <button class="btn-primary" id="btn-build-timeline">Показать карту</button>
+    <div class="board-canvas" id="timeline-canvas" style="margin-top:32px"></div>
+  </main>
+
+</div>
+
+<!-- MODALS -->
+<div id="modal-overlay" class="modal-overlay hidden">
+
+  <!-- New Section -->
+  <div id="modal-section" class="modal hidden">
+    <h3 class="modal-title">Новый раздел</h3>
+    <label class="field-label">Название</label>
+    <input class="field" id="m-section-name" placeholder="Личное / Работа / Проект…" autofocus>
+    <label class="field-label">Цвет</label>
+    <div class="color-row" id="color-picker"></div>
+    <label class="field-label">Пароль <span class="optional">— необязательно</span></label>
+    <input class="field" id="m-section-pass" type="password" placeholder="Оставьте пустым для открытого доступа">
+    <div class="modal-actions">
+      <button class="btn-ghost" id="btn-section-cancel">Отмена</button>
+      <button class="btn-primary" id="btn-section-save">Создать</button>
+    </div>
+  </div>
+
+  <!-- Add Item -->
+  <div id="modal-item" class="modal hidden">
+    <h3 class="modal-title">Новый план</h3>
+    <label class="field-label">Идея / задача</label>
+    <input class="field" id="m-item-title" placeholder="Что нужно сделать?">
+    <label class="field-label">Заметка <span class="optional">— необязательно</span></label>
+    <textarea class="field" id="m-item-note" rows="2" placeholder="Подробности…"></textarea>
+    <div class="date-row">
+      <div>
+        <label class="field-label">Начало</label>
+        <input class="field" id="m-item-start" type="date">
+      </div>
+      <div>
+        <label class="field-label">Срок</label>
+        <input class="field" id="m-item-due" type="date">
+      </div>
+    </div>
+    <label class="field-label">Статус</label>
+    <div class="status-row" id="m-item-status-row">
+      <button class="status-btn active" data-status="planned">Запланировано</button>
+      <button class="status-btn" data-status="active">В процессе</button>
+      <button class="status-btn" data-status="done">Готово</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="btn-item-cancel">Отмена</button>
+      <button class="btn-primary" id="btn-item-save">Сохранить</button>
+    </div>
+  </div>
+
+  <!-- Password Prompt -->
+  <div id="modal-password" class="modal hidden">
+    <h3 class="modal-title">🔒 Раздел защищён</h3>
+    <p class="modal-sub" id="modal-pass-desc"></p>
+    <input class="field" id="m-pass-input" type="password" placeholder="Введите пароль…">
+    <div class="modal-actions">
+      <button class="btn-ghost" id="btn-pass-cancel">Отмена</button>
+      <button class="btn-primary" id="btn-pass-ok">Войти</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
