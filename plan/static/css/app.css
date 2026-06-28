@@ -17,7 +17,7 @@
 html, body { height: 100%; overflow: hidden; }
 body {
   font-family: 'DM Sans', system-ui, sans-serif;
-  font-size: 13.5px; color: var(--text); background: #06060f;
+  font-size: 15px; color: var(--text); background: #06060f;
 }
 
 /* ── Orbs ────────────────────────────────────────────────────────────────── */
@@ -40,15 +40,15 @@ body {
   border-bottom: 1px solid var(--subtle);
 }
 .topbar-logo {
-  font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
-  letter-spacing: 5px; text-transform: uppercase;
-  color: rgba(255,255,255,.92); margin-right: 28px; user-select: none;
+  font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700;
+  letter-spacing: 6px; text-transform: uppercase;
+  color: rgba(255,255,255,.95); margin-right: 32px; user-select: none;
 }
 .topbar-nav { display: flex; gap: 2px; }
 .nav-btn {
   background: transparent; border: none; color: var(--muted);
-  font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 400;
-  padding: 5px 15px; border-radius: 20px; cursor: pointer; transition: all .16s; letter-spacing: .2px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 400;
+  padding: 5px 16px; border-radius: 20px; cursor: pointer; transition: all .16s; letter-spacing: .2px;
 }
 .nav-btn:hover, .nav-btn.active { color: var(--text); background: var(--glass); }
 .icon-btn {
@@ -82,12 +82,13 @@ body {
 .sc-meta { font-size: 11.5px; color: var(--muted); }
 .sc-bar { height: 2px; background: rgba(255,255,255,.08); border-radius: 1px; }
 .sc-bar-fill { height: 100%; border-radius: 1px; }
-.sc-actions { display: flex; gap: 6px; opacity: 0; transition: opacity .18s; margin-top: 2px; }
+.sc-actions { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; opacity: 0; transition: opacity .18s; margin-top: 8px; }
 .section-card:hover .sc-actions { opacity: 1; }
 .sc-action-btn {
   background: rgba(255,255,255,.05); border: 1px solid var(--subtle);
-  color: var(--muted); font-size: 11px; padding: 3px 10px; border-radius: 20px;
+  color: var(--muted); font-size: 12px; padding: 5px 12px; border-radius: 20px;
   cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .14s;
+  white-space: nowrap; flex-shrink: 0;
 }
 .sc-action-btn:hover { color: var(--text); background: rgba(255,255,255,.1); }
 .sc-action-btn.danger:hover { color: #f87171; border-color: rgba(248,113,113,.3); }
