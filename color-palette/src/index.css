@@ -1,0 +1,41 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-deep: #0a0a0f;
+  --bg-surface: #111118;
+  --bg-card: #18181f;
+  --bg-elevated: #1f1f2a;
+  --border: rgba(255,255,255,0.07);
+  --border-hover: rgba(255,255,255,0.15);
+  --text-primary: #f0ede8;
+  --text-secondary: rgba(240,237,232,0.55);
+  --text-muted: rgba(240,237,232,0.3);
+  --accent: #c4a882;
+  --accent-glow: rgba(196,168,130,0.2);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-lg: 24px;
+  --font-main: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+  font-family: var(--font-main);
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+/* React Colorful override */
+.react-colorful { width: 100% !important; height: 200px !important; border-radius: var(--radius) !important; }
+.react-colorful__saturation { border-radius: var(--radius) var(--radius) 0 0 !important; }
+.react-colorful__hue { border-radius: 0 0 var(--radius) var(--radius) !important; height: 20px !important; margin-top: 8px !important; }
+.react-colorful__pointer { width: 22px !important; height: 22px !important; border: 3px solid white !important; box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important; }

@@ -1,0 +1,126 @@
+.color-picker {
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.hex-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.hex-preview {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.hex-input {
+  flex: 1;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 7px 12px;
+  outline: none;
+  transition: border-color var(--transition);
+  min-width: 0;
+}
+.hex-input:focus {
+  border-color: var(--accent);
+}
+
+.pantone-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(196,168,130,0.05);
+  border: 1px solid rgba(196,168,130,0.15);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+}
+
+.pantone-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.pantone-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pantone-label {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.pantone-name {
+  display: block;
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.color-values {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.color-value-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  transition: background var(--transition);
+}
+.color-value-row:hover {
+  background: var(--bg-elevated);
+}
+
+.cv-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  width: 36px;
+  flex-shrink: 0;
+}
+
+.cv-value {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  min-width: 0;
+}
+
+.cv-copy {
+  width: 26px !important;
+  height: 26px !important;
+  opacity: 0;
+  transition: opacity var(--transition);
+  flex-shrink: 0;
+}
+.color-value-row:hover .cv-copy {
+  opacity: 1;
+}

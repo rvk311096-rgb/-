@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CHROMIA — Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Grotesk',sans-serif;background:#0a0a0f;color:#f0ede8;min-height:100vh;overflow-x:hidden}
+.mono{font-family:'Space Mono',monospace}
+
+/* AMBIENT */
+.sphere{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;opacity:.22}
+.s1{width:600px;height:600px;background:radial-gradient(circle,#a47864 0%,transparent 70%);top:-200px;left:-150px}
+.s2{width:400px;height:400px;background:radial-gradient(circle,#6667ab 0%,transparent 70%);bottom:5%;right:-80px}
+.s3{width:300px;height:300px;background:radial-gradient(circle,#4a7c59 0%,transparent 70%);top:50%;left:42%;transform:translate(-50%,-50%)}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:100;padding:0 28px;background:rgba(10,10,15,.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.07)}
+.header-inner{max-width:1400px;margin:0 auto;height:72px;display:flex;align-items:center;gap:24px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:36px;height:36px;flex-shrink:0}
+.brand-name{font-family:'Space Mono',monospace;font-size:18px;font-weight:700;letter-spacing:.15em;line-height:1}
+.brand-tag{font-size:10px;color:rgba(240,237,232,.3);letter-spacing:.1em;margin-top:3px;text-transform:uppercase}
+.nav{display:flex;gap:8px;flex:1}
+.badge{font-size:10px;font-weight:600;letter-spacing:.08em;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);color:rgba(240,237,232,.3);text-transform:uppercase}
+.badge-gold{background:rgba(196,168,130,.08);border-color:rgba(196,168,130,.2);color:#c4a882}
+.btn{display:inline-flex;align-items:center;gap:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:500;border:none;border-radius:10px;cursor:pointer;padding:9px 18px;letter-spacing:.02em}
+.btn-primary{background:#c4a882;color:#0a0a0f}
+.btn-ghost{background:transparent;color:rgba(240,237,232,.55);border:1px solid rgba(255,255,255,.07);padding:8px 14px;font-size:12px}
+
+/* MAIN LAYOUT */
+main{position:relative;z-index:1;padding:28px 28px 48px;max-width:1400px;margin:0 auto}
+.layout{display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start}
+
+/* CARD */
+.card{background:#18181f;border:1px solid rgba(255,255,255,.07);border-radius:20px;backdrop-filter:blur(20px)}
+
+/* LEFT PANEL */
+.left-panel{display:flex;flex-direction:column;gap:14px}
+.picker-card{padding:20px}
+.section-label{font-size:10px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(240,237,232,.3);margin-bottom:12px}
+
+/* COLOR PICKER MOCKUP */
+.color-picker-mock{border-radius:14px;overflow:hidden;margin-bottom:12px}
+.picker-gradient{height:180px;background:linear-gradient(to bottom,transparent,#000),linear-gradient(to right,#fff,#a47864);border-radius:14px 14px 0 0;position:relative}
+.picker-cursor{width:20px;height:20px;border:3px solid white;border-radius:50%;position:absolute;bottom:40px;right:50px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.picker-hue{height:18px;background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);border-radius:0 0 14px 14px;margin-top:8px;position:relative}
+.hue-cursor{width:20px;height:20px;border:3px solid white;border-radius:50%;position:absolute;top:50%;left:35%;transform:translateY(-50%);box-shadow:0 2px 8px rgba(0,0,0,.4)}
+
+.hex-row{display:flex;gap:8px;margin:10px 0}
+.hex-preview{width:32px;height:32px;background:#a47864;border-radius:8px;border:1px solid rgba(255,255,255,.1);flex-shrink:0}
+.hex-input{flex:1;background:#1f1f2a;border:1px solid rgba(255,255,255,.08);border-radius:10px;color:#f0ede8;font-family:'Space Mono',monospace;font-size:13px;padding:7px 12px;outline:none}
+.btn-icon{width:32px;height:32px;background:#1f1f2a;border:1px solid rgba(255,255,255,.07);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(240,237,232,.4);flex-shrink:0}
+
+.pantone-chip{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(196,168,130,.05);border:1px solid rgba(196,168,130,.15);border-radius:10px;margin-bottom:12px}
+.p-dot{width:22px;height:22px;background:#a47864;border-radius:50%;flex-shrink:0}
+.p-info{flex:1}
+.p-label{font-size:9px;font-weight:700;letter-spacing:.15em;color:#c4a882;display:block}
+.p-name{font-size:11px;color:rgba(240,237,232,.55)}
+
+.color-values{display:flex;flex-direction:column;gap:3px}
+.cv-row{display:flex;align-items:center;gap:8px;padding:5px 7px;border-radius:8px}
+.cv-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(240,237,232,.25);width:36px}
+.cv-val{flex:1;font-family:'Space Mono',monospace;font-size:10px;color:rgba(240,237,232,.5)}
+
+/* HARMONY SELECTOR */
+.harmony-card{padding:20px}
+.count-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:4px}
+.cnt-btn{height:34px;background:#1f1f2a;border:1px solid rgba(255,255,255,.07);border-radius:8px;color:rgba(240,237,232,.5);font-family:'Space Mono',monospace;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.cnt-btn.active{background:#c4a882;color:#0a0a0f;border-color:transparent}
+.divider{height:1px;background:rgba(255,255,255,.06);margin:14px 0}
+
+.harmony-list{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}
+.h-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;border:1px solid transparent;cursor:pointer}
+.h-item.active{background:rgba(196,168,130,.08);border-color:rgba(196,168,130,.2)}
+.h-icon{font-size:13px;width:20px;text-align:center;color:rgba(240,237,232,.3)}
+.h-item.active .h-icon{color:#c4a882}
+.h-name{font-size:13px;font-weight:500;color:#f0ede8;display:block;line-height:1.2}
+.h-name-en{font-size:10px;color:rgba(240,237,232,.3);display:block;margin-top:1px}
+.h-dot{width:6px;height:6px;border-radius:50%;background:#c4a882;margin-left:auto;flex-shrink:0}
+.h-desc{padding:9px 12px;background:#1f1f2a;border-radius:10px;border:1px solid rgba(255,255,255,.06);font-size:11px;color:rgba(240,237,232,.35);line-height:1.6}
+
+/* CENTER PANEL */
+.center-panel{}
+.pd-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.pd-title{font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+.pd-sub{font-size:12px;color:rgba(240,237,232,.3);margin-top:4px;letter-spacing:.04em}
+.pd-controls{display:flex;align-items:center;gap:8px}
+.view-tabs{display:flex;background:#18181f;border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:3px;gap:2px}
+.vtab{width:30px;height:26px;background:transparent;border:none;border-radius:6px;cursor:pointer;font-size:11px;color:rgba(240,237,232,.3);display:flex;align-items:center;justify-content:center}
+.vtab.active{background:#1f1f2a;color:#f0ede8}
+
+/* SWATCHES */
+.swatch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.swatch{border-radius:16px;overflow:hidden;background:#18181f;border:1px solid rgba(255,255,255,.07)}
+.swatch.base{border-color:#c4a882;box-shadow:0 0 0 1px #c4a882}
+.sw-color{height:200px;position:relative}
+.sw-base-tag{position:absolute;top:12px;left:12px;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border:1px solid rgba(255,255,255,.25);border-radius:20px;color:rgba(255,255,255,.8)}
+.sw-overlay{position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent,rgba(0,0,0,.35));display:flex;gap:6px;align-items:flex-end}
+.sw-copy{flex:1;display:flex;align-items:center;gap:4px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:rgba(255,255,255,.8);padding:5px 9px;background:rgba(0,0,0,.3);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);border-radius:7px}
+.sw-img{width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);border-radius:7px;cursor:pointer;color:rgba(255,255,255,.7);font-size:11px}
+.sw-info{padding:11px 13px}
+.si-hex{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;margin-bottom:4px}
+.si-p{display:flex;align-items:center;gap:5px;margin-bottom:3px}
+.si-pl{font-size:8px;font-weight:700;padding:1px 5px;background:rgba(196,168,130,.12);color:#c4a882;border-radius:3px;letter-spacing:.1em}
+.si-pn{font-size:10px;color:rgba(240,237,232,.5)}
+.si-rgb{font-family:'Space Mono',monospace;font-size:9px;color:rgba(240,237,232,.3)}
+
+/* HARMONY BAR */
+.h-bar{display:flex;align-items:center;gap:14px;padding:13px 16px;background:#18181f;border:1px solid rgba(255,255,255,.07);border-radius:14px}
+.hb-icon{font-size:18px}
+.hb-name{font-size:13px;font-weight:600;display:block}
+.hb-desc{font-size:11px;color:rgba(240,237,232,.35)}
+
+/* IMAGE MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;padding:24px}
+.modal{background:#111118;border:1px solid rgba(255,255,255,.1);border-radius:24px;width:100%;max-width:760px;overflow:hidden}
+.modal-header{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:18px;font-weight:600}
+.modal-query{font-size:11px;color:rgba(240,237,232,.35);margin-top:3px}
+.img-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:20px 24px}
+.img-cell{aspect-ratio:1;border-radius:12px;overflow:hidden;position:relative}
+.img-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px}
+.modal-footer{padding:14px 24px;border-top:1px solid rgba(255,255,255,.05);font-size:11px;color:rgba(240,237,232,.3);display:flex;justify-content:space-between}
+.modal-footer a{color:#c4a882}
+
+/* ICON PREVIEW */
+.icon-section{position:relative;z-index:1;padding:0 28px 48px;max-width:1400px;margin:0 auto}
+.icon-title{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:rgba(240,237,232,.3);margin-bottom:20px;font-weight:600}
+.icons-row{display:flex;gap:20px;align-items:flex-end;flex-wrap:wrap}
+.icon-item{display:flex;flex-direction:column;align-items:center;gap:8px}
+.icon-label{font-size:10px;color:rgba(240,237,232,.3);letter-spacing:.05em}
+</style>
+</head>
+<body>
+
+<!-- Ambient spheres -->
+<div class="sphere s1"></div>
+<div class="sphere s2"></div>
+<div class="sphere s3"></div>
+
+<!-- ═══ HEADER ═══ -->
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 36 36" fill="none">
+        <circle cx="18" cy="18" r="18" fill="#1f1f2a"/>
+        <path d="M18 4 A14 14 0 0 1 32 18 L18 18 Z" fill="#4D96FF" opacity=".9"/>
+        <path d="M32 18 A14 14 0 0 1 18 32 L18 18 Z" fill="#6BCB77" opacity=".9"/>
+        <path d="M18 32 A14 14 0 0 1 4 18 L18 18 Z" fill="#F8B500" opacity=".9"/>
+        <path d="M4 18 A14 14 0 0 1 18 4 L18 18 Z" fill="#FF6B9D" opacity=".9"/>
+        <circle cx="18" cy="18" r="6" fill="#0a0a0f"/>
+      </svg>
+      <div>
+        <div class="brand-name">CHROMIA</div>
+        <div class="brand-tag">Color Palette Studio</div>
+      </div>
+    </div>
+    <div class="nav">
+      <span class="badge">Pantone® Referenced</span>
+      <span class="badge badge-gold">2026 Trends</span>
+    </div>
+    <button class="btn btn-primary">⟳ &nbsp;Random Palette</button>
+  </div>
+</header>
+
+<!-- ═══ MAIN ═══ -->
+<main>
+  <div class="layout">
+
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+
+      <!-- Color Picker -->
+      <div class="picker-card card">
+        <div class="section-label">Base Color</div>
+
+        <div class="color-picker-mock">
+          <div class="picker-gradient">
+            <div class="picker-cursor"></div>
+          </div>
+          <div class="picker-hue">
+            <div class="hue-cursor"></div>
+          </div>
+        </div>
+
+        <div class="hex-row">
+          <div class="hex-preview"></div>
+          <div class="hex-input mono">#A47864</div>
+          <div class="btn-icon">⎘</div>
+        </div>
+
+        <div class="pantone-chip">
+          <div class="p-dot"></div>
+          <div class="p-info">
+            <span class="p-label">PANTONE®</span>
+            <span class="p-name">17-1230 Mocha Mousse</span>
+          </div>
+          <div class="btn-icon" style="width:26px;height:26px;font-size:10px">⎘</div>
+        </div>
+
+        <div class="color-values">
+          <div class="cv-row"><span class="cv-lbl">HEX</span><span class="cv-val">#A47864</span><span style="font-size:9px;color:rgba(240,237,232,.2)">⎘</span></div>
+          <div class="cv-row"><span class="cv-lbl">RGB</span><span class="cv-val">164, 120, 100</span><span style="font-size:9px;color:rgba(240,237,232,.2)">⎘</span></div>
+          <div class="cv-row"><span class="cv-lbl">HSL</span><span class="cv-val">18°, 26%, 52%</span><span style="font-size:9px;color:rgba(240,237,232,.2)">⎘</span></div>
+          <div class="cv-row"><span class="cv-lbl">CMYK</span><span class="cv-val">0, 27, 39, 36</span><span style="font-size:9px;color:rgba(240,237,232,.2)">⎘</span></div>
+        </div>
+      </div>
+
+      <!-- Harmony Selector -->
+      <div class="harmony-card card">
+        <div class="section-label">Colors in Palette</div>
+        <div class="count-grid">
+          <div class="cnt-btn">2</div>
+          <div class="cnt-btn">3</div>
+          <div class="cnt-btn active">4</div>
+          <div class="cnt-btn">5</div>
+          <div class="cnt-btn">6</div>
+        </div>
+        <div class="divider"></div>
+        <div class="section-label">Color Harmony</div>
+        <div class="harmony-list">
+          <div class="h-item"><span class="h-icon">⊕</span><div><span class="h-name">Комплементарный</span><span class="h-name-en">Complementary</span></div></div>
+          <div class="h-item active"><span class="h-icon">≋</span><div><span class="h-name">Аналоговый</span><span class="h-name-en">Analogous</span></div><div class="h-dot"></div></div>
+          <div class="h-item"><span class="h-icon">△</span><div><span class="h-name">Триадный</span><span class="h-name-en">Triadic</span></div></div>
+          <div class="h-item"><span class="h-icon">⋈</span><div><span class="h-name">Раздельный</span><span class="h-name-en">Split-Complementary</span></div></div>
+          <div class="h-item"><span class="h-icon">□</span><div><span class="h-name">Тетрадный</span><span class="h-name-en">Tetradic</span></div></div>
+          <div class="h-item"><span class="h-icon">▓</span><div><span class="h-name">Монохромный</span><span class="h-name-en">Monochromatic</span></div></div>
+          <div class="h-item"><span class="h-icon">✦</span><div><span class="h-name">Пастельный</span><span class="h-name-en">Pastel Dream</span></div></div>
+          <div class="h-item"><span class="h-icon">◉</span><div><span class="h-name">Земляные тона</span><span class="h-name-en">Earth Tones</span></div></div>
+        </div>
+        <div class="h-desc">Adjacent colors — harmonious, natural, serene. Best for interiors and fashion.</div>
+      </div>
+
+    </div>
+
+    <!-- CENTER PANEL -->
+    <div class="center-panel">
+      <div class="pd-header">
+        <div>
+          <h2 class="pd-title">Аналоговый</h2>
+          <span class="pd-sub">Analogous · 4 colors</span>
+        </div>
+        <div class="pd-controls">
+          <div class="view-tabs">
+            <div class="vtab active">⬛</div>
+            <div class="vtab">▬</div>
+            <div class="vtab">⊞</div>
+          </div>
+          <button class="btn btn-ghost">🖼 Find Image</button>
+          <button class="btn btn-ghost">↓ Export</button>
+          <button class="btn btn-ghost">⎘ Copy All</button>
+        </div>
+      </div>
+
+      <!-- Swatches -->
+      <div class="swatch-grid">
+
+        <!-- Swatch 1 -->
+        <div class="swatch">
+          <div class="sw-color" style="background:#C4956A">
+            <div class="sw-overlay">
+              <div class="sw-copy">⎘ &nbsp;#C4956A</div>
+              <div class="sw-img">🖼</div>
+            </div>
+          </div>
+          <div class="sw-info">
+            <div class="si-hex">#C4956A</div>
+            <div class="si-p"><span class="si-pl">P</span><span class="si-pn">15-1132 Canyon Rose</span></div>
+            <div class="si-rgb">rgb(196, 149, 106)</div>
+          </div>
+        </div>
+
+        <!-- Swatch 2 — BASE -->
+        <div class="swatch base">
+          <div class="sw-color" style="background:#A47864">
+            <div class="sw-base-tag">Base</div>
+            <div class="sw-overlay">
+              <div class="sw-copy">⎘ &nbsp;#A47864</div>
+              <div class="sw-img">🖼</div>
+            </div>
+          </div>
+          <div class="sw-info">
+            <div class="si-hex">#A47864</div>
+            <div class="si-p"><span class="si-pl">P</span><span class="si-pn">17-1230 Mocha Mousse</span></div>
+            <div class="si-rgb">rgb(164, 120, 100)</div>
+          </div>
+        </div>
+
+        <!-- Swatch 3 -->
+        <div class="swatch">
+          <div class="sw-color" style="background:#8B5E3C">
+            <div class="sw-overlay">
+              <div class="sw-copy" style="color:rgba(255,255,255,.75)">⎘ &nbsp;#8B5E3C</div>
+              <div class="sw-img">🖼</div>
+            </div>
+          </div>
+          <div class="sw-info">
+            <div class="si-hex">#8B5E3C</div>
+            <div class="si-p"><span class="si-pl">P</span><span class="si-pn">18-1048 Adobe</span></div>
+            <div class="si-rgb">rgb(139, 94, 60)</div>
+          </div>
+        </div>
+
+        <!-- Swatch 4 -->
+        <div class="swatch">
+          <div class="sw-color" style="background:#D4B5A0">
+            <div class="sw-overlay">
+              <div class="sw-copy" style="color:rgba(0,0,0,.7)">⎘ &nbsp;#D4B5A0</div>
+              <div class="sw-img" style="color:rgba(0,0,0,.6)">🖼</div>
+            </div>
+          </div>
+          <div class="sw-info">
+            <div class="si-hex">#D4B5A0</div>
+            <div class="si-p"><span class="si-pl">P</span><span class="si-pn">14-1312 Pale Blush</span></div>
+            <div class="si-rgb">rgb(212, 181, 160)</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Harmony Info -->
+      <div class="h-bar">
+        <span class="hb-icon">≋</span>
+        <div>
+          <span class="hb-name">Аналоговый — Analogous</span>
+          <span class="hb-desc">Adjacent colors on the wheel — harmonious, natural, serene. Perfect for interiors, fashion, branding</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- ═══ IMAGE MODAL (overlay example) ═══ -->
+<div class="modal-overlay" style="position:relative;display:block;margin-top:-20px">
+  <div style="position:relative;z-index:1;padding:0 28px 48px;max-width:1400px;margin:0 auto">
+    <div class="section-label" style="margin-bottom:16px">Modal: Find Image (opens by button)</div>
+    <div class="modal" style="position:static">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Visual Inspiration</div>
+          <div class="modal-query">"Mocha Mousse Canyon interior design"</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost">↺ Refresh</button>
+          <div class="btn-icon">✕</div>
+        </div>
+      </div>
+      <div class="img-grid">
+        <div class="img-cell" style="background:linear-gradient(135deg,#c4956a,#8b5e3c)"><div class="img-ph">🏠</div></div>
+        <div class="img-cell" style="background:linear-gradient(135deg,#a47864,#d4b5a0)"><div class="img-ph">🎨</div></div>
+        <div class="img-cell" style="background:linear-gradient(135deg,#8b5e3c,#c4a882)"><div class="img-ph">🛋</div></div>
+        <div class="img-cell" style="background:linear-gradient(135deg,#d4b5a0,#a47864)"><div class="img-ph">🌿</div></div>
+        <div class="img-cell" style="background:linear-gradient(135deg,#c4956a,#6b5b45)"><div class="img-ph">👗</div></div>
+        <div class="img-cell" style="background:linear-gradient(135deg,#a47864,#8b5e3c)"><div class="img-ph">☕</div></div>
+        <div class="img-cell" style="background:linear-gradient(135deg,#f5e6d3,#c4956a)"><div class="img-ph">🕯</div></div>
+        <div class="img-cell" style="background:linear-gradient(135deg,#8b5e3c,#d4b5a0)"><div class="img-ph">🖼</div></div>
+        <div class="img-cell" style="background:linear-gradient(135deg,#c4a882,#a47864)"><div class="img-ph">🌅</div></div>
+      </div>
+      <div class="modal-footer">
+        <span>Images from Unsplash · Click to open source</span>
+        <a href="#">View more on Unsplash ↗</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP ICONS ═══ -->
+<div class="icon-section">
+  <div class="icon-title">App Icon Variants</div>
+  <div class="icons-row">
+
+    <!-- 512×512 main icon -->
+    <div class="icon-item">
+      <svg width="120" height="120" viewBox="0 0 512 512" fill="none">
+        <defs>
+          <radialGradient id="ibg" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#1a1a2e"/>
+            <stop offset="100%" stop-color="#0d0d1a"/>
+          </radialGradient>
+        </defs>
+        <circle cx="256" cy="256" r="256" fill="url(#ibg)"/>
+        <path d="M256 80 A176 176 0 0 1 432 256 L256 256 Z" fill="#4D96FF" opacity=".9"/>
+        <path d="M432 256 A176 176 0 0 1 256 432 L256 256 Z" fill="#6BCB77" opacity=".9"/>
+        <path d="M256 432 A176 176 0 0 1 80 256 L256 256 Z" fill="#F8B500" opacity=".9"/>
+        <path d="M80 256 A176 176 0 0 1 256 80 L256 256 Z" fill="#FF6B9D" opacity=".9"/>
+        <circle cx="256" cy="256" r="176" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+        <circle cx="256" cy="256" r="80" fill="#0d0d1a"/>
+        <circle cx="256" cy="256" r="72" fill="#1a1a2e"/>
+        <text x="256" y="280" font-family="Georgia,serif" font-size="72" font-weight="bold" text-anchor="middle" fill="white">C</text>
+        <circle cx="344" cy="168" r="8" fill="white" opacity=".5"/>
+        <circle cx="344" cy="344" r="8" fill="white" opacity=".5"/>
+        <circle cx="168" cy="344" r="8" fill="white" opacity=".5"/>
+        <circle cx="168" cy="168" r="8" fill="white" opacity=".5"/>
+      </svg>
+      <span class="icon-label">512×512 (Main)</span>
+    </div>
+
+    <!-- 256×256 -->
+    <div class="icon-item">
+      <svg width="80" height="80" viewBox="0 0 512 512" fill="none">
+        <circle cx="256" cy="256" r="256" fill="#111118"/>
+        <path d="M256 80 A176 176 0 0 1 432 256 L256 256 Z" fill="#4D96FF" opacity=".9"/>
+        <path d="M432 256 A176 176 0 0 1 256 432 L256 256 Z" fill="#6BCB77" opacity=".9"/>
+        <path d="M256 432 A176 176 0 0 1 80 256 L256 256 Z" fill="#F8B500" opacity=".9"/>
+        <path d="M80 256 A176 176 0 0 1 256 80 L256 256 Z" fill="#FF6B9D" opacity=".9"/>
+        <circle cx="256" cy="256" r="80" fill="#0d0d1a"/>
+        <text x="256" y="280" font-family="Georgia,serif" font-size="72" font-weight="bold" text-anchor="middle" fill="white">C</text>
+      </svg>
+      <span class="icon-label">256×256</span>
+    </div>
+
+    <!-- 64×64 favicon -->
+    <div class="icon-item">
+      <svg width="48" height="48" viewBox="0 0 64 64" fill="none">
+        <circle cx="32" cy="32" r="32" fill="#111118"/>
+        <path d="M32 10 A22 22 0 0 1 54 32 L32 32 Z" fill="#4D96FF"/>
+        <path d="M54 32 A22 22 0 0 1 32 54 L32 32 Z" fill="#6BCB77"/>
+        <path d="M32 54 A22 22 0 0 1 10 32 L32 32 Z" fill="#F8B500"/>
+        <path d="M10 32 A22 22 0 0 1 32 10 L32 32 Z" fill="#FF6B9D"/>
+        <circle cx="32" cy="32" r="10" fill="#0d0d1a"/>
+        <text x="32" y="36" font-family="Georgia,serif" font-size="11" font-weight="bold" text-anchor="middle" fill="white">C</text>
+      </svg>
+      <span class="icon-label">64×64 (Favicon)</span>
+    </div>
+
+    <!-- Monochrome version -->
+    <div class="icon-item">
+      <svg width="64" height="64" viewBox="0 0 512 512" fill="none">
+        <circle cx="256" cy="256" r="256" fill="#c4a882"/>
+        <path d="M256 80 A176 176 0 0 1 432 256 L256 256 Z" fill="rgba(0,0,0,.15)"/>
+        <path d="M432 256 A176 176 0 0 1 256 432 L256 256 Z" fill="rgba(0,0,0,.3)"/>
+        <path d="M256 432 A176 176 0 0 1 80 256 L256 256 Z" fill="rgba(0,0,0,.45)"/>
+        <path d="M80 256 A176 176 0 0 1 256 80 L256 256 Z" fill="rgba(0,0,0,.05)"/>
+        <circle cx="256" cy="256" r="80" fill="#0d0d1a"/>
+        <text x="256" y="280" font-family="Georgia,serif" font-size="72" font-weight="bold" text-anchor="middle" fill="#c4a882">C</text>
+      </svg>
+      <span class="icon-label">Monochrome</span>
+    </div>
+
+    <!-- Dark macOS dock style -->
+    <div class="icon-item">
+      <svg width="80" height="80" viewBox="0 0 512 512" fill="none">
+        <rect width="512" height="512" rx="114" fill="#111118"/>
+        <path d="M256 80 A176 176 0 0 1 432 256 L256 256 Z" fill="#4D96FF" opacity=".9"/>
+        <path d="M432 256 A176 176 0 0 1 256 432 L256 256 Z" fill="#6BCB77" opacity=".9"/>
+        <path d="M256 432 A176 176 0 0 1 80 256 L256 256 Z" fill="#F8B500" opacity=".9"/>
+        <path d="M80 256 A176 176 0 0 1 256 80 L256 256 Z" fill="#FF6B9D" opacity=".9"/>
+        <circle cx="256" cy="256" r="80" fill="#0a0a0f"/>
+        <text x="256" y="280" font-family="Georgia,serif" font-size="72" font-weight="bold" text-anchor="middle" fill="white">C</text>
+      </svg>
+      <span class="icon-label">macOS Dock (.icns)</span>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

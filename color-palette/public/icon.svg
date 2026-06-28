@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0d0d1a"/>
+    </radialGradient>
+    <linearGradient id="arc1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6B9D"/>
+      <stop offset="100%" stop-color="#C44569"/>
+    </linearGradient>
+    <linearGradient id="arc2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F8B500"/>
+      <stop offset="100%" stop-color="#E07B00"/>
+    </linearGradient>
+    <linearGradient id="arc3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6BCB77"/>
+      <stop offset="100%" stop-color="#2D9E47"/>
+    </linearGradient>
+    <linearGradient id="arc4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4D96FF"/>
+      <stop offset="100%" stop-color="#1A5FB4"/>
+    </linearGradient>
+    <linearGradient id="arc5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#B5179E"/>
+      <stop offset="100%" stop-color="#7209B7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="url(#bg)"/>
+
+  <!-- Color wheel arcs -->
+  <path d="M256 80 A176 176 0 0 1 432 256 L256 256 Z" fill="url(#arc4)" opacity="0.9"/>
+  <path d="M432 256 A176 176 0 0 1 256 432 L256 256 Z" fill="url(#arc3)" opacity="0.9"/>
+  <path d="M256 432 A176 176 0 0 1 80 256 L256 256 Z" fill="url(#arc2)" opacity="0.9"/>
+  <path d="M80 256 A176 176 0 0 1 256 80 L256 256 Z" fill="url(#arc1)" opacity="0.9"/>
+
+  <!-- Inner overlay for depth -->
+  <circle cx="256" cy="256" r="176" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+
+  <!-- Center circle -->
+  <circle cx="256" cy="256" r="80" fill="#0d0d1a"/>
+  <circle cx="256" cy="256" r="72" fill="#1a1a2e"/>
+
+  <!-- Center letter C -->
+  <text x="256" y="280" font-family="Georgia, serif" font-size="72" font-weight="bold"
+        text-anchor="middle" fill="white" letter-spacing="-2">C</text>
+
+  <!-- Highlight dots on arcs -->
+  <circle cx="344" cy="168" r="8" fill="white" opacity="0.6"/>
+  <circle cx="344" cy="344" r="8" fill="white" opacity="0.6"/>
+  <circle cx="168" cy="344" r="8" fill="white" opacity="0.6"/>
+  <circle cx="168" cy="168" r="8" fill="white" opacity="0.6"/>
+</svg>
