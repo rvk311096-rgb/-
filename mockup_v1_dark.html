@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Вариант 1 — Obsidian Style</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0f0f13;
+    --surface: #17171d;
+    --surface2: #1e1e27;
+    --border: #2a2a38;
+    --accent: #6c63ff;
+    --accent2: #a78bfa;
+    --text: #e2e2f0;
+    --muted: #6b6b8a;
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --red: #f87171;
+  }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+  /* SIDEBAR */
+  aside {
+    width: 220px; background: var(--surface); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 20px 12px; gap: 4px; flex-shrink: 0;
+  }
+  .logo { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; color: var(--text); padding: 4px 8px 16px; display: flex; align-items: center; gap: 8px; }
+  .logo-dot { width: 8px; height: 8px; border-radius: 2px; background: var(--accent); }
+  .nav-section { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); padding: 12px 8px 6px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 6px;
+    font-size: 13px; color: var(--muted); cursor: pointer; transition: all .15s;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--surface2); color: var(--text); }
+  .nav-item .icon { width: 14px; opacity: .7; font-style: normal; }
+  .lock-badge { margin-left: auto; font-size: 10px; opacity: .5; }
+  .sidebar-bottom { margin-top: auto; }
+
+  /* MAIN */
+  main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* HEADER */
+  header {
+    display: flex; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--border);
+    gap: 12px; background: var(--surface);
+  }
+  .breadcrumb { font-size: 13px; color: var(--muted); }
+  .breadcrumb span { color: var(--text); }
+  .header-actions { margin-left: auto; display: flex; gap: 8px; }
+  .btn {
+    padding: 6px 14px; border-radius: 6px; font-size: 12px; border: none; cursor: pointer;
+    font-family: inherit; font-weight: 500;
+  }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .search { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; color: var(--text); font-size: 12px; width: 200px; }
+
+  /* CONTENT */
+  .content { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 24px; }
+
+  /* TOP ROW */
+  .top-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .kpi-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; }
+  .kpi-value { font-size: 26px; font-weight: 700; letter-spacing: -1px; }
+  .kpi-delta { font-size: 11px; color: var(--green); }
+  .kpi-delta.neg { color: var(--red); }
+
+  /* BOARDS GRID */
+  .section-header { display: flex; align-items: center; justify-content: space-between; }
+  .section-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; }
+  .boards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .board-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px; cursor: pointer; transition: border-color .15s;
+    display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden;
+  }
+  .board-card:hover { border-color: var(--accent); }
+  .board-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .board-card.c1::before { background: var(--accent); }
+  .board-card.c2::before { background: var(--green); }
+  .board-card.c3::before { background: var(--amber); }
+  .board-card.c4::before { background: var(--red); }
+  .board-card.c5::before { background: #60a5fa; }
+  .board-card.c6::before { background: #f472b6; }
+  .board-name { font-size: 14px; font-weight: 600; }
+  .board-meta { font-size: 11px; color: var(--muted); }
+  .board-progress-bar { height: 3px; background: var(--border); border-radius: 2px; }
+  .board-progress-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+  .board-footer { display: flex; align-items: center; justify-content: space-between; }
+  .board-type { font-size: 10px; padding: 2px 7px; border-radius: 4px; background: var(--surface2); color: var(--muted); }
+  .lock-icon { font-size: 12px; opacity: .5; }
+
+  /* ROADMAP */
+  .roadmap-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .roadmap-title { font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+  .roadmap-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; font-size: 12px; }
+  .roadmap-label { width: 120px; color: var(--muted); flex-shrink: 0; }
+  .roadmap-track { flex: 1; height: 24px; background: var(--surface2); border-radius: 4px; position: relative; overflow: hidden; }
+  .roadmap-bar {
+    position: absolute; top: 4px; height: 16px; border-radius: 3px;
+    display: flex; align-items: center; padding: 0 8px; font-size: 10px; white-space: nowrap; overflow: hidden;
+  }
+  .rb1 { left: 5%; width: 35%; background: var(--accent); }
+  .rb2 { left: 15%; width: 45%; background: var(--green); }
+  .rb3 { left: 40%; width: 30%; background: var(--amber); color: #1a1a1a; }
+  .rb4 { left: 10%; width: 55%; background: #60a5fa; }
+  .quarter-marks { display: flex; margin-left: 132px; }
+  .quarter-mark { flex: 1; font-size: 10px; color: var(--muted); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="logo"><div class="logo-dot"></div> Strat</div>
+
+  <div class="nav-section">Workspace</div>
+  <div class="nav-item active"><i class="icon">⊞</i> Все доски</div>
+  <div class="nav-item"><i class="icon">◎</i> Мои задачи</div>
+
+  <div class="nav-section">Доски</div>
+  <div class="nav-item"><i class="icon">▦</i> Q3 Стратегия</div>
+  <div class="nav-item"><i class="icon">↗</i> Роудмеп 2026 <span class="lock-badge">🔒</span></div>
+  <div class="nav-item"><i class="icon">◈</i> OKR / Цели</div>
+  <div class="nav-item"><i class="icon">⊡</i> Маркетинг <span class="lock-badge">🔒</span></div>
+  <div class="nav-item"><i class="icon">≡</i> Продукт</div>
+  <div class="nav-item"><i class="icon">⬡</i> Финансы</div>
+
+  <div class="sidebar-bottom">
+    <div class="nav-item"><i class="icon">⚙</i> Настройки</div>
+    <div class="nav-item"><i class="icon">＋</i> Новая доска</div>
+  </div>
+</aside>
+
+<main>
+  <header>
+    <div class="breadcrumb">Workspace <span>/ Обзор</span></div>
+    <input class="search" placeholder="⌘K  Быстрый поиск…">
+    <div class="header-actions">
+      <button class="btn btn-ghost">Фильтр</button>
+      <button class="btn btn-primary">+ Создать</button>
+    </div>
+  </header>
+
+  <div class="content">
+    <!-- KPIs -->
+    <div class="top-row">
+      <div class="kpi-card">
+        <div class="kpi-label">Всего досок</div>
+        <div class="kpi-value">6</div>
+        <div class="kpi-delta">↑ 2 за месяц</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Задачи в работе</div>
+        <div class="kpi-value">24</div>
+        <div class="kpi-delta">↑ 8 новых</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Выполнено</div>
+        <div class="kpi-value">71%</div>
+        <div class="kpi-delta">↑ +12% к плану</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">До дедлайна</div>
+        <div class="kpi-value">18д</div>
+        <div class="kpi-delta neg">↓ -3 дня</div>
+      </div>
+    </div>
+
+    <!-- Boards -->
+    <div>
+      <div class="section-header" style="margin-bottom:12px">
+        <div class="section-title">Доски и роудмепы</div>
+      </div>
+      <div class="boards-grid">
+        <div class="board-card c1">
+          <div class="board-name">Q3 Стратегия</div>
+          <div class="board-meta">Обновлено 2 ч назад · 12 задач</div>
+          <div class="board-progress-bar"><div class="board-progress-fill" style="width:68%; background:#6c63ff"></div></div>
+          <div class="board-footer"><span class="board-type">Дашборд</span></div>
+        </div>
+        <div class="board-card c2">
+          <div class="board-name">Роудмеп 2026</div>
+          <div class="board-meta">Обновлено вчера · 8 задач</div>
+          <div class="board-progress-bar"><div class="board-progress-fill" style="width:45%; background:#4ade80"></div></div>
+          <div class="board-footer"><span class="board-type">Роудмеп</span><span class="lock-icon">🔒</span></div>
+        </div>
+        <div class="board-card c3">
+          <div class="board-name">OKR / Цели</div>
+          <div class="board-meta">Обновлено 3 дня назад · 20 задач</div>
+          <div class="board-progress-bar"><div class="board-progress-fill" style="width:82%; background:#fbbf24"></div></div>
+          <div class="board-footer"><span class="board-type">OKR</span></div>
+        </div>
+        <div class="board-card c4">
+          <div class="board-name">Маркетинг</div>
+          <div class="board-meta">Обновлено 1 ч назад · 6 задач</div>
+          <div class="board-progress-bar"><div class="board-progress-fill" style="width:30%; background:#f87171"></div></div>
+          <div class="board-footer"><span class="board-type">Доска</span><span class="lock-icon">🔒</span></div>
+        </div>
+        <div class="board-card c5">
+          <div class="board-name">Продукт</div>
+          <div class="board-meta">Обновлено 5 ч назад · 15 задач</div>
+          <div class="board-progress-bar"><div class="board-progress-fill" style="width:55%; background:#60a5fa"></div></div>
+          <div class="board-footer"><span class="board-type">Спринт</span></div>
+        </div>
+        <div class="board-card c6">
+          <div class="board-name">Финансы</div>
+          <div class="board-meta">Обновлено сегодня · 4 задачи</div>
+          <div class="board-progress-bar"><div class="board-progress-fill" style="width:90%; background:#f472b6"></div></div>
+          <div class="board-footer"><span class="board-type">Дашборд</span><span class="lock-icon">🔒</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Roadmap preview -->
+    <div class="roadmap-section">
+      <div class="roadmap-title">Общий роудмеп · 2026</div>
+      <div class="quarter-marks">
+        <div class="quarter-mark">Q1</div><div class="quarter-mark">Q2</div>
+        <div class="quarter-mark">Q3</div><div class="quarter-mark">Q4</div>
+      </div>
+      <br>
+      <div class="roadmap-row">
+        <div class="roadmap-label">Стратегия</div>
+        <div class="roadmap-track"><div class="roadmap-bar rb1">Стратегическое планирование</div></div>
+      </div>
+      <div class="roadmap-row">
+        <div class="roadmap-label">Продукт</div>
+        <div class="roadmap-track"><div class="roadmap-bar rb2">MVP → Запуск v2.0</div></div>
+      </div>
+      <div class="roadmap-row">
+        <div class="roadmap-label">Маркетинг</div>
+        <div class="roadmap-track"><div class="roadmap-bar rb3">Кампания Q3</div></div>
+      </div>
+      <div class="roadmap-row">
+        <div class="roadmap-label">Финансы</div>
+        <div class="roadmap-track"><div class="roadmap-bar rb4">Бюджетирование 2026</div></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

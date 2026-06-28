@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Вариант 2 — Editorial Light</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #f5f4f1;
+    --surface: #ffffff;
+    --surface2: #f0efe9;
+    --border: #e8e6df;
+    --accent: #1a1a2e;
+    --accent2: #4f46e5;
+    --text: #1a1a2e;
+    --muted: #8b8a85;
+    --green: #16a34a;
+    --amber: #d97706;
+    --blue: #2563eb;
+    --red: #dc2626;
+    --purple: #7c3aed;
+  }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+  /* SIDEBAR */
+  aside {
+    width: 240px; background: var(--surface); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 20px 14px; gap: 2px; flex-shrink: 0;
+  }
+  .logo { font-size: 16px; font-weight: 800; letter-spacing: -0.5px; color: var(--accent); padding: 0 8px 20px; }
+  .logo sub { font-size: 10px; font-weight: 400; color: var(--muted); letter-spacing: 0; }
+  .nav-section { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); padding: 14px 8px 5px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 8px;
+    font-size: 13.5px; color: var(--muted); cursor: pointer; transition: all .12s;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--accent); color: #fff; }
+  .nav-item.active .dot { background: rgba(255,255,255,.4); }
+  .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .dot-purple { background: var(--purple); }
+  .dot-green { background: var(--green); }
+  .dot-amber { background: var(--amber); }
+  .dot-blue { background: var(--blue); }
+  .dot-red { background: var(--red); }
+  .nav-badge { margin-left: auto; font-size: 10px; background: var(--surface2); padding: 1px 6px; border-radius: 10px; color: var(--muted); }
+  .nav-lock { margin-left: auto; font-size: 11px; color: var(--muted); opacity: .6; }
+  .sidebar-bottom { margin-top: auto; padding-top: 8px; border-top: 1px solid var(--border); }
+  .add-btn {
+    width: 100%; padding: 9px; border-radius: 8px; border: 1.5px dashed var(--border);
+    background: transparent; color: var(--muted); font-size: 12.5px; cursor: pointer; font-family: inherit;
+  }
+  .add-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* MAIN */
+  main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* TOPBAR */
+  header {
+    display: flex; align-items: center; padding: 14px 28px; border-bottom: 1px solid var(--border);
+    background: var(--surface); gap: 12px;
+  }
+  .page-title { font-size: 15px; font-weight: 700; letter-spacing: -.2px; }
+  .tab-group { display: flex; gap: 2px; background: var(--surface2); padding: 3px; border-radius: 8px; margin-left: 8px; }
+  .tab { padding: 4px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; color: var(--muted); }
+  .tab.active { background: var(--surface); color: var(--text); font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .search { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; color: var(--text); font-size: 12px; width: 190px; }
+  .avatar { width: 28px; height: 28px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; font-weight: 600; }
+
+  /* CONTENT */
+  .content { flex: 1; overflow-y: auto; padding: 28px; display: flex; flex-direction: column; gap: 28px; }
+
+  /* HERO ROW */
+  .hero { background: var(--accent); border-radius: 14px; padding: 24px 28px; display: flex; align-items: center; justify-content: space-between; color: #fff; }
+  .hero-left { display: flex; flex-direction: column; gap: 6px; }
+  .hero-eyebrow { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; opacity: .5; }
+  .hero-title { font-size: 22px; font-weight: 800; letter-spacing: -.5px; }
+  .hero-sub { font-size: 12.5px; opacity: .55; }
+  .hero-stats { display: flex; gap: 24px; }
+  .hero-stat { display: flex; flex-direction: column; align-items: flex-end; }
+  .hero-stat-val { font-size: 24px; font-weight: 800; }
+  .hero-stat-label { font-size: 10px; opacity: .5; }
+
+  /* CARDS GRID */
+  .boards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .board-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 20px; cursor: pointer; transition: all .15s; display: flex; flex-direction: column; gap: 12px;
+  }
+  .board-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.07); }
+  .card-top { display: flex; align-items: center; justify-content: space-between; }
+  .card-icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .ci-purple { background: #ede9fe; }
+  .ci-green { background: #dcfce7; }
+  .ci-amber { background: #fef3c7; }
+  .ci-blue { background: #dbeafe; }
+  .ci-red { background: #fee2e2; }
+  .ci-pink { background: #fce7f3; }
+  .card-lock { font-size: 13px; opacity: .35; }
+  .card-name { font-size: 14px; font-weight: 700; letter-spacing: -.1px; }
+  .card-desc { font-size: 12px; color: var(--muted); }
+  .card-bar { height: 4px; background: var(--surface2); border-radius: 3px; }
+  .card-bar-fill { height: 100%; border-radius: 3px; }
+  .card-footer { display: flex; align-items: center; justify-content: space-between; }
+  .card-tag { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+  .tag-purple { background: #ede9fe; color: var(--purple); }
+  .tag-green { background: #dcfce7; color: var(--green); }
+  .tag-amber { background: #fef3c7; color: var(--amber); }
+  .tag-blue { background: #dbeafe; color: var(--blue); }
+  .card-pct { font-size: 12px; font-weight: 700; color: var(--muted); }
+
+  /* ROADMAP */
+  .two-col { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .panel-title { font-size: 13px; font-weight: 700; letter-spacing: -.1px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+  .panel-tag { font-size: 10px; background: var(--surface2); padding: 2px 8px; border-radius: 20px; color: var(--muted); font-weight: 400; }
+
+  .rm-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+  .rm-label { width: 80px; font-size: 11.5px; color: var(--muted); flex-shrink: 0; }
+  .rm-track { flex: 1; height: 20px; background: var(--surface2); border-radius: 4px; position: relative; overflow: hidden; }
+  .rm-bar { position: absolute; top: 3px; height: 14px; border-radius: 3px; font-size: 9.5px; display: flex; align-items: center; padding: 0 7px; white-space: nowrap; overflow: hidden; font-weight: 500; color: #fff; }
+
+  .activity-item { display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start; }
+  .activity-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); margin-top: 5px; flex-shrink: 0; }
+  .activity-dot.done { background: var(--green); }
+  .activity-dot.active { background: var(--blue); }
+  .activity-text { font-size: 12.5px; }
+  .activity-time { font-size: 11px; color: var(--muted); }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="logo">STRAT <sub>Планирование</sub></div>
+
+  <div class="nav-section">Главное</div>
+  <div class="nav-item active">⊞ &nbsp;Обзор</div>
+  <div class="nav-item">◉ &nbsp;Мои задачи <span class="nav-badge">7</span></div>
+
+  <div class="nav-section">Доски</div>
+  <div class="nav-item"><span class="dot dot-purple"></span> Q3 Стратегия</div>
+  <div class="nav-item"><span class="dot dot-green"></span> Роудмеп 2026 <span class="nav-lock">🔒</span></div>
+  <div class="nav-item"><span class="dot dot-amber"></span> OKR / Цели</div>
+  <div class="nav-item"><span class="dot dot-blue"></span> Маркетинг <span class="nav-lock">🔒</span></div>
+  <div class="nav-item"><span class="dot dot-red"></span> Продукт</div>
+
+  <div class="sidebar-bottom">
+    <button class="add-btn">＋ &nbsp;Новая доска</button>
+  </div>
+</aside>
+
+<main>
+  <header>
+    <div class="page-title">Обзор</div>
+    <div class="tab-group">
+      <div class="tab active">Все</div>
+      <div class="tab">Дашборды</div>
+      <div class="tab">Роудмепы</div>
+      <div class="tab">OKR</div>
+    </div>
+    <div class="header-right">
+      <input class="search" placeholder="🔍  Поиск по доскам…">
+      <div class="avatar">АК</div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-left">
+        <div class="hero-eyebrow">Q2 → Q3 · 2026</div>
+        <div class="hero-title">Стратегический обзор</div>
+        <div class="hero-sub">5 активных досок · последнее обновление 2 ч назад</div>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-val">71%</div>
+          <div class="hero-stat-label">Выполнено</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val">24</div>
+          <div class="hero-stat-label">Задач активно</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val">18д</div>
+          <div class="hero-stat-label">До дедлайна</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOARDS GRID -->
+    <div class="boards-grid">
+      <div class="board-card">
+        <div class="card-top">
+          <div class="card-icon ci-purple">📊</div>
+        </div>
+        <div>
+          <div class="card-name">Q3 Стратегия</div>
+          <div class="card-desc">12 задач · обновлено 2 ч назад</div>
+        </div>
+        <div class="card-bar"><div class="card-bar-fill" style="width:68%;background:#7c3aed"></div></div>
+        <div class="card-footer"><span class="card-tag tag-purple">Дашборд</span><span class="card-pct">68%</span></div>
+      </div>
+      <div class="board-card">
+        <div class="card-top">
+          <div class="card-icon ci-green">🗺</div>
+          <div class="card-lock">🔒</div>
+        </div>
+        <div>
+          <div class="card-name">Роудмеп 2026</div>
+          <div class="card-desc">8 задач · обновлено вчера</div>
+        </div>
+        <div class="card-bar"><div class="card-bar-fill" style="width:45%;background:#16a34a"></div></div>
+        <div class="card-footer"><span class="card-tag tag-green">Роудмеп</span><span class="card-pct">45%</span></div>
+      </div>
+      <div class="board-card">
+        <div class="card-top">
+          <div class="card-icon ci-amber">🎯</div>
+        </div>
+        <div>
+          <div class="card-name">OKR / Цели</div>
+          <div class="card-desc">20 задач · обновлено 3 дня назад</div>
+        </div>
+        <div class="card-bar"><div class="card-bar-fill" style="width:82%;background:#d97706"></div></div>
+        <div class="card-footer"><span class="card-tag tag-amber">OKR</span><span class="card-pct">82%</span></div>
+      </div>
+      <div class="board-card">
+        <div class="card-top">
+          <div class="card-icon ci-blue">📢</div>
+          <div class="card-lock">🔒</div>
+        </div>
+        <div>
+          <div class="card-name">Маркетинг</div>
+          <div class="card-desc">6 задач · обновлено 1 ч назад</div>
+        </div>
+        <div class="card-bar"><div class="card-bar-fill" style="width:30%;background:#2563eb"></div></div>
+        <div class="card-footer"><span class="card-tag tag-blue">Доска</span><span class="card-pct">30%</span></div>
+      </div>
+      <div class="board-card">
+        <div class="card-top">
+          <div class="card-icon ci-red">⚙️</div>
+        </div>
+        <div>
+          <div class="card-name">Продукт</div>
+          <div class="card-desc">15 задач · обновлено 5 ч назад</div>
+        </div>
+        <div class="card-bar"><div class="card-bar-fill" style="width:55%;background:#dc2626"></div></div>
+        <div class="card-footer"><span class="card-tag" style="background:#fee2e2;color:#dc2626">Спринт</span><span class="card-pct">55%</span></div>
+      </div>
+      <div class="board-card" style="border-style:dashed;display:flex;align-items:center;justify-content:center;color:var(--muted);gap:8px">
+        <span style="font-size:22px;opacity:.3">＋</span>
+        <span style="font-size:13px">Новая доска</span>
+      </div>
+    </div>
+
+    <!-- ROADMAP + ACTIVITY -->
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">Роудмеп · 2026 <span class="panel-tag">Обзор</span></div>
+        <div class="rm-row">
+          <div class="rm-label">Стратегия</div>
+          <div class="rm-track"><div class="rm-bar" style="left:5%;width:38%;background:#7c3aed">Планирование</div></div>
+        </div>
+        <div class="rm-row">
+          <div class="rm-label">Продукт</div>
+          <div class="rm-track"><div class="rm-bar" style="left:12%;width:50%;background:#16a34a">MVP → v2.0</div></div>
+        </div>
+        <div class="rm-row">
+          <div class="rm-label">Маркетинг</div>
+          <div class="rm-track"><div class="rm-bar" style="left:38%;width:32%;background:#d97706">Кампания Q3</div></div>
+        </div>
+        <div class="rm-row">
+          <div class="rm-label">Финансы</div>
+          <div class="rm-track"><div class="rm-bar" style="left:8%;width:60%;background:#2563eb">Бюджетирование</div></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Активность</div>
+        <div class="activity-item"><div class="activity-dot done"></div><div><div class="activity-text">Задача «Анализ рынка» закрыта</div><div class="activity-time">2 ч назад</div></div></div>
+        <div class="activity-item"><div class="activity-dot active"></div><div><div class="activity-text">Роудмеп 2026 обновлён</div><div class="activity-time">вчера</div></div></div>
+        <div class="activity-item"><div class="activity-dot"></div><div><div class="activity-text">Новый OKR добавлен</div><div class="activity-time">3 дня назад</div></div></div>
+        <div class="activity-item"><div class="activity-dot done"></div><div><div class="activity-text">Бюджет Q2 утверждён</div><div class="activity-time">5 дней назад</div></div></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>
