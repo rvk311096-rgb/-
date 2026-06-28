@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Mockup — Ветки</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #06060f;
+  --text: rgba(255,255,255,.90);
+  --muted: rgba(255,255,255,.38);
+  --subtle: rgba(255,255,255,.08);
+  --glass: rgba(255,255,255,.055);
+  --glass-h: rgba(255,255,255,.09);
+  --blur: blur(32px);
+  --crimson: #c0152a;
+  --blue: #1e3a8a;
+}
+body {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* orbs */
+.orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.orb { position: absolute; border-radius: 50%; filter: blur(110px); opacity: .45; }
+.o1 { width: 700px; height: 700px; background: #8b0000; top: -260px; left: -180px; }
+.o2 { width: 600px; height: 600px; background: #0d1f5c; bottom: -200px; right: -160px; }
+.o3 { width: 400px; height: 400px; background: #6d0020; top: 30%; left: 50%; }
+
+.wrap { position: relative; z-index: 1; padding: 40px 48px; }
+
+h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px; font-weight: 700; letter-spacing: -.3px;
+  margin-bottom: 4px;
+}
+.sub { font-size: 13px; color: var(--muted); margin-bottom: 36px; }
+
+/* ── VARIANT A: Timeline with branches ───────────────────────────────── */
+.variant-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 20px;
+}
+
+/* VARIANT A — vertical spine + horizontal branches */
+.tree-a {
+  position: relative;
+  padding-left: 32px;
+  margin-bottom: 60px;
+}
+/* vertical spine */
+.tree-a::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,.15) 10%, rgba(255,255,255,.15) 90%, transparent);
+}
+
+.branch {
+  position: relative;
+  margin-bottom: 32px;
+}
+/* horizontal connector from spine */
+.branch::before {
+  content: '';
+  position: absolute;
+  left: -32px; top: 14px;
+  width: 28px; height: 2px;
+  background: var(--branch-color, rgba(255,255,255,.2));
+}
+/* dot on spine */
+.branch::after {
+  content: '';
+  position: absolute;
+  left: -37px; top: 9px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--branch-color, rgba(255,255,255,.3));
+  box-shadow: 0 0 10px var(--branch-color, transparent);
+}
+
+.branch-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--branch-color);
+  margin-bottom: 10px;
+}
+
+.items-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.item-chip {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-left: 3px solid var(--branch-color);
+  border-radius: 8px;
+  padding: 9px 14px;
+  min-width: 160px;
+  backdrop-filter: blur(12px);
+  position: relative;
+}
+.item-chip::before {
+  content: '';
+  position: absolute;
+  left: -14px; top: 50%;
+  transform: translateY(-50%);
+  width: 12px; height: 1px;
+  background: var(--branch-color);
+  opacity: .5;
+}
+.item-name { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+.item-date { font-size: 11px; color: var(--muted); }
+.item-status {
+  display: inline-block;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--branch-color);
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+/* date ticks at top */
+.timeline-scale {
+  display: flex;
+  margin-left: 0;
+  margin-bottom: 24px;
+  padding-left: 32px;
+  gap: 0;
+}
+.tick {
+  flex: 1;
+  font-size: 10px;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-left: 1px solid rgba(255,255,255,.06);
+  padding-left: 6px;
+  padding-bottom: 8px;
+}
+
+/* ── VARIANT B: radial mind-map ───────────────────────────────────────── */
+.map-b {
+  width: 100%;
+  max-width: 700px;
+  aspect-ratio: 1;
+  position: relative;
+  margin: 0 auto 60px;
+}
+.map-b svg {
+  width: 100%; height: 100%;
+}
+
+/* ── VARIANT C: diagonal branches (git-style) ───────────────────────── */
+.git-wrap {
+  overflow-x: auto;
+  padding-bottom: 12px;
+}
+.git-graph {
+  min-width: 700px;
+  position: relative;
+  height: 220px;
+}
+.git-graph svg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+}
+.git-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+.git-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid var(--branch-color);
+  background: #06060f;
+  box-shadow: 0 0 8px var(--branch-color);
+}
+.git-chip {
+  position: absolute;
+  top: 16px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-left: 3px solid var(--branch-color);
+  border-radius: 8px;
+  padding: 7px 12px;
+  white-space: nowrap;
+  font-size: 12px;
+  backdrop-filter: blur(12px);
+}
+.git-chip-name { font-weight: 500; }
+.git-chip-date { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+/* shared */
+.divider {
+  border: none; border-top: 1px solid var(--subtle);
+  margin: 48px 0;
+}
+</style>
+</head>
+<body>
+
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+
+<div class="wrap">
+  <h2>Сводная карта</h2>
+  <p class="sub">Три варианта — выбери понравившийся</p>
+
+  <!-- ════════ VARIANT A: Timeline + branches ════════ -->
+  <div class="variant-label">Вариант A — Временная шкала с ветками</div>
+
+  <div class="timeline-scale">
+    <div class="tick">Сен 26</div>
+    <div class="tick">Окт 26</div>
+    <div class="tick">Ноя 26</div>
+    <div class="tick">Дек 26</div>
+  </div>
+
+  <div class="tree-a">
+
+    <div class="branch" style="--branch-color:#c0152a;">
+      <div class="branch-label">2026 · Личное</div>
+      <div class="items-row">
+        <div class="item-chip" style="--branch-color:#c0152a;">
+          <div class="item-name"><span class="item-status"></span>Отпуск</div>
+          <div class="item-date">15 окт — 30 окт</div>
+        </div>
+        <div class="item-chip" style="--branch-color:#c0152a;">
+          <div class="item-name"><span class="item-status"></span>Курс вождения</div>
+          <div class="item-date">1 ноя — 20 ноя</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="branch" style="--branch-color:#3b6fd4;">
+      <div class="branch-label">Работа</div>
+      <div class="items-row">
+        <div class="item-chip" style="--branch-color:#3b6fd4;">
+          <div class="item-name"><span class="item-status"></span>Запуск продукта</div>
+          <div class="item-date">1 окт — 15 ноя</div>
+        </div>
+        <div class="item-chip" style="--branch-color:#3b6fd4;">
+          <div class="item-name"><span class="item-status"></span>Ревизия бюджета</div>
+          <div class="item-date">20 окт — 31 окт</div>
+        </div>
+        <div class="item-chip" style="--branch-color:#3b6fd4;">
+          <div class="item-name"><span class="item-status"></span>Конференция</div>
+          <div class="item-date">10 дек</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="branch" style="--branch-color:#9f1239;">
+      <div class="branch-label">Здоровье</div>
+      <div class="items-row">
+        <div class="item-chip" style="--branch-color:#9f1239;">
+          <div class="item-name"><span class="item-status"></span>Марафон</div>
+          <div class="item-date">5 ноя</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <hr class="divider">
+
+  <!-- ════════ VARIANT B: Radial mind-map ════════ -->
+  <div class="variant-label">Вариант B — Радиальная карта (mind map)</div>
+
+  <div class="map-b">
+    <svg viewBox="0 0 700 700" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- center -->
+      <circle cx="350" cy="350" r="38" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/>
+      <text x="350" y="346" text-anchor="middle" font-family="Syne,sans-serif" font-size="11" font-weight="700" letter-spacing="2" fill="rgba(255,255,255,.8)" text-transform="uppercase">ПЛАН</text>
+      <text x="350" y="362" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="rgba(255,255,255,.35)">2026</text>
+
+      <!-- branch 1: crimson top-left -->
+      <line x1="318" y1="322" x2="190" y2="180" stroke="#c0152a" stroke-width="1.5" stroke-opacity=".6"/>
+      <circle cx="190" cy="180" r="6" fill="#c0152a" opacity=".8"/>
+      <text x="175" y="160" text-anchor="middle" font-family="Syne,sans-serif" font-size="10" font-weight="700" letter-spacing="1.5" fill="#c0152a" opacity=".9">ЛИЧНОЕ</text>
+      <!-- items -->
+      <line x1="190" y1="180" x2="100" y2="100" stroke="#c0152a" stroke-width="1" stroke-opacity=".3" stroke-dasharray="3,3"/>
+      <rect x="20" y="62" width="100" height="40" rx="8" fill="rgba(192,21,42,.08)" stroke="rgba(192,21,42,.3)" stroke-width="1"/>
+      <text x="70" y="80" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(255,255,255,.85)">Отпуск</text>
+      <text x="70" y="95" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="rgba(255,255,255,.35)">15–30 окт</text>
+
+      <line x1="190" y1="180" x2="80" y2="200" stroke="#c0152a" stroke-width="1" stroke-opacity=".3" stroke-dasharray="3,3"/>
+      <rect x="0" y="175" width="110" height="40" rx="8" fill="rgba(192,21,42,.08)" stroke="rgba(192,21,42,.3)" stroke-width="1"/>
+      <text x="55" y="193" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(255,255,255,.85)">Курс вождения</text>
+      <text x="55" y="208" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="rgba(255,255,255,.35)">1–20 ноя</text>
+
+      <!-- branch 2: blue top-right -->
+      <line x1="382" y1="322" x2="510" y2="180" stroke="#3b6fd4" stroke-width="1.5" stroke-opacity=".6"/>
+      <circle cx="510" cy="180" r="6" fill="#3b6fd4" opacity=".8"/>
+      <text x="525" y="160" text-anchor="middle" font-family="Syne,sans-serif" font-size="10" font-weight="700" letter-spacing="1.5" fill="#3b6fd4" opacity=".9">РАБОТА</text>
+      <line x1="510" y1="180" x2="590" y2="90" stroke="#3b6fd4" stroke-width="1" stroke-opacity=".3" stroke-dasharray="3,3"/>
+      <rect x="540" y="56" width="130" height="40" rx="8" fill="rgba(59,111,212,.08)" stroke="rgba(59,111,212,.3)" stroke-width="1"/>
+      <text x="605" y="74" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(255,255,255,.85)">Запуск продукта</text>
+      <text x="605" y="89" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="rgba(255,255,255,.35)">окт – ноя</text>
+
+      <line x1="510" y1="180" x2="620" y2="180" stroke="#3b6fd4" stroke-width="1" stroke-opacity=".3" stroke-dasharray="3,3"/>
+      <rect x="628" y="160" width="65" height="40" rx="8" fill="rgba(59,111,212,.08)" stroke="rgba(59,111,212,.3)" stroke-width="1"/>
+      <text x="660" y="178" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(255,255,255,.85)">Конф.</text>
+      <text x="660" y="193" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="rgba(255,255,255,.35)">10 дек</text>
+
+      <!-- branch 3: red bottom -->
+      <line x1="350" y1="388" x2="350" y2="520" stroke="#9f1239" stroke-width="1.5" stroke-opacity=".6"/>
+      <circle cx="350" cy="520" r="6" fill="#9f1239" opacity=".8"/>
+      <text x="350" y="542" text-anchor="middle" font-family="Syne,sans-serif" font-size="10" font-weight="700" letter-spacing="1.5" fill="#9f1239" opacity=".9">ЗДОРОВЬЕ</text>
+      <line x1="350" y1="520" x2="350" y2="600" stroke="#9f1239" stroke-width="1" stroke-opacity=".3" stroke-dasharray="3,3"/>
+      <rect x="285" y="605" width="130" height="40" rx="8" fill="rgba(159,18,57,.08)" stroke="rgba(159,18,57,.3)" stroke-width="1"/>
+      <text x="350" y="623" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(255,255,255,.85)">Марафон</text>
+      <text x="350" y="638" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="rgba(255,255,255,.35)">5 ноября</text>
+
+    </svg>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ════════ VARIANT C: git-style diagonal ════════ -->
+  <div class="variant-label">Вариант C — Git-style диагональные ветки</div>
+  <div class="git-wrap">
+    <div class="git-graph">
+      <svg viewBox="0 0 1000 220" preserveAspectRatio="xMidYMid meet">
+        <!-- main spine (crimson) -->
+        <line x1="60" y1="60" x2="940" y2="60" stroke="#c0152a" stroke-width="2" stroke-opacity=".5"/>
+        <!-- branch 2 (blue) -->
+        <path d="M 200 60 C 240 60 240 130 280 130 L 700 130 C 740 130 740 60 780 60"
+              stroke="#3b6fd4" stroke-width="2" stroke-opacity=".5" fill="none"/>
+        <!-- branch 3 (dark red) -->
+        <path d="M 400 60 C 430 60 430 170 460 170 L 560 170 C 590 170 590 60 620 60"
+              stroke="#9f1239" stroke-width="2" stroke-opacity=".5" fill="none"/>
+
+        <!-- today line -->
+        <line x1="300" y1="20" x2="300" y2="200" stroke="rgba(255,255,255,.15)" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="304" y="18" font-family="DM Sans,sans-serif" font-size="9" fill="rgba(255,255,255,.3)">сегодня</text>
+
+        <!-- nodes crimson -->
+        <circle cx="60"  cy="60" r="6" fill="#c0152a" stroke="#06060f" stroke-width="2"/>
+        <circle cx="200" cy="60" r="6" fill="#c0152a" stroke="#06060f" stroke-width="2"/>
+        <circle cx="400" cy="60" r="6" fill="#c0152a" stroke="#06060f" stroke-width="2"/>
+        <circle cx="780" cy="60" r="6" fill="#c0152a" stroke="#06060f" stroke-width="2"/>
+        <circle cx="940" cy="60" r="6" fill="#c0152a" stroke="#06060f" stroke-width="2" opacity=".4"/>
+
+        <!-- nodes blue -->
+        <circle cx="280" cy="130" r="6" fill="#3b6fd4" stroke="#06060f" stroke-width="2"/>
+        <circle cx="520" cy="130" r="6" fill="#3b6fd4" stroke="#06060f" stroke-width="2"/>
+        <circle cx="700" cy="130" r="6" fill="#3b6fd4" stroke="#06060f" stroke-width="2"/>
+
+        <!-- nodes darkred -->
+        <circle cx="460" cy="170" r="6" fill="#9f1239" stroke="#06060f" stroke-width="2"/>
+        <circle cx="560" cy="170" r="6" fill="#9f1239" stroke="#06060f" stroke-width="2"/>
+
+        <!-- labels top (crimson branch) -->
+        <text x="60"  y="48" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="rgba(255,255,255,.6)">Личное</text>
+        <text x="200" y="48" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="rgba(255,255,255,.6)">Отпуск</text>
+        <text x="200" y="38" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8"  fill="rgba(255,255,255,.3)">15–30 окт</text>
+        <text x="400" y="48" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="rgba(255,255,255,.6)">Курс вожд.</text>
+        <text x="400" y="38" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8"  fill="rgba(255,255,255,.3)">1–20 ноя</text>
+
+        <!-- labels blue branch -->
+        <text x="280" y="150" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="rgba(255,255,255,.6)">Работа</text>
+        <text x="520" y="150" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="rgba(255,255,255,.6)">Запуск</text>
+        <text x="520" y="162" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8"  fill="rgba(255,255,255,.3)">окт–ноя</text>
+        <text x="700" y="150" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="rgba(255,255,255,.6)">Конф.</text>
+        <text x="700" y="162" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8"  fill="rgba(255,255,255,.3)">10 дек</text>
+
+        <!-- labels darkred branch -->
+        <text x="460" y="192" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="rgba(255,255,255,.6)">Здоровье</text>
+        <text x="560" y="192" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="rgba(255,255,255,.6)">Марафон</text>
+        <text x="560" y="204" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="8"  fill="rgba(255,255,255,.3)">5 ноя</text>
+      </svg>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
