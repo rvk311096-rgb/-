@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# CHROMIA — Color Palette Studio
-# Installation script for macOS
-
 set -e
 
 GREEN='\033[0;32m'
@@ -13,161 +10,99 @@ RESET='\033[0m'
 BOLD='\033[1m'
 
 echo ""
-echo -e "${CYAN}${BOLD}"
-echo "  ██████╗██╗  ██╗██████╗  ██████╗ ███╗   ███╗██╗ █████╗ "
-echo " ██╔════╝██║  ██║██╔══██╗██╔═══██╗████╗ ████║██║██╔══██╗"
-echo " ██║     ███████║██████╔╝██║   ██║██╔████╔██║██║███████║"
-echo " ██║     ██╔══██║██╔══██╗██║   ██║██║╚██╔╝██║██║██╔══██║"
-echo " ╚██████╗██║  ██║██║  ██║╚██████╔╝██║ ╚═╝ ██║██║██║  ██║"
-echo "  ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝╚═╝╚═╝  ╚═╝"
-echo -e "${RESET}"
-echo -e "  ${CYAN}Color Palette Studio${RESET}  ·  ${YELLOW}Pantone® Referenced${RESET}  ·  ${GREEN}2026 Trends${RESET}"
+echo -e "${CYAN}${BOLD}  ▓▓▓  CHROMIA — Color Palette Studio  ▓▓▓${RESET}"
+echo -e "  ${YELLOW}Pantone® Referenced${RESET}  ·  ${GREEN}2026 Trends${RESET}"
 echo ""
 
-# ── Check Node.js ──────────────────────────────────────────────
+# ── Check Node.js ─────────────────────────────────────────
 echo -e "${BOLD}Checking prerequisites...${RESET}"
 
-if ! command -v node &>/dev/null; then
+if ! command -v node >/dev/null 2>&1; then
   echo -e "${YELLOW}Node.js not found. Installing via Homebrew...${RESET}"
-
-  if ! command -v brew &>/dev/null; then
-    echo -e "${RED}Homebrew not found. Installing Homebrew first...${RESET}"
+  if ! command -v brew >/dev/null 2>&1; then
+    echo -e "${RED}Homebrew not found. Installing Homebrew...${RESET}"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    # Add to PATH for Apple Silicon
     if [ -f /opt/homebrew/bin/brew ]; then
       eval "$(/opt/homebrew/bin/brew shellenv)"
     fi
   fi
-
   brew install node
 fi
 
-NODE_VERSION=$(node --version)
-echo -e "  ${GREEN}✓${RESET} Node.js ${NODE_VERSION}"
-
-# ── Check npm ──────────────────────────────────────────────────
-if ! command -v npm &>/dev/null; then
-  echo -e "${RED}npm not found. Please install Node.js from https://nodejs.org${RESET}"
-  exit 1
-fi
+echo -e "  ${GREEN}✓${RESET} Node.js $(node --version)"
 echo -e "  ${GREEN}✓${RESET} npm $(npm --version)"
 
-# ── Install dependencies ───────────────────────────────────────
+# ── Install dependencies ──────────────────────────────────
 echo ""
 echo -e "${BOLD}Installing dependencies...${RESET}"
 npm install --silent
-
 echo -e "  ${GREEN}✓${RESET} All packages installed"
 
-# ── Create launcher script ────────────────────────────────────
+# ── Get script directory ──────────────────────────────────
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# ── Create launcher script ────────────────────────────────
 echo ""
 echo -e "${BOLD}Creating launcher...${RESET}"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LAUNCHER="$SCRIPT_DIR/chromia.sh"
+printf '#!/bin/bash\n' > "$LAUNCHER"
+printf 'cd "%s"\n' "$SCRIPT_DIR" >> "$LAUNCHER"
+printf 'echo "Starting CHROMIA..."\n' >> "$LAUNCHER"
+printf 'npm run dev -- --open\n' >> "$LAUNCHER"
+chmod +x "$LAUNCHER"
+echo -e "  ${GREEN}✓${RESET} Launcher: $LAUNCHER"
 
-cat > "$SCRIPT_DIR/chromia.sh" <<LAUNCHER
-#!/bin/bash
-cd "$SCRIPT_DIR"
-echo ""
-echo "  Starting CHROMIA Color Palette Studio..."
-echo "  Opening at http://localhost:3000"
-echo ""
-npm run dev -- --open 2>/dev/null
-LAUNCHER
-
-chmod +x "$SCRIPT_DIR/chromia.sh"
-echo -e "  ${GREEN}✓${RESET} Launcher created: chromia.sh"
-
-# ── macOS App Bundle (optional) ───────────────────────────────
-if [[ "$OSTYPE" == "darwin"* ]]; then
+# ── macOS App Bundle ──────────────────────────────────────
+if [[ "$(uname)" == "Darwin" ]]; then
   echo ""
   echo -e "${BOLD}Creating macOS app bundle...${RESET}"
 
   APP_DIR="$HOME/Applications/Chromia.app"
-  CONTENTS="$APP_DIR/Contents"
-  mkdir -p "$CONTENTS/MacOS" "$CONTENTS/Resources"
+  MACOS_DIR="$APP_DIR/Contents/MacOS"
+  mkdir -p "$MACOS_DIR"
 
   # Info.plist
-  cat > "$CONTENTS/Info.plist" <<PLIST
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
-  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>CFBundleExecutable</key>
-  <string>chromia</string>
-  <key>CFBundleIconFile</key>
-  <string>AppIcon</string>
-  <key>CFBundleIdentifier</key>
-  <string>studio.chromia.palette</string>
-  <key>CFBundleName</key>
-  <string>Chromia</string>
-  <key>CFBundleDisplayName</key>
-  <string>Chromia</string>
-  <key>CFBundleVersion</key>
-  <string>1.0.0</string>
-  <key>CFBundleShortVersionString</key>
-  <string>1.0</string>
-  <key>CFBundlePackageType</key>
-  <string>APPL</string>
-  <key>LSMinimumSystemVersion</key>
-  <string>12.0</string>
-  <key>NSHighResolutionCapable</key>
-  <true/>
-</dict>
-</plist>
-PLIST
+  PLIST="$APP_DIR/Contents/Info.plist"
+  printf '<?xml version="1.0" encoding="UTF-8"?>\n' > "$PLIST"
+  printf '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n' >> "$PLIST"
+  printf '<plist version="1.0"><dict>\n' >> "$PLIST"
+  printf '  <key>CFBundleExecutable</key><string>chromia</string>\n' >> "$PLIST"
+  printf '  <key>CFBundleIdentifier</key><string>studio.chromia.palette</string>\n' >> "$PLIST"
+  printf '  <key>CFBundleName</key><string>Chromia</string>\n' >> "$PLIST"
+  printf '  <key>CFBundleDisplayName</key><string>Chromia</string>\n' >> "$PLIST"
+  printf '  <key>CFBundleVersion</key><string>1.0.0</string>\n' >> "$PLIST"
+  printf '  <key>CFBundleShortVersionString</key><string>1.0</string>\n' >> "$PLIST"
+  printf '  <key>CFBundlePackageType</key><string>APPL</string>\n' >> "$PLIST"
+  printf '  <key>NSHighResolutionCapable</key><true/>\n' >> "$PLIST"
+  printf '</dict></plist>\n' >> "$PLIST"
 
   # Executable
-  cat > "$CONTENTS/MacOS/chromia" <<APP
-#!/bin/bash
-cd "$SCRIPT_DIR"
-# Start dev server in background
-npm run dev &>/tmp/chromia.log &
-SERVER_PID=\$!
+  APP_BIN="$MACOS_DIR/chromia"
+  printf '#!/bin/bash\n' > "$APP_BIN"
+  printf 'cd "%s"\n' "$SCRIPT_DIR" >> "$APP_BIN"
+  printf 'npm run dev >/tmp/chromia.log 2>&1 &\n' >> "$APP_BIN"
+  printf 'SERVER_PID=$!\n' >> "$APP_BIN"
+  printf 'sleep 2\n' >> "$APP_BIN"
+  printf 'for i in $(seq 1 20); do\n' >> "$APP_BIN"
+  printf '  curl -s http://localhost:3000 >/dev/null 2>&1 && break\n' >> "$APP_BIN"
+  printf '  sleep 0.5\n' >> "$APP_BIN"
+  printf 'done\n' >> "$APP_BIN"
+  printf 'open http://localhost:3000\n' >> "$APP_BIN"
+  printf 'wait $SERVER_PID\n' >> "$APP_BIN"
+  chmod +x "$APP_BIN"
 
-# Wait for server to be ready
-sleep 2
-for i in {1..20}; do
-  if curl -s http://localhost:3000 &>/dev/null; then
-    break
-  fi
-  sleep 0.5
-done
-
-# Open in default browser
-open http://localhost:3000
-
-# Keep running until window closes
-wait \$SERVER_PID
-APP
-
-  chmod +x "$CONTENTS/MacOS/chromia"
-
-  echo -e "  ${GREEN}✓${RESET} App bundle: ~/Applications/Chromia.app"
-
-  # ── Dock alias ────────────────────────────────────────────
-  echo ""
-  read -p "  Add Chromia to Dock? (y/n): " ADD_DOCK
-  if [[ "$ADD_DOCK" =~ ^[Yy]$ ]]; then
-    # Add to Dock via defaults
-    DOCK_DB=$(defaults read com.apple.dock persistent-apps 2>/dev/null || echo "()")
-    defaults write com.apple.dock persistent-apps -array-add \
-      "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>$APP_DIR</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"
-    killall Dock
-    echo -e "  ${GREEN}✓${RESET} Added to Dock"
-  fi
+  echo -e "  ${GREEN}✓${RESET} App bundle: $APP_DIR"
 fi
 
-# ── Done ──────────────────────────────────────────────────────
+# ── Done ──────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}${BOLD}Installation complete!${RESET}"
 echo ""
-echo -e "  To start CHROMIA:"
-echo -e "    ${CYAN}./chromia.sh${RESET}         — run from terminal"
-if [[ "$OSTYPE" == "darwin"* ]]; then
-echo -e "    ${CYAN}~/Applications/Chromia.app${RESET} — double-click"
+echo -e "  To launch CHROMIA:"
+echo -e "    ${CYAN}./chromia.sh${RESET}"
+if [[ "$(uname)" == "Darwin" ]]; then
+  echo -e "    ${CYAN}open ~/Applications/Chromia.app${RESET}"
 fi
-echo ""
-echo -e "  Or simply: ${CYAN}npm start${RESET}"
+echo -e "    ${CYAN}npm start${RESET}"
 echo ""
