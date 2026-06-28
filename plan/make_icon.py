@@ -180,6 +180,7 @@ print('Иконка готова')
 
 # ── Build .app bundle ─────────────────────────────────────────────────────
 shutil.rmtree(APP, ignore_errors=True)
+shutil.rmtree(os.path.join(DESKTOP, 'Plan.app'), ignore_errors=True)  # убираем старую
 os.makedirs(f'{APP}/Contents/MacOS')
 os.makedirs(f'{APP}/Contents/Resources')
 
