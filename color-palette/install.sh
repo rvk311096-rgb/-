@@ -95,6 +95,13 @@ if [[ "$(uname)" == "Darwin" ]]; then
   echo -e "  ${GREEN}✓${RESET} App bundle: $APP_DIR"
 fi
 
+# ── Generate icon ─────────────────────────────────────────
+if [[ "$(uname)" == "Darwin" ]]; then
+  echo ""
+  echo -e "${BOLD}Generating app icon...${RESET}"
+  bash "$SCRIPT_DIR/make-icon.sh" 2>/dev/null || echo -e "  ${YELLOW}Icon generation skipped (run ./make-icon.sh manually)${RESET}"
+fi
+
 # ── Done ──────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}${BOLD}Installation complete!${RESET}"
@@ -102,7 +109,7 @@ echo ""
 echo -e "  To launch CHROMIA:"
 echo -e "    ${CYAN}./chromia.sh${RESET}"
 if [[ "$(uname)" == "Darwin" ]]; then
-  echo -e "    ${CYAN}open ~/Applications/Chromia.app${RESET}"
+  echo -e "    ${CYAN}open ~/Applications/Chromia.app${RESET}   (or double-click on Desktop)"
 fi
 echo -e "    ${CYAN}npm start${RESET}"
 echo ""
