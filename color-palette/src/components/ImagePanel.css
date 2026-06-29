@@ -208,3 +208,140 @@
 .ip-footer a:hover {
   text-decoration: underline;
 }
+
+/* ── Key setup screen ─────────────────────────────────────── */
+.ip-setup {
+  max-width: 520px;
+}
+
+.ip-key-screen {
+  padding: 32px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+
+.ip-key-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+
+.ip-key-screen h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.ip-key-screen p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.ip-key-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: left;
+}
+
+.ip-step-link {
+  font-size: 13px;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+.ip-step-link:hover { text-decoration: underline; }
+
+.ip-step {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.ip-key-input-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.ip-key-input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-mono);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.ip-key-input:focus { border-color: var(--accent); }
+.ip-key-input::placeholder { color: rgba(240,237,232,0.25); }
+
+.ip-key-note {
+  font-size: 11px;
+  color: rgba(240,237,232,0.3);
+  margin: 0;
+}
+
+.ip-key-reset {
+  opacity: 0.5;
+}
+.ip-key-reset:hover { opacity: 1; }
+
+/* ── 6-image grid ─────────────────────────────────────────── */
+.ip-grid-6 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* ── Credit ───────────────────────────────────────────────── */
+.ip-credit {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 9px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(6px);
+  padding: 2px 6px;
+  border-radius: 6px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.ip-image-wrap:hover .ip-credit { opacity: 1; }
+.ip-credit a {
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+}
+
+/* ── Error bar ────────────────────────────────────────────── */
+.ip-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #f87171;
+  padding: 0 24px;
+}
+
+.ip-error-bar {
+  padding: 10px 24px;
+  background: rgba(248,113,113,0.08);
+  border-top: 1px solid rgba(248,113,113,0.15);
+  border-bottom: 1px solid rgba(248,113,113,0.15);
+}
