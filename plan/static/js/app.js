@@ -1060,7 +1060,7 @@ function openNoteModal(note) {
   $('#modal-note-title').textContent = note ? 'Редактировать стикер' : 'Новый стикер';
   $('#m-note-text').value = note ? note.text : '';
   $('#m-note-pass').value = '';
-  state.selectedNoteColor = note ? note.color : '#ffd166';
+  state.selectedNoteColor = note ? note.color : '#c0152a';
   buildNoteColorPicker();
   openModal('modal-note');
   setTimeout(() => $('#m-note-text').focus(), 50);
