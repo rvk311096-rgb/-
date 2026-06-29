@@ -56,8 +56,8 @@ export default function App() {
     setMode('random')
   }, [colorCount])
 
-  const handleShowImage = useCallback((query) => {
-    setImageQuery(query)
+  const handleShowImage = useCallback((hexArray) => {
+    setImageQuery(hexArray)
     setShowImage(true)
   }, [])
 
@@ -104,7 +104,7 @@ export default function App() {
       {/* IMAGE MODAL */}
       {showImage && (
         <ImagePanel
-          query={imageQuery}
+          palette={Array.isArray(imageQuery) ? imageQuery : [imageQuery]}
           onClose={() => setShowImage(false)}
         />
       )}

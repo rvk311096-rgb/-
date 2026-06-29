@@ -34,10 +34,8 @@ export default function PaletteDisplay({ palette, baseColor, harmonyId, randomIn
     URL.revokeObjectURL(url)
   }
 
-  const imageQuery = palette.map(hex => {
-    const p = findClosestPantone(hex)
-    return p?.name?.split(' ').pop() || ''
-  }).filter(Boolean).join(' ') + ' color palette interior design'
+  // Pass full palette hex array — ImagePanel generates category-diverse queries
+  const imagePalette = palette
 
   return (
     <div className="palette-display">
@@ -71,7 +69,7 @@ export default function PaletteDisplay({ palette, baseColor, harmonyId, randomIn
             ))}
           </div>
 
-          <button className="btn btn-ghost btn-sm" onClick={() => onShowImage(imageQuery)}>
+          <button className="btn btn-ghost btn-sm" onClick={() => onShowImage(imagePalette)}>
             <Image size={14} />
             Find Image
           </button>
@@ -183,7 +181,7 @@ function ColorSwatch({ hex, index, isBase, onShowImage, onColorSelect }) {
           <button
             className="swatch-img-btn"
             style={{ color: textColor, borderColor: `${textColor}30` }}
-            onClick={(e) => { e.stopPropagation(); onShowImage?.(query) }}
+            onClick={(e) => { e.stopPropagation(); onShowImage?.([hex]) }}
           >
             <Image size={12} />
           </button>
@@ -234,7 +232,7 @@ function ColorStrip({ hex, index, isBase, onShowImage }) {
         <button className="btn btn-icon" onClick={() => { navigator.clipboard.writeText(hex); setCopied(true); setTimeout(() => setCopied(false), 1200) }}>
           {copied ? <Check size={13} /> : <Copy size={13} />}
         </button>
-        <button className="btn btn-icon" onClick={() => onShowImage?.(pantone?.name + ' color')}>
+        <button className="btn btn-icon" onClick={() => onShowImage?.([hex])}>
           <Image size={13} />
         </button>
       </div>
