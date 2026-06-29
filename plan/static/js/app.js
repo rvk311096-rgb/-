@@ -921,7 +921,7 @@ function mapSave() {
 /* ══════════════════════════════════════════════════════════════════════════
    STICKER NOTES
    ══════════════════════════════════════════════════════════════════════════ */
-const NOTE_COLORS = ['#ffd166','#f4845f','#c0152a','#3b6fd4','#06d6a0','#a78bfa','#f9f9f9'];
+const NOTE_COLORS = ['#c0152a','#9f1239','#7f1d1d','#1e3a8a','#1d4ed8','#312e81','rgba(255,255,255,.08)'];
 
 function renderHomeNotes() {
   const strip = $('#notes-strip');
