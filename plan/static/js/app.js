@@ -372,8 +372,8 @@ function openAddItem() {
   $('#modal-item .modal-title').textContent = 'Новый план';
   $('#m-item-title').value = '';
   $('#m-item-note').value = '';
-  $('#m-item-start').value = todayStr();
-  $('#m-item-due').value = todayStr();
+  $('#m-item-start').value = '';
+  $('#m-item-due').value = '';
   setStatusButtons('planned');
   openModal('modal-item');
   setTimeout(() => $('#m-item-title').focus(), 50);
@@ -529,7 +529,7 @@ $('#modal-overlay').addEventListener('click', e => { if (e.target === $('#modal-
 async function showTimeline() {
   showView('timeline');
   renderPicker();
-  $('#timeline-canvas').innerHTML = '';
+  mapInit();
 }
 
 function renderPicker() {
@@ -554,25 +554,21 @@ $('#btn-build-timeline').addEventListener('click', buildTimeline);
 async function buildTimeline() {
   const selected = $$('#timeline-picker .picker-chip.selected');
   if (!selected.length) { alert('Выберите хотя бы один раздел'); return; }
-
   const sections = selected.map(chip => ({
     id: parseInt(chip.dataset.id),
     password: state.sectionPasswords[chip.dataset.id] || '',
   }));
-
   try {
     const res = await api('POST', '/api/timeline', { sections });
-
-    // handle locked
     if (res.locked && res.locked.length) {
-      await unlockSequential(res.locked, sections, res.items);
+      await unlockSequential(res.locked, sections);
     } else {
-      renderBranches(res.items, $('#timeline-canvas'));
+      mapLoadItems(res.items);
     }
   } catch(e) { alert(e.message); }
 }
 
-async function unlockSequential(locked, sections, existingItems) {
+async function unlockSequential(locked, sections) {
   for (const sec of locked) {
     await new Promise(resolve => {
       promptPassword(sec, async (pw) => {
@@ -583,73 +579,335 @@ async function unlockSequential(locked, sections, existingItems) {
       });
     });
   }
-  // retry with updated passwords
   const res = await api('POST', '/api/timeline', { sections });
-  renderBranches(res.items, $('#timeline-canvas'));
+  mapLoadItems(res.items);
 }
 
-/* ── Branch map (timeline view) ────────────────────────────────────────── */
-function renderBranches(items, canvas) {
-  canvas.innerHTML = '';
-  if (!items.length) {
-    canvas.innerHTML = `<div class="empty-state"><span>◌</span>Нет планов для отображения</div>`;
-    return;
-  }
+/* ══════════════════════════════════════════════════════════════════════════
+   INTERACTIVE MAP
+   ══════════════════════════════════════════════════════════════════════════ */
+const map = {
+  pan: { x: 0, y: 0 }, scale: 1,
+  dragging: false, dragStart: null, panStart: null,
+  tool: 'pan',
+  connectSource: null,
+  canvas: { positions: {}, connections: [], stickers: [] },
+  saveTimer: null,
+};
+const WORLD_OFFSET = 2800; // initial centre of 6000px world
 
-  // group by section
-  const sections = [];
-  const byId = {};
-  items.forEach(item => {
-    if (!byId[item.section_id]) {
-      byId[item.section_id] = { id: item.section_id, name: item.section_name, color: item.section_color, items: [] };
-      sections.push(byId[item.section_id]);
+function mapInit() {
+  const vp = $('#map-viewport');
+  const world = $('#map-world');
+  const hint = $('#map-hint');
+  if (!vp || map._inited) return;
+  map._inited = true;
+
+  // centre world
+  map.pan.x = -(WORLD_OFFSET - vp.clientWidth / 2);
+  map.pan.y = -(WORLD_OFFSET - vp.clientHeight / 2);
+  mapApplyTransform();
+
+  // load saved canvas state
+  api('GET', '/api/canvas').then(c => { map.canvas = c; }).catch(() => {});
+
+  // ── pan ──────────────────────────────────────────────────────────────
+  vp.addEventListener('mousedown', e => {
+    if (e.target !== vp && e.target !== world && e.target !== $('#map-svg') && map.tool !== 'pan') return;
+    if (map.tool !== 'pan') return;
+    map.dragging = true;
+    map.dragStart = { mx: e.clientX, my: e.clientY, px: map.pan.x, py: map.pan.y };
+    vp.classList.add('cursor-grabbing');
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', e => {
+    if (!map.dragging) return;
+    map.pan.x = map.dragStart.px + e.clientX - map.dragStart.mx;
+    map.pan.y = map.dragStart.py + e.clientY - map.dragStart.my;
+    mapApplyTransform();
+  });
+  window.addEventListener('mouseup', () => {
+    map.dragging = false;
+    vp.classList.remove('cursor-grabbing');
+  });
+
+  // ── zoom (scroll) ─────────────────────────────────────────────────
+  vp.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.08 : 0.93;
+    const rect = vp.getBoundingClientRect();
+    const ox = e.clientX - rect.left;
+    const oy = e.clientY - rect.top;
+    map.pan.x = ox - (ox - map.pan.x) * factor;
+    map.pan.y = oy - (oy - map.pan.y) * factor;
+    map.scale = Math.max(0.25, Math.min(2.5, map.scale * factor));
+    mapApplyTransform();
+  }, { passive: false });
+
+  // ── sticker click on empty space ─────────────────────────────────
+  vp.addEventListener('click', e => {
+    if (map.tool !== 'sticker') return;
+    if (e.target !== vp && e.target !== world && e.target !== $('#map-svg')) return;
+    const rect = vp.getBoundingClientRect();
+    const wx = (e.clientX - rect.left - map.pan.x) / map.scale;
+    const wy = (e.clientY - rect.top  - map.pan.y) / map.scale;
+    const s = { id: 's' + Date.now(), x: wx - 85, y: wy - 40, text: '' };
+    map.canvas.stickers.push(s);
+    mapRenderSticker(s);
+    mapSave();
+  });
+
+  // toolbar
+  $$('.map-tool[data-tool]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      map.tool = btn.dataset.tool;
+      map.connectSource = null;
+      $$('.map-tool').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      vp.className = 'map-viewport';
+      if (map.tool === 'pan')     vp.classList.add('cursor-grab');
+      if (map.tool === 'connect') vp.classList.add('cursor-crosshair');
+      if (map.tool === 'sticker') vp.classList.add('cursor-cell');
+      if (map.tool === 'erase')   vp.classList.add('cursor-crosshair');
+      mapRedrawLines();
+    });
+  });
+
+  $('#btn-map-fit').addEventListener('click', mapFit);
+
+  // keyboard: Space = pan
+  window.addEventListener('keydown', e => {
+    if (e.code === 'Space' && document.getElementById('view-timeline')?.classList.contains('active')) {
+      e.preventDefault();
+      map.tool = 'pan';
+      $$('.map-tool').forEach(b => b.classList.remove('active'));
+      $('[data-tool="pan"]').classList.add('active');
     }
-    byId[item.section_id].items.push(item);
+  });
+}
+
+function mapApplyTransform() {
+  $('#map-world').style.transform = `translate(${map.pan.x}px,${map.pan.y}px) scale(${map.scale})`;
+}
+
+async function mapLoadItems(items) {
+  const world = $('#map-world');
+  const hint = $('#map-hint');
+  hint?.classList.add('hidden');
+
+  // remove old nodes
+  $$('.map-node', world).forEach(n => n.remove());
+
+  // load saved positions
+  try { map.canvas = await api('GET', '/api/canvas'); } catch(e) { map.canvas = { positions: {}, connections: [], stickers: [] }; }
+
+  // group by section for auto-layout
+  const bySection = {};
+  items.forEach(item => {
+    if (!bySection[item.section_id]) bySection[item.section_id] = { color: item.section_color, name: item.section_name, items: [] };
+    bySection[item.section_id].items.push(item);
   });
 
-  const wrap = document.createElement('div');
-  wrap.className = 'branches-wrap';
+  let secCol = 0;
+  Object.values(bySection).forEach(sec => {
+    sec.items.forEach((item, rowIdx) => {
+      const key = 'item-' + item.id;
+      const defaultX = WORLD_OFFSET - 300 + secCol * 230;
+      const defaultY = WORLD_OFFSET - 200 + rowIdx * 130;
+      const pos = map.canvas.positions[key] || { x: defaultX, y: defaultY };
+      mapRenderNode(item, pos, sec.color);
+    });
+    secCol++;
+  });
 
-  sections.forEach(sec => {
-    const branch = document.createElement('div');
-    branch.className = 'branch-row';
-    branch.style.setProperty('--bc', sec.color);
+  // render saved stickers
+  (map.canvas.stickers || []).forEach(s => mapRenderSticker(s));
 
-    const lbl = document.createElement('div');
-    lbl.className = 'branch-section-label';
-    lbl.textContent = sec.name;
+  mapRedrawLines();
+  mapFit();
+}
 
-    const chips = document.createElement('div');
-    chips.className = 'branch-chips';
+function mapRenderNode(item, pos, color) {
+  const world = $('#map-world');
+  const key = 'item-' + item.id;
+  const node = document.createElement('div');
+  node.className = 'map-node';
+  node.dataset.key = key;
+  node.dataset.itemId = item.id;
+  node.style.cssText = `left:${pos.x}px;top:${pos.y}px;--nc:${color};`;
 
-    sec.items
-      .slice()
-      .sort((a, b) => (a.start_date || '').localeCompare(b.start_date || ''))
-      .forEach(item => {
-        const chip = document.createElement('div');
-        chip.className = 'branch-chip';
-        chip.style.setProperty('--bc', sec.color);
+  const dateStr = [item.start_date, item.due_date].filter(Boolean).join(' → ');
+  node.innerHTML = `
+    <div class="map-node-section">${esc(item.section_name)}</div>
+    <div class="map-node-title">${esc(item.title)}</div>
+    ${dateStr ? `<div class="map-node-meta">${dateStr}</div>` : ''}
+    ${item.note ? `<div class="map-node-meta" style="opacity:.6">${esc(item.note)}</div>` : ''}
+  `;
 
-        const statusClass = { planned: 'st-planned', active: 'st-active', done: 'st-done' }[item.status] || 'st-planned';
-        const dateStr = [item.start_date, item.due_date].filter(Boolean).join(' → ');
+  makeDraggable(node, key);
+  node.addEventListener('click', e => {
+    e.stopPropagation();
+    if (map.tool === 'connect') {
+      if (!map.connectSource) {
+        map.connectSource = key;
+        node.classList.add('connect-source');
+      } else if (map.connectSource !== key) {
+        const conn = { id: 'c' + Date.now(), from: map.connectSource, to: key };
+        map.canvas.connections.push(conn);
+        $$('.connect-source', world).forEach(n => n.classList.remove('connect-source'));
+        map.connectSource = null;
+        mapRedrawLines();
+        mapSave();
+      }
+    } else if (map.tool === 'erase') {
+      node.remove();
+    }
+  });
 
-        chip.innerHTML = `
-          <div class="bchip-dot ${statusClass}"></div>
-          <div class="bchip-body">
-            <div class="bchip-title">${esc(item.title)}</div>
-            ${dateStr ? `<div class="bchip-date">${dateStr}</div>` : ''}
-            ${item.note ? `<div class="bchip-note">${esc(item.note)}</div>` : ''}
-          </div>
-        `;
-        chips.appendChild(chip);
+  world.appendChild(node);
+}
+
+function mapRenderSticker(s) {
+  const world = $('#map-world');
+  const el = document.createElement('div');
+  el.className = 'map-sticker';
+  el.dataset.stickerId = s.id;
+  el.style.cssText = `left:${s.x}px;top:${s.y}px;`;
+  el.innerHTML = `
+    <div class="map-sticker-text" contenteditable="true">${esc(s.text)}</div>
+    <div class="map-sticker-actions">
+      <button class="sticker-add-btn">+ В планы</button>
+    </div>
+  `;
+
+  const textEl = el.querySelector('.map-sticker-text');
+  textEl.addEventListener('blur', () => {
+    s.text = textEl.textContent.trim();
+    mapSave();
+  });
+  textEl.addEventListener('click', e => e.stopPropagation());
+
+  el.querySelector('.sticker-add-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    openNewItemModalWithText(s.text);
+  });
+
+  makeDraggable(el, null, s);
+
+  el.addEventListener('click', e => {
+    if (map.tool === 'erase') {
+      map.canvas.stickers = map.canvas.stickers.filter(x => x.id !== s.id);
+      el.remove();
+      mapSave();
+    }
+  });
+
+  world.appendChild(el);
+}
+
+function makeDraggable(el, posKey, stickerObj) {
+  let startX, startY, startL, startT, moved;
+  el.addEventListener('mousedown', e => {
+    if (e.target.contentEditable === 'true') return;
+    if (e.target.tagName === 'BUTTON') return;
+    if (map.tool === 'erase') return;
+    if (map.tool === 'connect') return;
+    e.stopPropagation();
+    e.preventDefault();
+    startX = e.clientX; startY = e.clientY;
+    startL = parseInt(el.style.left); startT = parseInt(el.style.top);
+    moved = false;
+    const onMove = ev => {
+      const dx = (ev.clientX - startX) / map.scale;
+      const dy = (ev.clientY - startY) / map.scale;
+      if (Math.abs(dx) + Math.abs(dy) > 2) moved = true;
+      el.style.left = (startL + dx) + 'px';
+      el.style.top  = (startT + dy) + 'px';
+      if (posKey) {
+        map.canvas.positions[posKey] = { x: startL + dx, y: startT + dy };
+        mapRedrawLines();
+      } else if (stickerObj) {
+        stickerObj.x = startL + dx;
+        stickerObj.y = startT + dy;
+      }
+    };
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      if (moved) mapSave();
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  });
+}
+
+function mapRedrawLines() {
+  const svg = $('#map-svg');
+  svg.innerHTML = '';
+  const world = $('#map-world');
+
+  (map.canvas.connections || []).forEach(conn => {
+    const fromEl = world.querySelector(`[data-key="${conn.from}"]`);
+    const toEl   = world.querySelector(`[data-key="${conn.to}"]`);
+    if (!fromEl || !toEl) return;
+
+    const fx = parseInt(fromEl.style.left) + fromEl.offsetWidth / 2;
+    const fy = parseInt(fromEl.style.top)  + fromEl.offsetHeight / 2;
+    const tx = parseInt(toEl.style.left)   + toEl.offsetWidth / 2;
+    const ty = parseInt(toEl.style.top)    + toEl.offsetHeight / 2;
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', fx); line.setAttribute('y1', fy);
+    line.setAttribute('x2', tx); line.setAttribute('y2', ty);
+    line.style.pointerEvents = 'stroke';
+
+    if (map.tool === 'erase') {
+      line.addEventListener('mouseenter', () => line.classList.add('erase-hover'));
+      line.addEventListener('mouseleave', () => line.classList.remove('erase-hover'));
+      line.addEventListener('click', () => {
+        map.canvas.connections = map.canvas.connections.filter(c => c.id !== conn.id);
+        mapRedrawLines();
+        mapSave();
       });
-
-    branch.appendChild(lbl);
-    branch.appendChild(chips);
-    wrap.appendChild(branch);
+    }
+    svg.appendChild(line);
   });
+}
 
-  canvas.appendChild(wrap);
+function mapFit() {
+  const vp = $('#map-viewport');
+  const nodes = $$('.map-node, .map-sticker', $('#map-world'));
+  if (!nodes.length) return;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  nodes.forEach(n => {
+    const x = parseInt(n.style.left), y = parseInt(n.style.top);
+    minX = Math.min(minX, x); minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x + 200); maxY = Math.max(maxY, y + 100);
+  });
+  const pad = 60;
+  const scaleX = (vp.clientWidth  - pad * 2) / (maxX - minX || 1);
+  const scaleY = (vp.clientHeight - pad * 2) / (maxY - minY || 1);
+  map.scale = Math.max(0.3, Math.min(1.4, Math.min(scaleX, scaleY)));
+  map.pan.x = pad - minX * map.scale;
+  map.pan.y = pad - minY * map.scale;
+  mapApplyTransform();
+}
+
+function openNewItemModalWithText(text) {
+  state.editingItem = null;
+  $('#modal-item .modal-title').textContent = 'Новый план';
+  $('#m-item-title').value = text || '';
+  $('#m-item-note').value = '';
+  $('#m-item-start').value = '';
+  $('#m-item-due').value = '';
+  setStatusButtons('planned');
+  openModal('modal-item');
+  setTimeout(() => $('#m-item-title').focus(), 50);
+}
+
+function mapSave() {
+  clearTimeout(map.saveTimer);
+  map.saveTimer = setTimeout(() => api('PUT', '/api/canvas', map.canvas), 600);
 }
 
 /* ── Card rename ───────────────────────────────────────────────────────── */

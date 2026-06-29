@@ -180,6 +180,23 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // ── GET /api/canvas ───────────────────────────────────────────────────
+  if (pathname === '/api/canvas' && method === 'GET') {
+    const db = load();
+    send(res, 200, db.canvas || { positions: {}, connections: [], stickers: [] });
+    return;
+  }
+
+  // ── PUT /api/canvas ───────────────────────────────────────────────────
+  if (pathname === '/api/canvas' && method === 'PUT') {
+    const data = await readBody(req);
+    const db = load();
+    db.canvas = { positions: data.positions || {}, connections: data.connections || [], stickers: data.stickers || [] };
+    save(db);
+    send(res, 200, { ok: true });
+    return;
+  }
+
   // ── POST /api/timeline ─────────────────────────────────────────────────
   if (pathname === '/api/timeline' && method === 'POST') {
     const data = await readBody(req);

@@ -68,14 +68,34 @@
     </div>
   </main>
 
-  <main id="view-timeline" class="view">
-    <div class="timeline-header">
-      <h2 class="page-heading">Сводная карта</h2>
-      <p class="page-sub">Выберите разделы для объединения</p>
+  <main id="view-timeline" class="view map-view">
+
+    <!-- top bar -->
+    <div class="map-topbar">
+      <div class="map-picker-wrap">
+        <div class="timeline-section-picker" id="timeline-picker"></div>
+        <button class="btn-primary" id="btn-build-timeline">Показать</button>
+      </div>
+      <div class="map-toolbar" id="map-toolbar">
+        <button class="map-tool active" data-tool="pan"   title="Перемещение (пробел)">✥</button>
+        <button class="map-tool"        data-tool="connect" title="Соединить линией">⌇</button>
+        <button class="map-tool"        data-tool="sticker" title="Добавить стикер">◻</button>
+        <button class="map-tool danger" data-tool="erase"  title="Удалить элемент">✕</button>
+        <span class="map-tool-sep"></span>
+        <button class="map-tool" id="btn-map-fit" title="По размеру">⊡</button>
+      </div>
     </div>
-    <div class="timeline-section-picker" id="timeline-picker"></div>
-    <button class="btn-primary" id="btn-build-timeline">Показать карту</button>
-    <div class="board-canvas" id="timeline-canvas" style="margin-top:32px"></div>
+
+    <!-- canvas viewport -->
+    <div class="map-viewport" id="map-viewport">
+      <div class="map-world" id="map-world">
+        <svg class="map-svg" id="map-svg"></svg>
+      </div>
+    </div>
+
+    <!-- hint -->
+    <div class="map-hint" id="map-hint">Выберите разделы выше и нажмите «Показать»</div>
+
   </main>
 
 </div>
@@ -107,11 +127,11 @@
     <textarea class="field" id="m-item-note" rows="2" placeholder="Подробности…"></textarea>
     <div class="date-row">
       <div>
-        <label class="field-label">Начало</label>
+        <label class="field-label">Начало <span class="optional">— необязательно</span></label>
         <input class="field" id="m-item-start" type="date">
       </div>
       <div>
-        <label class="field-label">Срок</label>
+        <label class="field-label">Срок <span class="optional">— необязательно</span></label>
         <input class="field" id="m-item-due" type="date">
       </div>
     </div>
