@@ -488,29 +488,33 @@ textarea.field { resize: vertical; min-height: 52px; }
 /* stickers */
 .map-sticker {
   position: absolute;
-  background: rgba(255, 214, 0, 0.12);
-  border: 1px solid rgba(255, 214, 0, 0.3);
+  background: rgba(192,21,42,.10);
+  border: 1px solid rgba(192,21,42,.35);
+  border-top: 3px solid rgba(192,21,42,.7);
   border-radius: 10px;
   padding: 10px 12px;
   width: 170px;
   cursor: pointer;
   backdrop-filter: blur(12px);
   box-sizing: border-box;
+  transition: background .15s;
 }
-.map-sticker:hover { background: rgba(255,214,0,.18); }
+.map-sticker:hover { background: rgba(192,21,42,.18); }
 .map-sticker-text {
-  font-size: 12px; line-height: 1.5; color: rgba(255,240,160,.9);
+  font-size: 12px; line-height: 1.5; color: rgba(255,255,255,.85);
   outline: none; min-height: 20px; word-break: break-word;
 }
-.map-sticker-text:empty::before { content: 'Заметка…'; opacity: .4; }
+.map-sticker-text:empty::before { content: 'Заметка…'; color: rgba(255,255,255,.3); }
 .map-sticker-actions { display: flex; gap: 6px; margin-top: 8px; }
-.sticker-add-btn {
+.sticker-add-btn, .sticker-color-btn {
   font-size: 10px; padding: 3px 8px; border-radius: 20px;
   background: rgba(192,21,42,.3); border: 1px solid rgba(192,21,42,.5);
   color: rgba(255,255,255,.8); cursor: pointer; font-family: 'DM Sans', sans-serif;
   transition: background .14s;
 }
+.sticker-color-btn { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.15); }
 .sticker-add-btn:hover { background: rgba(192,21,42,.55); }
+.sticker-color-btn:hover { background: rgba(255,255,255,.15); }
 
 .map-hint {
   position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);

@@ -775,25 +775,47 @@ function mapRenderNode(item, pos, color) {
   world.appendChild(node);
 }
 
+const MAP_STICKER_COLORS = [
+  { bg: 'rgba(192,21,42,.10)',  border: 'rgba(192,21,42,.7)',  label: 'Малиновый' },
+  { bg: 'rgba(159,18,57,.10)', border: 'rgba(159,18,57,.7)',  label: 'Тёмно-красный' },
+  { bg: 'rgba(30,58,138,.12)', border: 'rgba(30,58,138,.7)',  label: 'Синий' },
+  { bg: 'rgba(29,78,216,.12)', border: 'rgba(29,78,216,.7)',  label: 'Ярко-синий' },
+  { bg: 'rgba(255,255,255,.05)', border: 'rgba(255,255,255,.25)', label: 'Стекло' },
+];
+
+function applyStickerColor(el, c) {
+  el.style.background = c.bg;
+  el.style.borderColor = c.border;
+  el.style.borderTopColor = c.border;
+}
+
 function mapRenderSticker(s) {
+  if (!s.colorIdx) s.colorIdx = 0;
   const world = $('#map-world');
   const el = document.createElement('div');
   el.className = 'map-sticker';
   el.dataset.stickerId = s.id;
   el.style.cssText = `left:${s.x}px;top:${s.y}px;`;
+  applyStickerColor(el, MAP_STICKER_COLORS[s.colorIdx] || MAP_STICKER_COLORS[0]);
+
   el.innerHTML = `
     <div class="map-sticker-text" contenteditable="true">${esc(s.text)}</div>
     <div class="map-sticker-actions">
+      <button class="sticker-color-btn" title="Сменить цвет">◑</button>
       <button class="sticker-add-btn">+ В планы</button>
     </div>
   `;
 
   const textEl = el.querySelector('.map-sticker-text');
-  textEl.addEventListener('blur', () => {
-    s.text = textEl.textContent.trim();
+  textEl.addEventListener('blur', () => { s.text = textEl.textContent.trim(); mapSave(); });
+  textEl.addEventListener('click', e => e.stopPropagation());
+
+  el.querySelector('.sticker-color-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    s.colorIdx = ((s.colorIdx || 0) + 1) % MAP_STICKER_COLORS.length;
+    applyStickerColor(el, MAP_STICKER_COLORS[s.colorIdx]);
     mapSave();
   });
-  textEl.addEventListener('click', e => e.stopPropagation());
 
   el.querySelector('.sticker-add-btn').addEventListener('click', e => {
     e.stopPropagation();
