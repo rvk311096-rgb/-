@@ -1,270 +1,226 @@
-import { useState, useEffect, useCallback } from 'react'
-import { X, ExternalLink, RefreshCw, Key, AlertCircle } from 'lucide-react'
-import { hexToHSL } from '../utils/colorTheory.js'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { X, RefreshCw, Download } from 'lucide-react'
 import './ImagePanel.css'
 
-const LS_KEY = 'chromia_unsplash_key'
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Map hex color → Unsplash color filter + search query
-// Unsplash accepts: black_and_white, black, white, yellow, orange, red,
-//                   purple, magenta, green, teal, blue
-// ─────────────────────────────────────────────────────────────────────────────
-function hexToUnsplashColor(hex) {
-  const { h, s, l } = hexToHSL(hex)
-
-  if (s < 12) {
-    if (l < 25) return 'black'
-    if (l > 80) return 'white'
-    return 'black_and_white'
+// ── Deterministic seeded RNG (mulberry32) ─────────────────────────────────
+function makeRng(seed) {
+  let s = seed >>> 0
+  return () => {
+    s |= 0; s = s + 0x6D2B79F5 | 0
+    let t = Math.imul(s ^ (s >>> 15), 1 | s)
+    t = t + Math.imul(t ^ (t >>> 7), 61 | t) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
-  if (l < 12) return 'black'
-  if (l > 92) return 'white'
-
-  if (h < 15 || h >= 345) return 'red'
-  if (h < 40)             return 'orange'
-  if (h < 70)             return 'yellow'
-  if (h < 155)            return 'green'
-  if (h < 200)            return 'teal'
-  if (h < 255)            return 'blue'
-  if (h < 290)            return 'purple'
-  if (h < 330)            return 'magenta'
-  return 'red'
 }
 
-// Queries matched to Unsplash color filter for best relevance
-const COLOR_QUERIES = {
-  red:             ['texture', 'nature', 'fabric', 'flower', 'abstract'],
-  orange:          ['texture', 'nature', 'autumn', 'fruit', 'abstract'],
-  yellow:          ['texture', 'nature', 'flower', 'light', 'abstract'],
-  green:           ['nature', 'plant', 'forest', 'texture', 'leaf'],
-  teal:            ['water', 'ocean', 'nature', 'abstract', 'texture'],
-  blue:            ['sky', 'ocean', 'nature', 'texture', 'abstract'],
-  purple:          ['flower', 'nature', 'abstract', 'texture', 'art'],
-  magenta:         ['flower', 'abstract', 'art', 'nature', 'texture'],
-  black:           ['texture', 'minimal', 'abstract', 'night', 'dark'],
-  white:           ['minimal', 'light', 'texture', 'clean', 'nature'],
-  black_and_white: ['texture', 'minimal', 'abstract', 'architecture', 'nature'],
+function hexToRgb(hex) {
+  const n = parseInt(hex.slice(1), 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
 }
 
-async function fetchImages(apiKey, hexColors, page = 1) {
-  const results = []
-  const perColor = Math.ceil(6 / hexColors.length)
+// ── Art style renderers ────────────────────────────────────────────────────
 
-  for (const hex of hexColors) {
-    const colorFilter = hexToUnsplashColor(hex)
-    const queries = COLOR_QUERIES[colorFilter] || ['texture']
+function drawWaves(ctx, w, h, colors, seed) {
+  const rng = makeRng(seed)
+  ctx.fillStyle = colors[0]
+  ctx.fillRect(0, 0, w, h)
+  const layers = colors.length * 3
+  for (let i = 0; i < layers; i++) {
+    const [r, g, b] = hexToRgb(colors[i % colors.length])
+    ctx.strokeStyle = `rgba(${r},${g},${b},${0.3 + rng() * 0.5})`
+    ctx.lineWidth = 2 + rng() * 10
+    ctx.beginPath()
+    const yBase = (i / layers) * h * 1.3 - h * 0.15
+    const amp = 25 + rng() * 90
+    const freq = 0.003 + rng() * 0.009
+    const phase = rng() * Math.PI * 2
+    for (let x = 0; x <= w; x += 2) {
+      const y = yBase + Math.sin(x * freq + phase) * amp + Math.cos(x * freq * 0.6 + phase) * amp * 0.4
+      x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)
+    }
+    ctx.stroke()
+  }
+}
 
-    for (let qi = 0; qi < Math.min(perColor, queries.length); qi++) {
-      const query = queries[(page + qi) % queries.length]
-      const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&color=${colorFilter}&per_page=3&page=${page}&client_id=${apiKey}`
+function drawCircles(ctx, w, h, colors, seed) {
+  const rng = makeRng(seed)
+  ctx.fillStyle = colors[0]
+  ctx.fillRect(0, 0, w, h)
+  for (let i = 0; i < 22; i++) {
+    const [r, g, b] = hexToRgb(colors[Math.floor(rng() * colors.length)])
+    const x = rng() * w; const y = rng() * h
+    const radius = 20 + rng() * Math.min(w, h) * 0.38
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, radius)
+    grad.addColorStop(0, `rgba(${r},${g},${b},${0.2 + rng() * 0.5})`)
+    grad.addColorStop(1, `rgba(${r},${g},${b},0)`)
+    ctx.fillStyle = grad
+    ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill()
+  }
+}
 
-      try {
-        const res = await fetch(url)
-        if (res.status === 401) throw new Error('invalid_key')
-        if (!res.ok) continue
-        const data = await res.json()
-        const photos = data.results?.slice(0, perColor) || []
-        photos.forEach(photo => {
-          results.push({
-            id: photo.id,
-            src: photo.urls.small,
-            full: photo.urls.regular,
-            thumb: photo.urls.thumb,
-            link: photo.links.html,
-            credit: photo.user.name,
-            creditLink: photo.user.links.html,
-            color: photo.color,
-            hex,
-            colorFilter,
-            query,
-          })
-        })
-      } catch (e) {
-        if (e.message === 'invalid_key') throw e
-      }
+function drawGradient(ctx, w, h, colors, seed) {
+  const rng = makeRng(seed)
+  const angle = rng() * Math.PI * 2
+  const grad = ctx.createLinearGradient(
+    w / 2 + Math.cos(angle) * w, h / 2 + Math.sin(angle) * h,
+    w / 2 - Math.cos(angle) * w, h / 2 - Math.sin(angle) * h,
+  )
+  const shuffled = [...colors].sort(() => rng() - 0.5)
+  shuffled.forEach((c, i) => grad.addColorStop(i / (shuffled.length - 1 || 1), c))
+  ctx.fillStyle = grad
+  ctx.fillRect(0, 0, w, h)
+  for (let i = 0; i < 8; i++) {
+    const [r, g, b] = hexToRgb(colors[Math.floor(rng() * colors.length)])
+    const cx = rng() * w; const cy = rng() * h; const rad = 80 + rng() * 220
+    const g2 = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad)
+    g2.addColorStop(0, `rgba(${r},${g},${b},${0.1 + rng() * 0.2})`)
+    g2.addColorStop(1, `rgba(${r},${g},${b},0)`)
+    ctx.fillStyle = g2; ctx.fillRect(0, 0, w, h)
+  }
+}
+
+function drawMosaic(ctx, w, h, colors, seed) {
+  const rng = makeRng(seed)
+  const size = 40 + Math.floor(rng() * 70)
+  for (let row = 0; row < Math.ceil(h / size); row++) {
+    for (let col = 0; col < Math.ceil(w / size); col++) {
+      const [R, G, B] = hexToRgb(colors[Math.floor(rng() * colors.length)])
+      const j = () => Math.floor((rng() - 0.5) * 35)
+      ctx.fillStyle = `rgb(${Math.max(0,Math.min(255,R+j()))},${Math.max(0,Math.min(255,G+j()))},${Math.max(0,Math.min(255,B+j()))})`
+      ctx.fillRect(col * size, row * size, size, size)
     }
   }
-
-  // Deduplicate and limit to 6
-  const seen = new Set()
-  return results.filter(r => {
-    if (seen.has(r.id)) return false
-    seen.add(r.id)
-    return true
-  }).slice(0, 6)
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+function drawMesh(ctx, w, h, colors, seed) {
+  const rng = makeRng(seed)
+  const pts = Array.from({ length: 6 + colors.length * 2 }, () => ({
+    x: rng() * w, y: rng() * h, rgb: hexToRgb(colors[Math.floor(rng() * colors.length)])
+  }))
+  // Downscale for perf then stretch
+  const S = 4
+  const sw = Math.ceil(w / S); const sh = Math.ceil(h / S)
+  const imgData = ctx.createImageData(sw, sh)
+  for (let y = 0; y < sh; y++) {
+    for (let x = 0; x < sw; x++) {
+      let tr = 0, tg = 0, tb = 0, tw = 0
+      for (const p of pts) {
+        const d2 = ((x * S - p.x) ** 2 + (y * S - p.y) ** 2) + 1
+        const wt = 1 / d2
+        tr += p.rgb[0] * wt; tg += p.rgb[1] * wt; tb += p.rgb[2] * wt; tw += wt
+      }
+      const i = (y * sw + x) * 4
+      imgData.data[i] = tr / tw; imgData.data[i+1] = tg / tw; imgData.data[i+2] = tb / tw; imgData.data[i+3] = 255
+    }
+  }
+  // Draw small then scale up
+  const offscreen = document.createElement('canvas')
+  offscreen.width = sw; offscreen.height = sh
+  offscreen.getContext('2d').putImageData(imgData, 0, 0)
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  ctx.drawImage(offscreen, 0, 0, w, h)
+}
+
+function drawAurora(ctx, w, h, colors, seed) {
+  const rng = makeRng(seed)
+  ctx.fillStyle = colors[0]
+  ctx.fillRect(0, 0, w, h)
+  for (let li = 0; li < colors.length * 3; li++) {
+    const [r, g, b] = hexToRgb(colors[li % colors.length])
+    const yCenter = h * (0.2 + rng() * 0.6)
+    const bandH = h * (0.12 + rng() * 0.38)
+    const freq = 0.002 + rng() * 0.005
+    const phase = rng() * Math.PI * 2
+    const alpha = 0.08 + rng() * 0.28
+    for (let x = 0; x < w; x += 1) {
+      const wave = Math.sin(x * freq + phase) * bandH * 0.5
+      const y0 = yCenter + wave - bandH / 2
+      const y1 = yCenter + wave + bandH / 2
+      const grad = ctx.createLinearGradient(x, y0, x, y1)
+      grad.addColorStop(0, `rgba(${r},${g},${b},0)`)
+      grad.addColorStop(0.5, `rgba(${r},${g},${b},${alpha})`)
+      grad.addColorStop(1, `rgba(${r},${g},${b},0)`)
+      ctx.fillStyle = grad
+      ctx.fillRect(x, y0, 1, y1 - y0)
+    }
+  }
+}
+
+const DRAW_FNS = { waves: drawWaves, circles: drawCircles, gradient: drawGradient, mosaic: drawMosaic, mesh: drawMesh, aurora: drawAurora }
+const STYLES = ['aurora', 'waves', 'gradient', 'circles', 'mesh', 'mosaic']
+
+// ── Component ──────────────────────────────────────────────────────────────
+
 export default function ImagePanel({ palette = [], onClose }) {
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem(LS_KEY) || '')
-  const [keyInput, setKeyInput] = useState('')
-  const [images, setImages] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [page, setPage] = useState(1)
+  const canvasRef = useRef(null)
+  const [style, setStyle] = useState('aurora')
+  const [seed, setSeed] = useState(() => Math.floor(Math.random() * 0xFFFFFF))
 
-  const load = useCallback(async (key, pg) => {
-    if (!key || !palette.length) return
-    setLoading(true)
-    setError(null)
-    try {
-      const imgs = await fetchImages(key, palette, pg)
-      setImages(imgs)
-    } catch (e) {
-      if (e.message === 'invalid_key') {
-        setError('invalid_key')
-        localStorage.removeItem(LS_KEY)
-        setApiKey('')
-      } else {
-        setError('network')
-      }
-    } finally {
-      setLoading(false)
-    }
-  }, [palette.join(',')])
+  const render = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas || !palette.length) return
+    DRAW_FNS[style](canvas.getContext('2d'), canvas.width, canvas.height, palette, seed)
+  }, [palette, style, seed])
 
-  useEffect(() => {
-    if (apiKey) load(apiKey, page)
-  }, [apiKey, page])
+  useEffect(() => { render() }, [render])
 
-  const saveKey = () => {
-    const k = keyInput.trim()
-    if (!k) return
-    localStorage.setItem(LS_KEY, k)
-    setApiKey(k)
-    setKeyInput('')
+  const refresh = () => setSeed(Math.floor(Math.random() * 0xFFFFFF))
+
+  const download = () => {
+    const a = document.createElement('a')
+    a.href = canvasRef.current.toDataURL('image/png')
+    a.download = `chromia-${style}.png`
+    a.click()
   }
 
-  const resetKey = () => {
-    localStorage.removeItem(LS_KEY)
-    setApiKey('')
-    setImages([])
-  }
-
-  // ── No API key — show setup screen ────────────────────────────────────────
-  if (!apiKey) {
-    return (
-      <div className="image-panel-overlay" onClick={onClose}>
-        <div className="image-panel ip-setup" onClick={e => e.stopPropagation()}>
-          <div className="ip-header">
-            <h3 className="ip-title">Visual Inspiration</h3>
-            <button className="btn btn-icon" onClick={onClose}><X size={16} /></button>
-          </div>
-
-          <div className="ip-key-screen">
-            <div className="ip-key-icon"><Key size={32} /></div>
-            <h4>Нужен бесплатный Unsplash API ключ</h4>
-            <p>
-              Это позволит подбирать изображения точно по цвету палитры.
-              <br />Ключ получается за 1 минуту и даёт 50 запросов/час.
-            </p>
-
-            <div className="ip-key-steps">
-              <a href="https://unsplash.com/developers" target="_blank" rel="noopener noreferrer" className="ip-step-link">
-                1. Открыть unsplash.com/developers →
-              </a>
-              <span className="ip-step">2. «Your apps» → «New application» → принять условия</span>
-              <span className="ip-step">3. Скопировать <strong>Access Key</strong></span>
-            </div>
-
-            {error === 'invalid_key' && (
-              <div className="ip-error">
-                <AlertCircle size={14} /> Неверный ключ — попробуйте ещё раз
-              </div>
-            )}
-
-            <div className="ip-key-input-row">
-              <input
-                className="ip-key-input"
-                placeholder="Вставить Access Key..."
-                value={keyInput}
-                onChange={e => setKeyInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && saveKey()}
-                autoFocus
-              />
-              <button className="btn btn-primary" onClick={saveKey} disabled={!keyInput.trim()}>
-                Сохранить
-              </button>
-            </div>
-            <p className="ip-key-note">Ключ хранится только локально в вашем браузере</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // ── Main image grid ────────────────────────────────────────────────────────
   return (
     <div className="image-panel-overlay" onClick={onClose}>
-      <div className="image-panel" onClick={e => e.stopPropagation()}>
+      <div className="image-panel ip-art-panel" onClick={e => e.stopPropagation()}>
 
         <div className="ip-header">
           <div>
-            <h3 className="ip-title">Visual Inspiration</h3>
+            <h3 className="ip-title">Palette Art</h3>
             <p className="ip-query">
               {palette.map(h => (
                 <span key={h} className="ip-color-dot" style={{ background: h }} title={h} />
               ))}
-              {palette.map(h => hexToUnsplashColor(h)).filter((v,i,a)=>a.indexOf(v)===i).join(' · ')}
+              {palette.join('  ·  ')}
             </p>
           </div>
           <div className="ip-actions">
-            <button className="btn btn-ghost" onClick={() => setPage(p => p + 1)}>
-              <RefreshCw size={14} /> Refresh
+            <button className="btn btn-ghost" onClick={refresh}>
+              <RefreshCw size={14} /> Generate
             </button>
-            <button className="btn btn-ghost ip-key-reset" onClick={resetKey} title="Сменить API ключ">
-              <Key size={14} />
+            <button className="btn btn-ghost" onClick={download}>
+              <Download size={14} /> Save PNG
             </button>
             <button className="btn btn-icon" onClick={onClose}><X size={16} /></button>
           </div>
         </div>
 
-        {/* Color pills */}
-        <div className="ip-categories">
-          {palette.map(hex => (
-            <span key={hex} className="ip-color-pill">
-              <span className="ip-pill-dot" style={{ background: hex }} />
-              {hexToUnsplashColor(hex).replace('_', ' ')}
-            </span>
+        <div className="ip-style-tabs">
+          {STYLES.map(s => (
+            <button
+              key={s}
+              className={`ip-style-tab ${style === s ? 'active' : ''}`}
+              onClick={() => setStyle(s)}
+            >
+              {s.charAt(0).toUpperCase() + s.slice(1)}
+            </button>
           ))}
         </div>
 
-        {error === 'network' && (
-          <div className="ip-error ip-error-bar">
-            <AlertCircle size={14} /> Ошибка сети — проверьте подключение
-          </div>
-        )}
-
-        <div className={`ip-grid ip-grid-6 ${loading ? 'ip-loading' : ''}`}>
-          {loading
-            ? Array.from({ length: 6 }, (_, i) => <div key={i} className="ip-skeleton" />)
-            : images.map(img => (
-                <div key={img.id} className="ip-image-wrap">
-                  <div className="ip-color-accent" style={{ background: img.hex }} />
-                  <img src={img.src} alt={img.query} className="ip-image" />
-                  <div className="ip-image-meta">
-                    <span>{img.colorFilter.replace('_',' ')} · {img.query}</span>
-                    <a href={img.link} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink size={11} />
-                    </a>
-                  </div>
-                  <div className="ip-credit">
-                    <a href={img.creditLink} target="_blank" rel="noopener noreferrer">
-                      {img.credit}
-                    </a>
-                  </div>
-                </div>
-              ))
-          }
+        <div className="ip-canvas-wrap">
+          <canvas ref={canvasRef} width={760} height={440} className="ip-canvas" />
         </div>
 
-        <div className="ip-footer">
-          <span>Unsplash · filtered by palette color</span>
-          <a href="https://unsplash.com" target="_blank" rel="noopener noreferrer">
-            Unsplash ↗
-          </a>
+        <div className="ip-palette-strip">
+          {palette.map(hex => (
+            <div key={hex} className="ip-strip-color" style={{ background: hex }} title={hex} />
+          ))}
         </div>
+
       </div>
     </div>
   )
