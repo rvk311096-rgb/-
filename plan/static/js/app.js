@@ -1046,9 +1046,10 @@ function buildNoteColorPicker() {
     const dot = document.createElement('div');
     dot.className = 'color-dot' + (c === state.selectedNoteColor ? ' active' : '');
     dot.style.background = c;
+    dot.dataset.color = c;
     dot.addEventListener('click', () => {
       state.selectedNoteColor = c;
-      $$('#note-color-picker .color-dot').forEach(d => d.classList.toggle('active', d.style.background === c || d.style.backgroundColor === c));
+      $$('#note-color-picker .color-dot').forEach(d => d.classList.toggle('active', d.dataset.color === c));
     });
     row.appendChild(dot);
   });
