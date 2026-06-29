@@ -336,6 +336,85 @@ textarea.field { resize: vertical; min-height: 52px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.10); border-radius: 2px; }
 
+/* ── Sticker notes ───────────────────────────────────────────────────────── */
+.notes-bar {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding-bottom: 4px;
+}
+.notes-strip {
+  display: flex; gap: 10px; flex-wrap: wrap; flex: 1;
+}
+.section-notes-strip {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.note-add-btn {
+  flex-shrink: 0; background: rgba(255,255,255,.05);
+  border: 1px dashed rgba(255,255,255,.18); color: var(--muted);
+  font-size: 12px; padding: 6px 14px; border-radius: 10px;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all .14s; white-space: nowrap;
+  align-self: flex-start;
+}
+.note-add-btn:hover { color: var(--text); background: var(--glass); border-style: solid; }
+
+.note-card {
+  position: relative;
+  background: color-mix(in srgb, var(--nc) 12%, rgba(0,0,0,0));
+  border: 1px solid color-mix(in srgb, var(--nc) 35%, transparent);
+  border-top: 3px solid var(--nc);
+  border-radius: 10px;
+  padding: 10px 12px 8px;
+  width: 170px; min-height: 80px;
+  display: flex; flex-direction: column; gap: 6px;
+  backdrop-filter: blur(12px);
+  transition: background .15s, transform .15s;
+  cursor: default;
+}
+.note-card:hover { transform: translateY(-2px); }
+.note-text {
+  font-size: 12.5px; line-height: 1.5;
+  color: color-mix(in srgb, var(--nc) 30%, rgba(255,255,255,.88));
+  flex: 1; word-break: break-word;
+}
+.note-lock { font-size: 11px; opacity: .5; }
+.note-footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  margin-top: auto;
+}
+.note-sec-badge {
+  font-size: 9.5px; letter-spacing: .4px; text-transform: uppercase;
+  color: var(--muted); font-family: 'Syne', sans-serif;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70px;
+}
+.note-actions { display: flex; gap: 3px; }
+.note-btn {
+  background: none; border: none; color: var(--muted);
+  font-size: 12px; padding: 2px 5px; border-radius: 5px;
+  cursor: pointer; transition: all .12s;
+}
+.note-btn:hover { color: var(--text); background: rgba(255,255,255,.1); }
+.note-btn.danger:hover { color: #f87171; }
+
+.note-color-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* note move popup */
+.note-mover-popup {
+  position: fixed; z-index: 200;
+  background: rgba(8,8,20,.96); backdrop-filter: blur(24px);
+  border: 1px solid var(--subtle); border-radius: 12px;
+  padding: 6px; min-width: 180px;
+  box-shadow: 0 16px 48px rgba(0,0,0,.6);
+}
+.mover-opt {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px; border-radius: 8px;
+  font-size: 13px; cursor: pointer; transition: background .12s;
+}
+.mover-opt:hover { background: var(--glass-h); }
+.mover-opt.active { color: var(--text); font-weight: 500; }
+.mover-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
 /* ── Interactive map ─────────────────────────────────────────────────────── */
 .map-view { padding: 0 !important; gap: 0 !important; overflow: hidden !important; height: calc(100vh - 52px); }
 

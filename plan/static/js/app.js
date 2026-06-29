@@ -1,11 +1,14 @@
 /* ── State ─────────────────────────────────────────────────────────────── */
 const state = {
   sections: [],
+  notes: [],
   currentSection: null,
   currentItems: [],
-  sectionPasswords: {},   // {sectionId: password}
+  sectionPasswords: {},
   editingItem: null,
+  editingNote: null,
   selectedColor: '#6366f1',
+  selectedNoteColor: '#ffd166',
   selectedStatus: 'planned',
 };
 
@@ -71,8 +74,12 @@ async function goHome() {
 }
 
 async function loadSections() {
-  state.sections = await api('GET', '/api/sections');
+  [state.sections, state.notes] = await Promise.all([
+    api('GET', '/api/sections'),
+    api('GET', '/api/notes'),
+  ]);
   renderSections();
+  renderHomeNotes();
 }
 
 function renderSections() {
@@ -181,6 +188,7 @@ async function loadSectionView(sec) {
   showView('section');
   setSubview('list');
   renderItems();
+  renderSectionNotes(sec.id);
 }
 
 $('#btn-back').addEventListener('click', goHome);
@@ -909,6 +917,179 @@ function mapSave() {
   clearTimeout(map.saveTimer);
   map.saveTimer = setTimeout(() => api('PUT', '/api/canvas', map.canvas), 600);
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   STICKER NOTES
+   ══════════════════════════════════════════════════════════════════════════ */
+const NOTE_COLORS = ['#ffd166','#f4845f','#c0152a','#3b6fd4','#06d6a0','#a78bfa','#f9f9f9'];
+
+function renderHomeNotes() {
+  const strip = $('#notes-strip');
+  if (!strip) return;
+  strip.innerHTML = '';
+  const homeNotes = state.notes.filter(n => !n.section_id);
+  homeNotes.forEach(n => strip.appendChild(buildNoteCard(n, null)));
+  $('#notes-bar').style.display = homeNotes.length ? 'flex' : 'none';
+  // always show if we want to hint user — keep visible but small when empty
+  $('#notes-bar').style.display = 'flex';
+}
+
+function renderSectionNotes(secId) {
+  const strip = $('#section-notes-strip');
+  if (!strip) return;
+  strip.innerHTML = '';
+  const secNotes = state.notes.filter(n => n.section_id === secId);
+  secNotes.forEach(n => strip.appendChild(buildNoteCard(n, secId)));
+  strip.style.display = secNotes.length ? 'flex' : 'none';
+}
+
+function buildNoteCard(note, contextSecId) {
+  const card = document.createElement('div');
+  card.className = 'note-card';
+  card.dataset.noteId = note.id;
+  card.style.setProperty('--nc', note.color);
+
+  const sectionName = note.section_id
+    ? (state.sections.find(s => s.id === note.section_id)?.name || '')
+    : '';
+
+  card.innerHTML = `
+    <div class="note-text">${esc(note.text)}</div>
+    ${note.locked ? '<div class="note-lock">🔒</div>' : ''}
+    <div class="note-footer">
+      ${sectionName ? `<span class="note-sec-badge">${esc(sectionName)}</span>` : ''}
+      <div class="note-actions">
+        <button class="note-btn" data-action="move" title="Переместить в раздел">⇥</button>
+        <button class="note-btn" data-action="edit" title="Редактировать">✎</button>
+        <button class="note-btn danger" data-action="del" title="Удалить">✕</button>
+      </div>
+    </div>
+  `;
+
+  card.querySelector('[data-action="edit"]').addEventListener('click', e => {
+    e.stopPropagation();
+    openNoteModal(note);
+  });
+  card.querySelector('[data-action="del"]').addEventListener('click', async e => {
+    e.stopPropagation();
+    await deleteNote(note);
+  });
+  card.querySelector('[data-action="move"]').addEventListener('click', e => {
+    e.stopPropagation();
+    showNoteMover(card, note);
+  });
+
+  return card;
+}
+
+function showNoteMover(anchor, note) {
+  // remove any existing picker
+  $('.note-mover-popup')?.remove();
+  const popup = document.createElement('div');
+  popup.className = 'note-mover-popup';
+
+  const homeOpt = document.createElement('div');
+  homeOpt.className = 'mover-opt' + (!note.section_id ? ' active' : '');
+  homeOpt.textContent = '🏠 Главная страница';
+  homeOpt.addEventListener('click', async () => { await moveNote(note, null); popup.remove(); });
+  popup.appendChild(homeOpt);
+
+  state.sections.forEach(sec => {
+    const opt = document.createElement('div');
+    opt.className = 'mover-opt' + (note.section_id === sec.id ? ' active' : '');
+    opt.innerHTML = `<span class="mover-dot" style="background:${sec.color}"></span>${esc(sec.name)}`;
+    opt.addEventListener('click', async () => { await moveNote(note, sec.id); popup.remove(); });
+    popup.appendChild(opt);
+  });
+
+  document.body.appendChild(popup);
+  const r = anchor.getBoundingClientRect();
+  popup.style.cssText = `top:${r.bottom + 6}px;left:${r.left}px;`;
+  setTimeout(() => document.addEventListener('click', () => popup.remove(), { once: true }), 10);
+}
+
+async function moveNote(note, sectionId) {
+  try {
+    await api('PUT', `/api/notes/${note.id}`, { section_id: sectionId, password: '' });
+    note.section_id = sectionId;
+    state.notes = await api('GET', '/api/notes');
+    renderHomeNotes();
+    if (state.currentSection) renderSectionNotes(state.currentSection.id);
+  } catch(e) { alert(e.message); }
+}
+
+async function deleteNote(note) {
+  if (note.locked) {
+    promptPassword(note, async pw => {
+      try {
+        await api('DELETE', `/api/notes/${note.id}`, { password: pw });
+        state.notes = state.notes.filter(n => n.id !== note.id);
+        renderHomeNotes();
+        if (state.currentSection) renderSectionNotes(state.currentSection.id);
+      } catch(e) { alert(e.message); }
+    });
+    return;
+  }
+  try {
+    await api('DELETE', `/api/notes/${note.id}`, {});
+    state.notes = state.notes.filter(n => n.id !== note.id);
+    renderHomeNotes();
+    if (state.currentSection) renderSectionNotes(state.currentSection.id);
+  } catch(e) { alert(e.message); }
+}
+
+// ── Note modal ────────────────────────────────────────────────────────────
+function buildNoteColorPicker() {
+  const row = $('#note-color-picker');
+  row.innerHTML = '';
+  NOTE_COLORS.forEach(c => {
+    const dot = document.createElement('div');
+    dot.className = 'color-dot' + (c === state.selectedNoteColor ? ' active' : '');
+    dot.style.background = c;
+    dot.addEventListener('click', () => {
+      state.selectedNoteColor = c;
+      $$('#note-color-picker .color-dot').forEach(d => d.classList.toggle('active', d.style.background === c || d.style.backgroundColor === c));
+    });
+    row.appendChild(dot);
+  });
+}
+
+function openNoteModal(note) {
+  state.editingNote = note || null;
+  $('#modal-note-title').textContent = note ? 'Редактировать стикер' : 'Новый стикер';
+  $('#m-note-text').value = note ? note.text : '';
+  $('#m-note-pass').value = '';
+  state.selectedNoteColor = note ? note.color : '#ffd166';
+  buildNoteColorPicker();
+  openModal('modal-note');
+  setTimeout(() => $('#m-note-text').focus(), 50);
+}
+
+$('#btn-new-note').addEventListener('click', () => openNoteModal(null));
+$('#btn-note-cancel').addEventListener('click', closeModal);
+
+$('#btn-note-save').addEventListener('click', async () => {
+  const text = $('#m-note-text').value.trim();
+  if (!text) return;
+  const pw = $('#m-note-pass').value;
+  const color = state.selectedNoteColor;
+
+  try {
+    if (state.editingNote) {
+      await api('PUT', `/api/notes/${state.editingNote.id}`, {
+        text, color,
+        new_password: pw || undefined,
+        password: '',
+      });
+    } else {
+      await api('POST', '/api/notes', { text, color, password: pw });
+    }
+    state.notes = await api('GET', '/api/notes');
+    closeModal();
+    renderHomeNotes();
+    if (state.currentSection) renderSectionNotes(state.currentSection.id);
+  } catch(e) { alert(e.message); }
+});
 
 /* ── Card rename ───────────────────────────────────────────────────────── */
 function startCardRename(sec) {

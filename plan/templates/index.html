@@ -35,9 +35,13 @@
 
   <!-- VIEWS -->
   <main id="view-home" class="view active">
-    <div class="home-grid" id="sections-grid">
-      <!-- sections rendered by JS -->
+    <!-- Stickers strip -->
+    <div class="notes-bar" id="notes-bar">
+      <div class="notes-strip" id="notes-strip"></div>
+      <button class="note-add-btn" id="btn-new-note" title="Новый стикер">＋ Стикер</button>
     </div>
+    <!-- Sections grid -->
+    <div class="home-grid" id="sections-grid"></div>
   </main>
 
   <main id="view-section" class="view">
@@ -61,6 +65,7 @@
     </div>
 
     <div id="subview-list" class="subview active">
+      <div class="notes-strip section-notes-strip" id="section-notes-strip"></div>
       <div class="items-list" id="items-list"></div>
     </div>
     <div id="subview-board" class="subview">
@@ -144,6 +149,21 @@
     <div class="modal-actions">
       <button class="btn-ghost" id="btn-item-cancel">Отмена</button>
       <button class="btn-primary" id="btn-item-save">Сохранить</button>
+    </div>
+  </div>
+
+  <!-- Note / Sticker -->
+  <div id="modal-note" class="modal hidden">
+    <h3 class="modal-title" id="modal-note-title">Новый стикер</h3>
+    <label class="field-label">Текст</label>
+    <textarea class="field" id="m-note-text" rows="3" placeholder="Запиши идею…"></textarea>
+    <label class="field-label">Цвет</label>
+    <div class="note-color-row" id="note-color-picker"></div>
+    <label class="field-label">Пароль <span class="optional">— необязательно</span></label>
+    <input class="field" id="m-note-pass" type="password" placeholder="Оставьте пустым">
+    <div class="modal-actions">
+      <button class="btn-ghost" id="btn-note-cancel">Отмена</button>
+      <button class="btn-primary" id="btn-note-save">Сохранить</button>
     </div>
   </div>
 

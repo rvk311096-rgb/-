@@ -180,6 +180,66 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // ── GET /api/notes ────────────────────────────────────────────────────
+  if (pathname === '/api/notes' && method === 'GET') {
+    const db = load();
+    send(res, 200, (db.notes || []).map(n => ({ ...n, locked: !!n.password_hash, password_hash: undefined })));
+    return;
+  }
+
+  // ── POST /api/notes ───────────────────────────────────────────────────
+  if (pathname === '/api/notes' && method === 'POST') {
+    const data = await readBody(req);
+    const db = load();
+    if (!db.notes) db.notes = [];
+    if (!db.seq.n) db.seq.n = 1;
+    const note = {
+      id: db.seq.n++,
+      text: data.text || '',
+      color: data.color || '#ffd166',
+      section_id: data.section_id || null,
+      password_hash: data.password?.trim() ? hashPw(data.password) : null,
+      created_at: new Date().toISOString(),
+    };
+    db.notes.push(note);
+    save(db);
+    send(res, 200, { ...note, locked: !!note.password_hash, password_hash: undefined });
+    return;
+  }
+
+  // ── PUT /api/notes/:id ────────────────────────────────────────────────
+  const notePut = pathname.match(/^\/api\/notes\/(\d+)$/);
+  if (notePut && method === 'PUT') {
+    const id = +notePut[1];
+    const data = await readBody(req);
+    const db = load();
+    const note = (db.notes || []).find(n => n.id === id);
+    if (!note) { send(res, 404, { detail: 'not found' }); return; }
+    if (note.password_hash && !checkPw(data.password || '', note.password_hash)) { send(res, 403, { detail: 'wrong password' }); return; }
+    if (data.text !== undefined) note.text = data.text;
+    if (data.color) note.color = data.color;
+    if ('section_id' in data) note.section_id = data.section_id;
+    if (data.new_password === '') note.password_hash = null;
+    else if (data.new_password) note.password_hash = hashPw(data.new_password);
+    save(db);
+    send(res, 200, { ok: true });
+    return;
+  }
+
+  // ── DELETE /api/notes/:id ─────────────────────────────────────────────
+  if (notePut && method === 'DELETE') {
+    const id = +notePut[1];
+    const data = await readBody(req);
+    const db = load();
+    const note = (db.notes || []).find(n => n.id === id);
+    if (!note) { send(res, 404, { detail: 'not found' }); return; }
+    if (note.password_hash && !checkPw(data.password || '', note.password_hash)) { send(res, 403, { detail: 'wrong password' }); return; }
+    db.notes = db.notes.filter(n => n.id !== id);
+    save(db);
+    send(res, 200, { ok: true });
+    return;
+  }
+
   // ── GET /api/canvas ───────────────────────────────────────────────────
   if (pathname === '/api/canvas' && method === 'GET') {
     const db = load();
