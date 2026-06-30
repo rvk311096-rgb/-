@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Вход — Ежедневный отчёт</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 44px 40px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .logo-icon { font-size: 2.4rem; }
+    .logo h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-top: 8px;
+    }
+    .logo p {
+      font-size: 0.82rem;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 6px;
+      letter-spacing: 0.3px;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+      color: #1a1a2e;
+    }
+    input[type="password"]:focus { border-color: #3b82f6; }
+
+    .error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #b91c1c;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #e94560;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background 0.2s, transform 0.15s;
+    }
+    button:hover { background: #c73652; transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="logo">
+      <div class="logo-icon">📊</div>
+      <h1>Ежедневный отчёт</h1>
+      <p>Введите пароль для входа</p>
+    </div>
+
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="/login">
+      <label for="password">Пароль</label>
+      <input type="password" id="password" name="password" autofocus placeholder="••••••••" required />
+      <button type="submit">Войти</button>
+    </form>
+  </div>
+</body>
+</html>
